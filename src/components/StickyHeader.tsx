@@ -12,22 +12,24 @@ interface SummaryCardProps {
 function SummaryCard({ title, value, trend, icon, trendColor = "profit" }: SummaryCardProps) {
   const isPositive = trend >= 0;
   return (
-    <div className="flex items-center gap-1.5 rounded-md border border-border bg-card px-2 py-1.5 sm:gap-3 sm:px-4 sm:py-3">
-      <div className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-md bg-secondary sm:flex">
-        {icon}
-      </div>
-      <div className="min-w-0 flex-1">
-        <p className="text-[8px] uppercase tracking-wider text-muted-foreground sm:text-[10px]">{title}</p>
-        <div className="flex items-center gap-1 sm:gap-2">
-          <span className="whitespace-nowrap text-xs font-semibold text-foreground sm:text-lg">{value}</span>
-          <Badge
-            variant="outline"
-            className={`shrink-0 text-[10px] px-1.5 py-0 border-0 ${
-              isPositive ? "bg-profit/15 text-profit" : "bg-loss/15 text-loss"
-            }`}
-          >
-            {isPositive ? "+" : ""}{trend}%
-          </Badge>
+    <div className="overflow-hidden rounded-md border border-border bg-card px-2 py-1.5 sm:px-4 sm:py-3">
+      <div className="flex items-center gap-1.5 sm:gap-3">
+        <div className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-md bg-secondary sm:flex">
+          {icon}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[8px] uppercase tracking-wider text-muted-foreground sm:text-[10px]">{title}</p>
+          <div className="flex items-center gap-1 sm:gap-2">
+            <span className="truncate text-xs font-semibold text-foreground sm:text-lg">{value}</span>
+            <Badge
+              variant="outline"
+              className={`shrink-0 text-[8px] px-1 py-0 border-0 sm:text-[10px] sm:px-1.5 ${
+                isPositive ? "bg-profit/15 text-profit" : "bg-loss/15 text-loss"
+              }`}
+            >
+              {isPositive ? "+" : ""}{trend}%
+            </Badge>
+          </div>
         </div>
       </div>
     </div>
