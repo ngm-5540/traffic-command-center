@@ -100,7 +100,7 @@ export default function Dashboard() {
             ))}
           </nav>
 
-          <span className="hidden text-xs text-muted-foreground sm:inline ml-1">Usuário</span>
+          
         </div>
       </header>
 
