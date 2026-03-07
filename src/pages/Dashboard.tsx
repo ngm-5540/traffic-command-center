@@ -227,7 +227,7 @@ export default function Dashboard() {
           { label: "LUCRO", value: formatBRL(kpis.totalProfit), fullValue: formatBRLFull(kpis.totalProfit), isProfit: true, profitValue: kpis.totalProfit, tooltip: "Receita total menos custo total", popCurrent: kpis.totalProfit, popPrevious: previousKpis.totalProfit },
           { label: "ROAS", value: formatROAS(kpis.avgRoas), isRoas: true, isRoasPositive: kpis.avgRoas >= 1, isRoasCritical: kpis.avgRoas === -1, roasColor: getRoasColor(kpis.avgRoas), tooltip: "Retorno médio sobre investimento", popCurrent: kpis.avgRoas, popPrevious: previousKpis.avgRoas },
           { label: "RPS", value: formatBRL(kpis.avgRps), fullValue: formatBRLFull(kpis.avgRps), tooltip: "Receita por sessão média", popCurrent: kpis.avgRps, popPrevious: previousKpis.avgRps },
-          { label: "CPS", value: formatBRL(kpis.avgCps), fullValue: formatBRLFull(kpis.avgCps), tooltip: "Custo médio por lead", popCurrent: kpis.avgCps, popPrevious: previousKpis.avgCostPerLead, invertColor: true },
+          { label: "CPS", value: formatBRL(kpis.avgCps), fullValue: formatBRLFull(kpis.avgCps), tooltip: "Custo por sessão média", popCurrent: kpis.avgCps, popPrevious: previousKpis.avgCostPerLead, invertColor: true },
         ].map((kpi) => (
             <Tooltip key={kpi.label}>
               <TooltipTrigger asChild>
