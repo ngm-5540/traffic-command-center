@@ -226,7 +226,7 @@ export default function Dashboard() {
             <span className="text-[10px] sm:text-xs uppercase tracking-wider text-foreground font-semibold">{kpi.label}</span>
             <p
               className={cn(
-                "font-mono text-sm font-bold sm:text-lg md:text-xl truncate",
+                "font-mono text-[11px] font-bold xs:text-sm sm:text-base md:text-lg lg:text-xl whitespace-nowrap",
                 kpi.highlight
                   ? kpis.totalProfit >= 0
                     ? "text-profit"
