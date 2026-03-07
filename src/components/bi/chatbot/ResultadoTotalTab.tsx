@@ -138,12 +138,30 @@ function SortIcon({ active, dir }: { active: boolean; dir?: SortDir }) {
   return dir === "asc" ? <ArrowUp className="h-2.5 w-2.5 text-primary" /> : <ArrowDown className="h-2.5 w-2.5 text-primary" />;
 }
 
-export function ResultadoTotalTab({ campaigns }: Props) {
+const invertColorKeys = new Set(["cost", "cpc", "cpm", "cps", "costPerConversion", "costPerLead", "costPerNewLead", "bounceRate", "timeToSession"]);
+
+export function ResultadoTotalTab({ campaigns, popEnabled = false }: Props) {
   const [focusMode, setFocusMode] = useState(false);
   const [visibleKeys, setVisibleKeys] = useState<string[]>(() => loadVisibleColumns() ?? defaultVisibleKeys);
   const [dimension, setDimension] = useState<Dimension>("campaign");
   const [showParentCols, setShowParentCols] = useState(true);
   const [sort, setSort] = useState<SortState | null>(null);
+
+  // Generate previous period data for PoP
+  const previousRowData = useMemo(() => {
+    const map = new Map<string, Record<string, number>>();
+    let idx = 0;
+    for (const c of campaigns) {
+      map.set(c.id, generatePreviousRecord(c, idx++));
+      for (const adset of c.adsets) {
+        map.set(adset.id, generatePreviousRecord(adset, idx++));
+        for (const ad of adset.ads) {
+          map.set(ad.id, generatePreviousRecord(ad, idx++));
+        }
+      }
+    }
+    return map;
+  }, [campaigns]);
 
   const toggleSort = useCallback((key: string) => {
     setSort((prev) => {
