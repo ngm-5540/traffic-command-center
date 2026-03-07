@@ -345,8 +345,9 @@ export default function Dashboard() {
             return (
               <div
                 key={project.id}
+                onClick={() => navigate(`/project/${project.id}`)}
                 className={cn(
-                  "rounded-lg border p-4 transition-all",
+                  "rounded-lg border p-4 transition-all cursor-pointer hover:ring-1 hover:ring-primary/30",
                   project.roas <= -1
                     ? "border-loss/20 bg-loss/5"
                     : project.roas >= 1
