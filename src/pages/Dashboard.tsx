@@ -273,7 +273,7 @@ export default function Dashboard() {
                 className={cn(
                   "rounded-lg border p-4 transition-all",
                   project.roas <= -1
-                    ? "border-loss/30 bg-loss/10"
+                    ? "border-loss/20 bg-loss/5"
                     : project.roas >= 1
                       ? "border-profit/30 bg-profit/10"
                       : "border-border bg-card"
