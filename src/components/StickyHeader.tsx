@@ -20,10 +20,10 @@ function SummaryCard({ title, value, trend, icon, trendColor = "profit" }: Summa
         <div className="min-w-0 flex-1">
           <p className="text-[8px] uppercase tracking-wider text-muted-foreground sm:text-[10px]">{title}</p>
           <div className="flex items-center gap-1 sm:gap-2">
-            <span className="whitespace-nowrap text-[11px] font-semibold leading-tight text-foreground sm:text-lg">{value}</span>
+            <span className="whitespace-nowrap text-[11px] font-semibold leading-tight text-foreground sm:text-sm lg:text-base xl:text-lg">{value}</span>
             <Badge
               variant="outline"
-              className={`hidden shrink-0 text-[8px] px-1 py-0 border-0 sm:inline-flex sm:text-[10px] sm:px-1.5 ${
+              className={`hidden shrink-0 border-0 px-1 py-0 text-[8px] xl:inline-flex xl:text-[10px] xl:px-1.5 ${
                 isPositive ? "bg-profit/15 text-profit" : "bg-loss/15 text-loss"
               }`}
             >
@@ -81,8 +81,8 @@ export function StickyHeader({ selectedProject, onProjectChange, summary, projec
             title="Custo"
             value={
               <>
-                <span className="sm:hidden">{fmtCompact(summary.spend)}</span>
-                <span className="hidden sm:inline">{fmtFull(summary.spend)}</span>
+                <span className="xl:hidden">{fmtCompact(summary.spend)}</span>
+                <span className="hidden xl:inline">{fmtFull(summary.spend)}</span>
               </>
             }
             trend={summary.spendTrend}
@@ -93,8 +93,8 @@ export function StickyHeader({ selectedProject, onProjectChange, summary, projec
             title="Receita"
             value={
               <>
-                <span className="sm:hidden">{fmtCompact(summary.revenue)}</span>
-                <span className="hidden sm:inline">{fmtFull(summary.revenue)}</span>
+                <span className="xl:hidden">{fmtCompact(summary.revenue)}</span>
+                <span className="hidden xl:inline">{fmtFull(summary.revenue)}</span>
               </>
             }
             trend={summary.revenueTrend}
@@ -104,8 +104,8 @@ export function StickyHeader({ selectedProject, onProjectChange, summary, projec
             title="Lucro"
             value={
               <>
-                <span className="sm:hidden">{fmtCompact(summary.profit)}</span>
-                <span className="hidden sm:inline">{fmtFull(summary.profit)}</span>
+                <span className="xl:hidden">{fmtCompact(summary.profit)}</span>
+                <span className="hidden xl:inline">{fmtFull(summary.profit)}</span>
               </>
             }
             trend={summary.profitTrend}
@@ -122,3 +122,4 @@ export function StickyHeader({ selectedProject, onProjectChange, summary, projec
     </header>
   );
 }
+
