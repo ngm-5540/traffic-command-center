@@ -446,7 +446,7 @@ function ProjectName({ name, id }: { name: string; id: string }) {
         {name}
       </h3>
       <span
-        className="font-mono text-muted-foreground leading-none -mt-px block"
+        className="font-mono text-muted-foreground leading-none mt-[1px] block"
         style={{ fontSize: "clamp(9px, 4.5cqw, 11px)" }}
       >
         {shortId}
