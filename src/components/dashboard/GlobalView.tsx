@@ -14,43 +14,100 @@ export function GlobalView({ projects }: GlobalViewProps) {
       <p className="mb-4 text-[11px] text-muted-foreground sm:mb-6 sm:text-sm">Todos os projetos ativos</p>
 
       <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-        {projects.map((project) => (
-          <div
-            key={project.id}
-            className="rounded-lg border border-border bg-card p-3 transition-colors hover:border-primary/30 sm:p-4"
-          >
-            <div className="mb-2 flex items-center justify-between sm:mb-3">
-              <h3 className="text-xs font-semibold text-foreground sm:text-sm">{project.name}</h3>
-              <span className="font-mono text-[9px] uppercase text-muted-foreground">#{project.uuid}</span>
-            </div>
+        {projects.map((project) => {
+          const isProfit = project.profit >= 0;
+          const maxVal = Math.max(project.spend, project.revenue);
+          const spendPct = maxVal > 0 ? (project.spend / maxVal) * 100 : 0;
+          const revenuePct = maxVal > 0 ? (project.revenue / maxVal) * 100 : 0;
 
-            {/* Linha 1: Lucro + ROAS */}
-            <div className="flex items-start justify-between gap-2 sm:gap-3">
-              <div className="flex min-w-fit flex-col">
-                <p className="text-[8px] uppercase tracking-wider text-muted-foreground sm:text-[9px]">Lucro</p>
-                <p className={`whitespace-nowrap text-xs font-bold sm:text-sm ${project.profit >= 0 ? "text-profit" : "text-loss"}`}>
-                  {fmt(project.profit)}
-                </p>
-              </div>
-              <div className="flex min-w-fit flex-col items-end">
-                <p className="text-[8px] uppercase tracking-wider text-muted-foreground sm:text-[9px]">ROAS</p>
-                <p className="whitespace-nowrap text-xs font-bold text-foreground sm:text-sm">{(project.roas * 100).toFixed(0)}%</p>
-              </div>
-            </div>
+          return (
+            <div
+              key={project.id}
+              className="group relative overflow-hidden rounded-lg border border-border bg-card transition-all duration-200 hover:shadow-lg hover:shadow-black/20 hover:-translate-y-0.5"
+              style={{
+                borderLeftWidth: "3px",
+                borderLeftColor: isProfit ? "hsl(var(--profit))" : "hsl(var(--loss))",
+              }}
+            >
+              {/* Gradient overlay */}
+              <div
+                className="pointer-events-none absolute inset-0 opacity-[0.04]"
+                style={{
+                  background: `linear-gradient(135deg, ${isProfit ? "hsl(var(--profit))" : "hsl(var(--loss))"} 0%, transparent 60%)`,
+                }}
+              />
 
-            {/* Linha 2: Custo + Receita */}
-            <div className="mt-1.5 flex items-start justify-between gap-2 border-t border-border pt-1.5 sm:mt-2 sm:gap-3 sm:pt-2">
-              <div className="flex min-w-fit flex-col">
-                <p className="text-[8px] uppercase tracking-wider text-muted-foreground sm:text-[9px]">Custo</p>
-                <p className="whitespace-nowrap text-[11px] font-semibold text-foreground sm:text-xs">{fmt(project.spend)}</p>
-              </div>
-              <div className="flex min-w-fit flex-col items-end">
-                <p className="text-[8px] uppercase tracking-wider text-muted-foreground sm:text-[9px]">Receita</p>
-                <p className="whitespace-nowrap text-[11px] font-semibold text-foreground sm:text-xs">{fmt(project.revenue)}</p>
+              <div className="relative p-3 sm:p-4">
+                {/* Header: Nome + UUID + Status dot */}
+                <div className="mb-3 flex items-center gap-2">
+                  <span
+                    className="h-2 w-2 shrink-0 rounded-full"
+                    style={{
+                      backgroundColor: project.status === "active" ? "hsl(var(--profit))" : "hsl(var(--muted-foreground))",
+                    }}
+                  />
+                  <h3 className="text-sm font-semibold text-foreground sm:text-base">{project.name}</h3>
+                  <span className="ml-auto rounded bg-muted px-1.5 py-0.5 font-mono text-[9px] uppercase text-muted-foreground">
+                    #{project.uuid}
+                  </span>
+                </div>
+
+                {/* Métrica principal: Lucro + ROAS pill */}
+                <div className="mb-3 flex items-baseline gap-2">
+                  <p
+                    className="whitespace-nowrap text-lg font-bold sm:text-xl"
+                    style={{ color: isProfit ? "hsl(var(--profit))" : "hsl(var(--loss))" }}
+                  >
+                    {fmt(project.profit)}
+                  </p>
+                  <span
+                    className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                    style={{
+                      backgroundColor: isProfit ? "hsl(var(--profit) / 0.15)" : "hsl(var(--loss) / 0.15)",
+                      color: isProfit ? "hsl(var(--profit))" : "hsl(var(--loss))",
+                    }}
+                  >
+                    {(project.roas * 100).toFixed(0)}% ROAS
+                  </span>
+                </div>
+
+                {/* Custo bar */}
+                <div className="mb-2">
+                  <div className="mb-1 flex items-center justify-between">
+                    <span className="text-[9px] uppercase tracking-wider text-muted-foreground">Custo</span>
+                    <span className="whitespace-nowrap font-mono text-[11px] font-medium text-foreground">{fmt(project.spend)}</span>
+                  </div>
+                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{
+                        width: `${spendPct}%`,
+                        backgroundColor: "hsl(var(--muted-foreground) / 0.5)",
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Receita bar */}
+                <div>
+                  <div className="mb-1 flex items-center justify-between">
+                    <span className="text-[9px] uppercase tracking-wider text-muted-foreground">Receita</span>
+                    <span className="whitespace-nowrap font-mono text-[11px] font-medium text-foreground">{fmt(project.revenue)}</span>
+                  </div>
+                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{
+                        width: `${revenuePct}%`,
+                        backgroundColor: "hsl(var(--profit) / 0.7)",
+                      }}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
