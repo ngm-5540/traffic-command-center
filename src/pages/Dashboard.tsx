@@ -172,7 +172,10 @@ export default function Dashboard() {
         </div>
 
         {/* Date picker */}
-        <Popover>
+        <Popover open={datePickerOpen} onOpenChange={(open) => {
+          setDatePickerOpen(open);
+          if (open) setTempDateRange(dateRange);
+        }}>
           <PopoverTrigger asChild>
             <Button variant="outline" className="h-7 gap-1.5 px-2.5 text-[10px] font-semibold tracking-wider border-border">
               <CalendarIcon className="h-3 w-3" />
@@ -187,21 +190,39 @@ export default function Dashboard() {
                 {presets.map((preset) => (
                   <button
                     key={preset.label}
-                    onClick={() => setDateRange(preset.getValue())}
+                    onClick={() => {
+                      setDateRange(preset.getValue());
+                      setDatePickerOpen(false);
+                    }}
                     className="w-full rounded px-2 py-1.5 text-left text-xs text-foreground hover:bg-accent transition-colors"
                   >
                     {preset.label}
                   </button>
                 ))}
               </div>
-              <Calendar
-                mode="range"
-                selected={dateRange}
-                onSelect={setDateRange}
-                numberOfMonths={2}
-                locale={ptBR}
-                className="p-3 pointer-events-auto"
-              />
+              <div className="flex flex-col">
+                <Calendar
+                  mode="range"
+                  selected={tempDateRange}
+                  onSelect={setTempDateRange}
+                  numberOfMonths={2}
+                  locale={ptBR}
+                  className="p-3 pointer-events-auto"
+                />
+                <div className="flex justify-end p-2 pt-0">
+                  <Button
+                    size="sm"
+                    className="h-7 text-[11px] font-semibold tracking-wider"
+                    disabled={!tempDateRange?.from}
+                    onClick={() => {
+                      setDateRange(tempDateRange);
+                      setDatePickerOpen(false);
+                    }}
+                  >
+                    Aplicar
+                  </Button>
+                </div>
+              </div>
             </div>
           </PopoverContent>
         </Popover>
