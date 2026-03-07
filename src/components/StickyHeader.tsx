@@ -89,12 +89,12 @@ export function StickyHeader({ selectedProject, onProjectChange, summary, projec
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-2 gap-1.5 sm:gap-2 lg:grid-cols-4">
+        <div className="grid w-full min-w-0 grid-cols-2 gap-1.5 sm:gap-2 xl:w-auto xl:grid-cols-4">
           <SummaryCard
             title="Custo"
             value={
               <>
-                <span className="xl:hidden">{fmtCompact(summary.spend)}</span>
+                <span className="xl:hidden">{fmtTight(summary.spend)}</span>
                 <span className="hidden xl:inline">{fmtFull(summary.spend)}</span>
               </>
             }
@@ -106,7 +106,7 @@ export function StickyHeader({ selectedProject, onProjectChange, summary, projec
             title="Receita"
             value={
               <>
-                <span className="xl:hidden">{fmtCompact(summary.revenue)}</span>
+                <span className="xl:hidden">{fmtTight(summary.revenue)}</span>
                 <span className="hidden xl:inline">{fmtFull(summary.revenue)}</span>
               </>
             }
@@ -117,7 +117,7 @@ export function StickyHeader({ selectedProject, onProjectChange, summary, projec
             title="Lucro"
             value={
               <>
-                <span className="xl:hidden">{fmtCompact(summary.profit)}</span>
+                <span className="xl:hidden">{fmtTight(summary.profit)}</span>
                 <span className="hidden xl:inline">{fmtFull(summary.profit)}</span>
               </>
             }
