@@ -16,6 +16,7 @@ interface Props {
   popEnabled?: boolean;
   focusMode?: boolean;
   onToggleFocusMode?: () => void;
+  filtersNode?: React.ReactNode;
 }
 
 type Dimension = "campaign" | "adset" | "ad";

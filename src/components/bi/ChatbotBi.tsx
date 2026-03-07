@@ -267,7 +267,7 @@ export function ChatbotBi() {
           <TabsTrigger value="broadcast" className="text-xs">Broadcast</TabsTrigger>
         </TabsList>
         <TabsContent value="resultado" className="flex-1 mt-4">
-          <ResultadoTotalTab campaigns={chatbotCampaigns} popEnabled={popEnabled} focusMode={focusMode} onToggleFocusMode={() => setFocusMode(f => !f)} />
+          <ResultadoTotalTab campaigns={chatbotCampaigns} popEnabled={popEnabled} focusMode={focusMode} onToggleFocusMode={() => setFocusMode(f => !f)} filtersNode={filtersNode} />
         </TabsContent>
         <TabsContent value="automacao" className="flex-1 mt-4">
           <AutomacaoTab automations={chatbotAutomations} popEnabled={popEnabled} />
