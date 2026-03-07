@@ -3,7 +3,7 @@ import { format, differenceInCalendarDays, addDays, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CalendarIcon, ArrowUp, ArrowDown, Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { dashboardProjects, verticals, type Vertical } from "@/data/dashboardData";
-import { formatBRL, formatROAS } from "@/lib/format";
+import { formatBRL, formatROAS, getRoasColor } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -127,7 +127,7 @@ export default function Dashboard() {
           { label: "CUSTO", value: formatBRL(kpis.totalSpend) },
           { label: "RECEITA", value: formatBRL(kpis.totalRevenue) },
           { label: "LUCRO", value: formatBRL(kpis.totalProfit), highlight: true },
-          { label: "ROAS", value: formatROAS(kpis.avgRoas) },
+          { label: "ROAS", value: formatROAS(kpis.avgRoas), roasColor: getRoasColor(kpis.avgRoas) },
         ].map((kpi) => (
           <div
             key={kpi.label}
@@ -148,8 +148,9 @@ export default function Dashboard() {
                   ? kpis.totalProfit >= 0
                     ? "text-profit"
                     : "text-loss"
-                  : "text-foreground"
+                  : !kpi.roasColor ? "text-foreground" : undefined
               )}
+              style={kpi.roasColor ? { color: kpi.roasColor } : undefined}
             >
               {kpi.value}
             </p>
@@ -290,7 +291,7 @@ export default function Dashboard() {
                     className={isProfit ? "text-profit" : "text-loss"}
                     bold
                   />
-                  <Metric label="ROAS" value={formatROAS(project.roas)} />
+                  <Metric label="ROAS" value={formatROAS(project.roas)} style={{ color: getRoasColor(project.roas) }} />
                 </div>
 
                 {/* Mobile: compact layout */}
@@ -304,7 +305,7 @@ export default function Dashboard() {
                     </div>
                     <div className="text-right">
                       <span className="text-[10px] uppercase tracking-wider text-muted-foreground">ROAS</span>
-                      <p className="font-mono text-lg font-bold text-foreground">{formatROAS(project.roas)}</p>
+                      <p className="font-mono text-lg font-bold" style={{ color: getRoasColor(project.roas) }}>{formatROAS(project.roas)}</p>
                     </div>
                   </div>
                   <div className="flex gap-4 text-muted-foreground">
@@ -321,11 +322,14 @@ export default function Dashboard() {
   );
 }
 
-function Metric({ label, value, className, bold }: { label: string; value: string; className?: string; bold?: boolean }) {
+function Metric({ label, value, className, bold, style }: { label: string; value: string; className?: string; bold?: boolean; style?: React.CSSProperties }) {
   return (
     <div>
       <span className="text-[11px] uppercase tracking-wider text-foreground/60 font-medium">{label}</span>
-      <p className={cn("font-mono text-sm whitespace-nowrap", bold ? "font-bold" : "font-medium", className || "text-foreground")}>
+      <p
+        className={cn("font-mono text-sm whitespace-nowrap", bold ? "font-bold" : "font-medium", !style && (className || "text-foreground"))}
+        style={style}
+      >
         {value}
       </p>
     </div>
