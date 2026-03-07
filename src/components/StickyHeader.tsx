@@ -12,7 +12,7 @@ interface SummaryCardProps {
 function SummaryCard({ title, value, trend, icon, trendColor = "profit" }: SummaryCardProps) {
   const isPositive = trend >= 0;
   return (
-    <div className="rounded-md border border-border bg-card px-2 py-1.5 sm:px-4 sm:py-3">
+    <div className="min-w-0 overflow-hidden rounded-md border border-border bg-card px-2 py-1.5 sm:px-3 sm:py-2 lg:px-4 lg:py-3">
       <div className="flex items-center gap-1.5 sm:gap-3">
         <div className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-md bg-secondary sm:flex">
           {icon}
@@ -20,7 +20,7 @@ function SummaryCard({ title, value, trend, icon, trendColor = "profit" }: Summa
         <div className="min-w-0 flex-1">
           <p className="text-[8px] uppercase tracking-wider text-muted-foreground sm:text-[10px]">{title}</p>
           <div className="flex items-center gap-1 sm:gap-2">
-            <span className="whitespace-nowrap text-[11px] font-semibold leading-tight text-foreground sm:text-sm lg:text-base xl:text-lg">{value}</span>
+            <span className="whitespace-nowrap text-[10px] font-semibold leading-tight text-foreground sm:text-xs lg:text-sm xl:text-base 2xl:text-lg">{value}</span>
             <Badge
               variant="outline"
               className={`hidden shrink-0 border-0 px-1 py-0 text-[8px] xl:inline-flex xl:text-[10px] xl:px-1.5 ${
