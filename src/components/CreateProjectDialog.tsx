@@ -59,9 +59,11 @@ export function CreateProjectDialog({ open, onOpenChange, onCreateProject, defau
               id="project-name"
               placeholder="Ex: Saúde BR - Life"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => setName(e.target.value.slice(0, 30))}
+              maxLength={30}
               autoFocus
             />
+            <span className="text-[10px] text-muted-foreground text-right block">{name.length}/30</span>
           </div>
           <div className="space-y-2">
             <Label>Tipo</Label>
