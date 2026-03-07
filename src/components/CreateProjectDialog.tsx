@@ -94,7 +94,7 @@ export function CreateProjectDialog({ open, onOpenChange, onCreateProject, defau
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={!name.trim()}>
+            <Button type="submit" disabled={!name.trim() || isDuplicate}>
               Criar
             </Button>
           </DialogFooter>
