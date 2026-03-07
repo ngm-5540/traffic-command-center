@@ -297,6 +297,7 @@ export function ResultadoTotalTab({ campaigns, popEnabled = false, focusMode = f
         <div className="flex items-center gap-2 flex-wrap">
           {/* Page filters */}
           {filtersNode}
+          {filtersNode && <div className="h-5 w-px bg-border shrink-0" />}
           {/* Dimension switcher */}
           <div className="flex items-center rounded-md border border-border bg-muted/50 p-0.5">
             {dimensionOptions.map((opt) => (
