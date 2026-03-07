@@ -152,6 +152,18 @@ export default function Dashboard() {
     return { totalSpend, totalRevenue, totalProfit, avgRoas, avgRps, avgCps };
   }, [sorted]);
 
+  const previousKpis = useMemo(
+    () => generatePreviousKpis({
+      totalCost: kpis.totalSpend,
+      totalRevenue: kpis.totalRevenue,
+      totalProfit: kpis.totalProfit,
+      avgRoas: kpis.avgRoas,
+      avgRps: kpis.avgRps,
+      avgCostPerLead: kpis.avgCps,
+    }),
+    [kpis]
+  );
+
   const toggleSortDir = () => { setNewestProjectId(null); setSortDir((d) => (d === "asc" ? "desc" : "asc")); };
 
   const shiftDateRange = useCallback((direction: 1 | -1) => {
