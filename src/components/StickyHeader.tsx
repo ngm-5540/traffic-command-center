@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 
 interface SummaryCardProps {
   title: string;
-  value: string;
+  value: React.ReactNode;
   trend: number;
   icon: React.ReactNode;
   trendColor?: "profit" | "loss";
