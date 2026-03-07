@@ -12,7 +12,7 @@ interface SummaryCardProps {
 function SummaryCard({ title, value, trend, icon, trendColor = "profit" }: SummaryCardProps) {
   const isPositive = trend >= 0;
   return (
-    <div className="rounded-md border border-border bg-card px-2 py-1.5 sm:px-4 sm:py-3">
+    <div className="min-w-0 overflow-hidden rounded-md border border-border bg-card px-2 py-1.5 sm:px-3 sm:py-2 lg:px-4 lg:py-3">
       <div className="flex items-center gap-1.5 sm:gap-3">
         <div className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-md bg-secondary sm:flex">
           {icon}
@@ -20,7 +20,7 @@ function SummaryCard({ title, value, trend, icon, trendColor = "profit" }: Summa
         <div className="min-w-0 flex-1">
           <p className="text-[8px] uppercase tracking-wider text-muted-foreground sm:text-[10px]">{title}</p>
           <div className="flex items-center gap-1 sm:gap-2">
-            <span className="whitespace-nowrap text-[11px] font-semibold leading-tight text-foreground sm:text-sm lg:text-base xl:text-lg">{value}</span>
+            <span className="whitespace-nowrap text-[10px] font-semibold leading-tight text-foreground sm:text-xs lg:text-sm xl:text-base 2xl:text-lg">{value}</span>
             <Badge
               variant="outline"
               className={`hidden shrink-0 border-0 px-1 py-0 text-[8px] xl:inline-flex xl:text-[10px] xl:px-1.5 ${
@@ -57,10 +57,23 @@ export function StickyHeader({ selectedProject, onProjectChange, summary, projec
     `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   const fmtCompact = (v: number) =>
     `R$ ${v.toLocaleString("pt-BR", { maximumFractionDigits: 0 })}`;
+  const fmtTight = (v: number) => {
+    const abs = Math.abs(v);
+    if (abs >= 1_000_000) {
+      return `R$ ${(v / 1_000_000).toLocaleString("pt-BR", {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
+      })}M`;
+    }
+    if (abs >= 1_000) {
+      return `R$ ${Math.round(v / 1_000)}k`;
+    }
+    return fmtCompact(v);
+  };
 
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-      <div className="flex flex-col gap-2 px-3 py-2 sm:gap-3 sm:px-4 sm:py-3 lg:flex-row lg:items-center lg:justify-between">
+      <div className="flex flex-col gap-2 px-3 py-2 sm:gap-3 sm:px-4 sm:py-3 xl:flex-row xl:items-center xl:justify-between">
         {/* Project Switcher */}
         <div className="flex items-center gap-3">
           <select
@@ -76,12 +89,12 @@ export function StickyHeader({ selectedProject, onProjectChange, summary, projec
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-2 gap-1.5 sm:gap-2 lg:grid-cols-4">
+        <div className="grid w-full min-w-0 grid-cols-2 gap-1.5 sm:gap-2 xl:w-auto xl:grid-cols-4">
           <SummaryCard
             title="Custo"
             value={
               <>
-                <span className="xl:hidden">{fmtCompact(summary.spend)}</span>
+                <span className="xl:hidden">{fmtTight(summary.spend)}</span>
                 <span className="hidden xl:inline">{fmtFull(summary.spend)}</span>
               </>
             }
@@ -93,7 +106,7 @@ export function StickyHeader({ selectedProject, onProjectChange, summary, projec
             title="Receita"
             value={
               <>
-                <span className="xl:hidden">{fmtCompact(summary.revenue)}</span>
+                <span className="xl:hidden">{fmtTight(summary.revenue)}</span>
                 <span className="hidden xl:inline">{fmtFull(summary.revenue)}</span>
               </>
             }
@@ -104,7 +117,7 @@ export function StickyHeader({ selectedProject, onProjectChange, summary, projec
             title="Lucro"
             value={
               <>
-                <span className="xl:hidden">{fmtCompact(summary.profit)}</span>
+                <span className="xl:hidden">{fmtTight(summary.profit)}</span>
                 <span className="hidden xl:inline">{fmtFull(summary.profit)}</span>
               </>
             }
