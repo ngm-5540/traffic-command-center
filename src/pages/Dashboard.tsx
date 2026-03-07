@@ -100,7 +100,6 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {filtered.map((project) => {
             const isProfit = project.profit >= 0;
-            const status = statusConfig[project.status];
 
             return (
               <div
