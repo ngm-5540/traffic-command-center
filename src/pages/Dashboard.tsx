@@ -245,6 +245,7 @@ export default function Dashboard() {
             <ChevronRight className="h-3.5 w-3.5" />
           </Button>
         </div>
+      </div>
 
       {/* Grid */}
       <div className="flex-1 overflow-auto p-4 sm:p-6">
