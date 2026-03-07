@@ -272,9 +272,13 @@ export default function Dashboard() {
                 key={project.id}
                 className={cn(
                   "rounded-lg border p-4 transition-all",
-                  isProfit
-                    ? "border-border bg-card"
-                    : "border-loss/30 bg-loss/5"
+                  project.roas <= -1
+                    ? "border-loss/30 bg-loss/10"
+                    : project.roas >= 1
+                      ? "border-profit/30 bg-profit/10"
+                      : isProfit
+                        ? "border-border bg-card"
+                        : "border-loss/30 bg-loss/5"
                 )}
               >
                 {/* Card header */}
