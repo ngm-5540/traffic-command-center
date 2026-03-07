@@ -429,10 +429,10 @@ export default function Dashboard() {
 function Metric({ label, value, className, bold, style }: { label: string; value: string; className?: string; bold?: boolean; style?: React.CSSProperties }) {
   return (
     <div>
-      <span className="text-[11px] uppercase tracking-wider text-foreground/60 font-medium">{label}</span>
+      <span className="uppercase tracking-wider text-foreground/60 font-medium" style={{ fontSize: "var(--card-metric-label-size)" }}>{label}</span>
       <p
-        className={cn("font-mono text-sm whitespace-nowrap font-bold", !style && (className || "text-foreground"))}
-        style={style}
+        className={cn("font-mono whitespace-nowrap font-bold", !style && (className || "text-foreground"))}
+        style={{ fontSize: "var(--card-metric-size)", ...style }}
       >
         {value}
       </p>
