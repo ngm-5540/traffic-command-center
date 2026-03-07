@@ -38,7 +38,7 @@ function AppLayout() {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider delayDuration={200}>
+    <TooltipProvider delayDuration={100}>
       <Toaster />
       <Sonner />
       <BrowserRouter>
