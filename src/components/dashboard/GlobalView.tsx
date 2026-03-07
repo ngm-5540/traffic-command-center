@@ -37,11 +37,11 @@ export function GlobalView({ projects }: GlobalViewProps) {
             <div className="mt-4 flex items-center gap-4 border-t border-border pt-3 text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
                 <DollarSign className="h-3 w-3" />
-                Custo: R$ {project.spend.toLocaleString("pt-BR")}
+                Custo: R$ {project.spend.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>
               <span className="flex items-center gap-1">
                 <TrendingUp className="h-3 w-3" />
-                Rev: R$ {project.revenue.toLocaleString("pt-BR")}
+                Receita: R$ {project.revenue.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>
             </div>
           </div>
