@@ -17,17 +17,17 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   onCreateProject: (project: DashboardProject) => void;
   defaultVertical?: Vertical;
-  existingNames: string[];
+  existingProjects: { name: string; vertical: string }[];
 }
 
-export function CreateProjectDialog({ open, onOpenChange, onCreateProject, defaultVertical, existingNames }: Props) {
+export function CreateProjectDialog({ open, onOpenChange, onCreateProject, defaultVertical, existingProjects }: Props) {
   const [name, setName] = useState("");
   const [vertical, setVertical] = useState<Exclude<Vertical, "todos">>(
     defaultVertical && defaultVertical !== "todos" ? defaultVertical : "google_ads"
   );
 
-  const isDuplicate = existingNames.some(
-    (n) => n.toLowerCase() === name.trim().toLowerCase()
+  const isDuplicate = existingProjects.some(
+    (p) => p.name.toLowerCase() === name.trim().toLowerCase() && p.vertical === vertical
   );
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -70,7 +70,7 @@ export function CreateProjectDialog({ open, onOpenChange, onCreateProject, defau
             />
             <div className="flex justify-between">
               {isDuplicate ? (
-                <span className="text-[10px] text-destructive">Já existe um projeto com esse nome</span>
+                <span className="text-[10px] text-destructive">Já existe um projeto com esse nome nesse tipo</span>
               ) : <span />}
               <span className="text-[10px] text-muted-foreground">{name.length}/30</span>
             </div>
