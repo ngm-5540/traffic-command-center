@@ -143,7 +143,7 @@ function SortIcon({ active, dir }: { active: boolean; dir?: SortDir }) {
 
 const invertColorKeys = new Set(["cost", "cpc", "cpm", "cps", "costPerConversion", "costPerLead", "costPerNewLead", "bounceRate", "timeToSession"]);
 
-export function ResultadoTotalTab({ campaigns, popEnabled = false, focusMode = false, onToggleFocusMode }: Props) {
+export function ResultadoTotalTab({ campaigns, popEnabled = false, focusMode = false, onToggleFocusMode, filtersNode }: Props) {
   const [visibleKeys, setVisibleKeys] = useState<string[]>(() => loadVisibleColumns() ?? defaultVisibleKeys);
   const [dimension, setDimension] = useState<Dimension>("campaign");
   const [showParentCols, setShowParentCols] = useState(true);
