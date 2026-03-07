@@ -3,7 +3,7 @@ import { format, differenceInCalendarDays, addDays, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CalendarIcon, ArrowUp, ArrowDown, Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { dashboardProjects, verticals, type Vertical } from "@/data/dashboardData";
-import { formatBRL, formatROAS } from "@/lib/format";
+import { formatBRL, formatROAS, getRoasColor } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
