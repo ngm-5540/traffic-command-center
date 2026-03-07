@@ -30,21 +30,13 @@ export function formatDuration(seconds: number): string {
 }
 
 /**
- * Returns an HSL color for ROAS text.
- * > 0 = green, < 0 = red, 0 = neutral.
+ * Returns color for ROAS text.
+ * > 0 = green, < 0 = red, 0 = neutral (white).
  */
 export function getRoasColor(roas: number): string {
   if (roas == null || isNaN(roas) || roas === 0) return `hsl(0, 0%, 100%)`;
-  if (roas > 0) {
-    const t = Math.min(1, roas);
-    const s = 45 + t * 26;
-    const l = 52 + t * -7;
-    return `hsl(142, ${s.toFixed(0)}%, ${l.toFixed(0)}%)`;
-  }
-  const t = Math.min(1, Math.abs(roas));
-  const s = 45 + t * 27;
-  const l = 55 + t * -4;
-  return `hsl(0, ${s.toFixed(0)}%, ${l.toFixed(0)}%)`;
+  if (roas > 0) return `hsl(142, 71%, 45%)`;
+  return `hsl(0, 72%, 51%)`;
 }
 
 /**
