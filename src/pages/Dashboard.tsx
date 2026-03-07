@@ -203,7 +203,7 @@ export default function Dashboard() {
       {/* KPI Cards */}
       <div
         className="grid gap-2 px-4 pt-4 sm:gap-3 sm:px-6 max-w-[1920px] mx-auto w-full"
-        style={{ gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}
+        style={{ gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))" }}
       >
         {[
           { label: "CUSTO", value: formatBRL(kpis.totalSpend) },
@@ -215,31 +215,44 @@ export default function Dashboard() {
         ].map((kpi) => (
           <div
             key={kpi.label}
-            className={cn(
-              "rounded-lg border p-2.5 sm:p-3 md:p-4 min-w-0",
-              kpi.highlight
-                ? kpis.totalProfit >= 0
-                  ? "border-profit/30 bg-profit/5"
-                  : "border-loss/30 bg-loss/5"
-                : kpi.roasNegative
-                  ? "border-loss/30 bg-loss/5"
-                  : "border-border bg-card"
-            )}
+            style={{ containerType: "inline-size", containerName: "kpi" }}
           >
-            <span className="text-[10px] sm:text-xs uppercase tracking-wider text-foreground font-semibold">{kpi.label}</span>
-            <p
+            <div
               className={cn(
-                "font-mono text-[clamp(9px,1.8vw,20px)] font-bold whitespace-nowrap leading-tight tracking-tight",
+                "kpi-card rounded-lg border min-w-0",
                 kpi.highlight
                   ? kpis.totalProfit >= 0
-                    ? "text-profit"
-                    : "text-loss"
-                  : !kpi.roasColor ? "text-foreground" : undefined
+                    ? "border-profit/30 bg-profit/5"
+                    : "border-loss/30 bg-loss/5"
+                  : kpi.roasNegative
+                    ? "border-loss/30 bg-loss/5"
+                    : "border-border bg-card"
               )}
-              style={kpi.roasColor ? { color: kpi.roasColor } : undefined}
+              style={{ padding: "var(--kpi-padding)" }}
             >
-              {kpi.value}
-            </p>
+              <span
+                className="uppercase tracking-wider text-foreground font-semibold block"
+                style={{ fontSize: "var(--kpi-label-size)" }}
+              >
+                {kpi.label}
+              </span>
+              <p
+                className={cn(
+                  "font-mono font-bold whitespace-nowrap leading-tight tracking-tight",
+                  kpi.highlight
+                    ? kpis.totalProfit >= 0
+                      ? "text-profit"
+                      : "text-loss"
+                    : !kpi.roasColor ? "text-foreground" : undefined
+                )}
+                style={{
+                  fontSize: "var(--kpi-font-size)",
+                  ...(kpi.roasColor ? { color: kpi.roasColor } : {}),
+                }}
+              >
+                {kpi.value}
+              </p>
+            </div>
           </div>
         ))}
       </div>
