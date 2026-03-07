@@ -19,16 +19,16 @@ export function getRoasColor(roas: number): string {
   const pct = Math.max(-1, Math.min(1, roas));
 
   if (pct <= 0) {
-    // 0 → muted red, -1 → vivid red
+    // 0 → pastel red, -1 → vivid red
     const t = Math.abs(pct); // 0..1
-    const s = 50 + t * 22;   // 50%..72%
-    const l = 40 + t * 11;   // 40%..51%
+    const s = 30 + t * 42;   // 30%..72%
+    const l = 55 + t * -4;   // 55%..51% (brighter pastel → vivid)
     return `hsl(0, ${s.toFixed(0)}%, ${l.toFixed(0)}%)`;
   }
 
-  // 0+ → muted green, 1 → vivid green
+  // 0+ → pastel green, 1 → vivid green
   const t = pct; // 0..1
-  const s = 40 + t * 31;   // 40%..71%
-  const l = 35 + t * 10;   // 35%..45%
+  const s = 25 + t * 46;   // 25%..71%
+  const l = 55 + t * -10;  // 55%..45%
   return `hsl(142, ${s.toFixed(0)}%, ${l.toFixed(0)}%)`;
 }
