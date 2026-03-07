@@ -119,25 +119,79 @@ export function ChatbotBi() {
             </SelectContent>
           </Select>
 
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className="h-7 gap-1.5 px-2.5 text-[10px] font-semibold tracking-wider border-border">
-                <CalendarIcon className="h-3 w-3" />
-                {dateLabel}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="range"
-                selected={dateRange}
-                onSelect={setDateRange}
-                numberOfMonths={2}
-                locale={ptBR}
-                disabled={(date) => date > new Date()}
-                className="p-3 pointer-events-auto"
-              />
-            </PopoverContent>
-          </Popover>
+          <div className="flex items-center gap-0.5">
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => shiftDateRange(-1)}>
+              <ChevronLeft className="h-3.5 w-3.5" />
+            </Button>
+            <Popover open={datePickerOpen} onOpenChange={(open) => {
+              setDatePickerOpen(open);
+              if (open) setTempDateRange(dateRange);
+            }}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="h-7 gap-1.5 px-2.5 text-[10px] font-semibold tracking-wider border-border">
+                  <CalendarIcon className="h-3 w-3" />
+                  <span className="hidden sm:inline">{dateLabel}</span>
+                  <span className="sm:hidden">Data</span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <div className="flex">
+                  <div className="border-r border-border p-2 space-y-0.5 w-[120px]">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground px-2 pb-1">Período</p>
+                    {presets.map((preset) => (
+                      <button
+                        key={preset.label}
+                        onClick={() => {
+                          setDateRange(preset.getValue());
+                          setDatePickerOpen(false);
+                        }}
+                        className="w-full rounded px-2 py-1.5 text-left text-xs text-foreground hover:bg-accent transition-colors"
+                      >
+                        {preset.label}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex flex-col">
+                    <Calendar
+                      mode="range"
+                      selected={tempDateRange}
+                      onSelect={setTempDateRange}
+                      numberOfMonths={2}
+                      locale={ptBR}
+                      disabled={(date) => date > new Date()}
+                      className="p-3 pointer-events-auto"
+                    />
+                    {tempDateRange?.from && (
+                      tempDateRange.from.toDateString() !== dateRange?.from?.toDateString() ||
+                      (tempDateRange.to?.toDateString() ?? '') !== (dateRange?.to?.toDateString() ?? '')
+                    ) && (
+                      <div className="flex justify-end p-2 pt-0">
+                        <Button
+                          size="sm"
+                          className="h-7 text-[11px] font-semibold tracking-wider"
+                          onClick={() => {
+                            setDateRange(tempDateRange);
+                            setDatePickerOpen(false);
+                          }}
+                        >
+                          Aplicar
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              disabled={dateRange?.to ? dateRange.to >= new Date(new Date().toDateString()) : false}
+              onClick={() => shiftDateRange(1)}
+            >
+              <ChevronRight className="h-3.5 w-3.5" />
+            </Button>
+          </div>
 
           <Button
             variant={popEnabled ? "default" : "outline"}
