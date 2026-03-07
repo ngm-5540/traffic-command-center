@@ -201,7 +201,7 @@ export default function Dashboard() {
       </header>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-3 gap-3 px-4 pt-4 sm:grid-cols-6 sm:px-6 max-w-[1920px] mx-auto w-full">
+      <div className="grid grid-cols-2 gap-2 px-4 pt-4 sm:grid-cols-3 md:grid-cols-6 sm:gap-3 sm:px-6 max-w-[1920px] mx-auto w-full">
         {[
           { label: "CUSTO", value: formatBRL(kpis.totalSpend) },
           { label: "RECEITA", value: formatBRL(kpis.totalRevenue) },
@@ -213,7 +213,7 @@ export default function Dashboard() {
           <div
             key={kpi.label}
             className={cn(
-              "rounded-lg border p-3 sm:p-4",
+              "rounded-lg border p-2.5 sm:p-3 md:p-4 min-w-0 overflow-hidden",
               kpi.highlight
                 ? kpis.totalProfit >= 0
                   ? "border-profit/30 bg-profit/5"
@@ -223,10 +223,10 @@ export default function Dashboard() {
                   : "border-border bg-card"
             )}
           >
-            <span className="text-xs uppercase tracking-wider text-foreground font-semibold">{kpi.label}</span>
+            <span className="text-[10px] sm:text-xs uppercase tracking-wider text-foreground font-semibold">{kpi.label}</span>
             <p
               className={cn(
-                "font-mono text-lg font-bold sm:text-xl",
+                "font-mono text-sm font-bold sm:text-lg md:text-xl truncate",
                 kpi.highlight
                   ? kpis.totalProfit >= 0
                     ? "text-profit"
