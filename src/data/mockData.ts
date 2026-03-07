@@ -57,6 +57,7 @@ export interface RpsDataPoint {
 export const projects: Project[] = [
   {
     id: "fin-alpha",
+    uuid: "A3k9Z",
     name: "Finanças Alpha",
     status: "active",
     spend: 7000,
@@ -122,6 +123,7 @@ export const projects: Project[] = [
   },
   {
     id: "saude-beta",
+    uuid: "B7mX2",
     name: "Saúde Beta",
     status: "active",
     spend: 4530,
@@ -167,6 +169,7 @@ export const projects: Project[] = [
   },
   {
     id: "curiosidades",
+    uuid: "C1pQ8",
     name: "Curiosidades Mundo",
     status: "active",
     spend: 3000,
