@@ -207,51 +207,53 @@ export default function Dashboard() {
         style={{ gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))" }}
       >
         {[
-          { label: "CUSTO", value: formatBRL(kpis.totalSpend) },
-          { label: "RECEITA", value: formatBRL(kpis.totalRevenue) },
-          { label: "LUCRO", value: formatBRL(kpis.totalProfit), isProfit: true, profitValue: kpis.totalProfit },
-          { label: "ROAS", value: formatROAS(kpis.avgRoas), isRoas: true, isRoasPositive: kpis.avgRoas >= 1, isRoasCritical: kpis.avgRoas === -1, roasColor: getRoasColor(kpis.avgRoas) },
-          { label: "RPS", value: formatBRL(kpis.avgRps) },
-          { label: "CPS", value: formatBRL(kpis.avgCps) },
+          { label: "CUSTO", value: formatBRL(kpis.totalSpend), tooltip: "Investimento total em ads" },
+          { label: "RECEITA", value: formatBRL(kpis.totalRevenue), tooltip: "Receita total gerada" },
+          { label: "LUCRO", value: formatBRL(kpis.totalProfit), isProfit: true, profitValue: kpis.totalProfit, tooltip: "Receita total menos custo total" },
+          { label: "ROAS", value: formatROAS(kpis.avgRoas), isRoas: true, isRoasPositive: kpis.avgRoas >= 1, isRoasCritical: kpis.avgRoas === -1, roasColor: getRoasColor(kpis.avgRoas), tooltip: "Retorno médio sobre investimento" },
+          { label: "RPS", value: formatBRL(kpis.avgRps), tooltip: "Receita por sessão média" },
+          { label: "CPS", value: formatBRL(kpis.avgCps), tooltip: "Custo médio por lead" },
         ].map((kpi) => (
-            <div
-              key={kpi.label}
-              style={{ containerType: "inline-size" }}
-            >
-               <div
-                className={cn(
-                  "rounded-lg border min-w-0 p-2.5 sm:p-3 md:p-4",
-                  kpi.isRoas
-                    ? kpi.isRoasPositive
-                      ? "border-profit/30 bg-profit/5"
-                      : kpi.isRoasCritical
-                        ? "border-loss/30 bg-loss/5"
+            <Tooltip key={kpi.label}>
+              <TooltipTrigger asChild>
+                <div style={{ containerType: "inline-size" }}>
+                  <div
+                    className={cn(
+                      "rounded-lg border min-w-0 p-2.5 sm:p-3 md:p-4 cursor-help",
+                      kpi.isRoas
+                        ? kpi.isRoasPositive
+                          ? "border-profit/30 bg-profit/5"
+                          : kpi.isRoasCritical
+                            ? "border-loss/30 bg-loss/5"
+                            : "border-border bg-card"
                         : "border-border bg-card"
-                    : "border-border bg-card"
-                )}
-              >
-                <span
-                  className="uppercase tracking-wider text-foreground font-semibold block"
-                  style={{ fontSize: "clamp(9px, 7cqw, 12px)" }}
-                >
-                  {kpi.label}
-                </span>
-                <p
-                  className={cn(
-                    "font-mono font-bold whitespace-nowrap leading-tight tracking-tight",
-                    kpi.isProfit
-                      ? kpi.profitValue === 0 ? "text-foreground" : kpi.profitValue! > 0 ? "text-profit" : "text-loss"
-                      : !kpi.isRoas ? "text-foreground" : undefined
-                  )}
-                  style={{
-                    fontSize: "clamp(10px, 10cqw, 20px)",
-                    ...(kpi.isRoas ? { color: kpi.roasColor } : {}),
-                  }}
-                >
-                  {kpi.value}
-                </p>
-              </div>
-            </div>
+                    )}
+                  >
+                    <span
+                      className="uppercase tracking-wider text-foreground font-semibold block"
+                      style={{ fontSize: "clamp(9px, 7cqw, 12px)" }}
+                    >
+                      {kpi.label}
+                    </span>
+                    <p
+                      className={cn(
+                        "font-mono font-bold whitespace-nowrap leading-tight tracking-tight",
+                        kpi.isProfit
+                          ? kpi.profitValue === 0 ? "text-foreground" : kpi.profitValue! > 0 ? "text-profit" : "text-loss"
+                          : !kpi.isRoas ? "text-foreground" : undefined
+                      )}
+                      style={{
+                        fontSize: "clamp(10px, 10cqw, 20px)",
+                        ...(kpi.isRoas ? { color: kpi.roasColor } : {}),
+                      }}
+                    >
+                      {kpi.value}
+                    </p>
+                  </div>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="text-xs">{kpi.tooltip}</TooltipContent>
+            </Tooltip>
           ))}
       </div>
 
@@ -390,7 +392,7 @@ export default function Dashboard() {
                             {project.name}
                           </h3>
                         </TooltipTrigger>
-                        <TooltipContent>{project.name}</TooltipContent>
+                        <TooltipContent side="bottom" className="text-xs">{project.name}</TooltipContent>
                       </Tooltip>
                       <span
                         className="font-mono text-muted-foreground shrink-0"
@@ -442,7 +444,7 @@ function Metric({ label, value, className, bold, style }: { label: string; value
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <div className="min-w-0 overflow-hidden">
+        <div className="min-w-0 overflow-hidden cursor-help">
           <span className="uppercase tracking-wider text-foreground/60 font-medium block" style={{ fontSize: "clamp(8px, 4cqw, 11px)" }}>{label}</span>
           <p
             className={cn("font-mono whitespace-nowrap font-bold", !style && (className || "text-foreground"))}
@@ -452,7 +454,7 @@ function Metric({ label, value, className, bold, style }: { label: string; value
           </p>
         </div>
       </TooltipTrigger>
-      <TooltipContent>{label}: {value}</TooltipContent>
+      <TooltipContent side="bottom" className="text-xs">{label}: {value}</TooltipContent>
     </Tooltip>
   );
 }
