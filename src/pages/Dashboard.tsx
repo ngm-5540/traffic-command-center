@@ -127,7 +127,7 @@ export default function Dashboard() {
           { label: "CUSTO", value: formatBRL(kpis.totalSpend) },
           { label: "RECEITA", value: formatBRL(kpis.totalRevenue) },
           { label: "LUCRO", value: formatBRL(kpis.totalProfit), highlight: true },
-          { label: "ROAS", value: formatROAS(kpis.avgRoas), roasColor: getRoasColor(kpis.avgRoas) },
+          { label: "ROAS", value: formatROAS(kpis.avgRoas), roasColor: getRoasColor(kpis.avgRoas), roasNegative: kpis.avgRoas < 0 },
         ].map((kpi) => (
           <div
             key={kpi.label}
@@ -137,7 +137,9 @@ export default function Dashboard() {
                 ? kpis.totalProfit >= 0
                   ? "border-profit/30 bg-profit/5"
                   : "border-loss/30 bg-loss/5"
-                : "border-border bg-card"
+                : kpi.roasNegative
+                  ? "border-loss/30 bg-loss/5"
+                  : "border-border bg-card"
             )}
           >
             <span className="text-[11px] uppercase tracking-wider text-foreground/60 font-medium">{kpi.label}</span>
