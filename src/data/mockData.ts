@@ -33,6 +33,7 @@ export interface Campaign {
 
 export interface Project {
   id: string;
+  uuid: string;
   name: string;
   status: "active" | "paused";
   spend: number;
