@@ -100,68 +100,8 @@ export default function Dashboard() {
             ))}
           </nav>
 
-          {/* Right side: sort + date picker */}
-          <div className="flex items-center gap-2">
-            {/* Sort */}
-            <div className="flex items-center gap-1">
-              <Select value={sortKey} onValueChange={(v) => setSortKey(v as SortKey)}>
-                <SelectTrigger className="h-7 w-[100px] text-[10px] border-border">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {sortOptions.map((o) => (
-                    <SelectItem key={o.key} value={o.key} className="text-xs">
-                      {o.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={toggleSortDir}>
-                <ArrowUpDown className={cn("h-3.5 w-3.5 transition-transform", sortDir === "asc" && "rotate-180")} />
-              </Button>
-            </div>
-
-            {/* Date picker */}
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="h-7 gap-1.5 px-2.5 text-[10px] font-semibold tracking-wider border-border">
-                  <CalendarIcon className="h-3 w-3" />
-                  <span className="hidden sm:inline">{dateLabel}</span>
-                  <span className="sm:hidden">Data</span>
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="end">
-                <div className="flex">
-                  {/* Presets sidebar */}
-                  <div className="border-r border-border p-2 space-y-0.5 min-w-[140px]">
-                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground px-2 pb-1">Período</p>
-                    {presets.map((preset) => (
-                      <button
-                        key={preset.label}
-                        onClick={() => setDateRange(preset.getValue())}
-                        className="w-full rounded px-2 py-1.5 text-left text-xs text-foreground hover:bg-accent transition-colors"
-                      >
-                        {preset.label}
-                      </button>
-                    ))}
-                  </div>
-                  {/* Calendar */}
-                  <Calendar
-                    mode="range"
-                    selected={dateRange}
-                    onSelect={setDateRange}
-                    numberOfMonths={2}
-                    locale={ptBR}
-                    className="p-3 pointer-events-auto"
-                  />
-                </div>
-              </PopoverContent>
-            </Popover>
-
-            <span className="hidden text-xs text-muted-foreground sm:inline ml-1">Usuário</span>
-          </div>
+          <span className="hidden text-xs text-muted-foreground sm:inline ml-1">Usuário</span>
         </div>
-
       </header>
 
       {/* KPI Cards */}
