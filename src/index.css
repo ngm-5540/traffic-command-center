@@ -52,28 +52,45 @@
     --sidebar-border: 228 10% 14%;
     --sidebar-ring: 210 100% 56%;
 
-    /* KPI card container query variables */
-    --kpi-font-size: 20px;
-    --kpi-label-size: 12px;
-    --kpi-padding: 1rem;
-    --kpi-direction: column;
+    /* Responsive card container query variables */
+    --card-value-size: 20px;
+    --card-label-size: 12px;
+    --card-padding: 1rem;
+    --card-title-size: 14px;
+    --card-badge-size: 10px;
+    --card-metric-size: 14px;
+    --card-metric-label-size: 11px;
   }
 }
 
-/* KPI card container query levels */
-@container kpi (max-width: 200px) {
-  .kpi-card {
-    --kpi-font-size: 14px;
-    --kpi-label-size: 10px;
-    --kpi-padding: 0.625rem;
+/* ── Responsive Card Container Queries ── */
+/* Nível 1 (>240px): Confortável — fonte padrão, layout horizontal */
+
+/* Nível 2 (≤240px): Apertado — diminui fontes */
+@container card (max-width: 240px) {
+  .cq-card {
+    --card-value-size: 15px;
+    --card-label-size: 10px;
+    --card-padding: 0.625rem;
+    --card-title-size: 12px;
+    --card-metric-size: 12px;
+    --card-metric-label-size: 10px;
   }
 }
 
-@container kpi (max-width: 140px) {
-  .kpi-card {
-    --kpi-font-size: 11px;
-    --kpi-label-size: 9px;
-    --kpi-padding: 0.5rem;
+/* Nível 3 (≤180px): Crítico — fontes mínimas, layout empilhado */
+@container card (max-width: 180px) {
+  .cq-card {
+    --card-value-size: 11px;
+    --card-label-size: 9px;
+    --card-padding: 0.5rem;
+    --card-title-size: 11px;
+    --card-badge-size: 9px;
+    --card-metric-size: 10px;
+    --card-metric-label-size: 9px;
+  }
+  .cq-card .cq-metrics {
+    grid-template-columns: 1fr !important;
   }
 }
 
