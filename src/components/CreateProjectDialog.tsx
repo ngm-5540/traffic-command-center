@@ -17,17 +17,22 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   onCreateProject: (project: DashboardProject) => void;
   defaultVertical?: Vertical;
+  existingNames: string[];
 }
 
-export function CreateProjectDialog({ open, onOpenChange, onCreateProject, defaultVertical }: Props) {
+export function CreateProjectDialog({ open, onOpenChange, onCreateProject, defaultVertical, existingNames }: Props) {
   const [name, setName] = useState("");
   const [vertical, setVertical] = useState<Exclude<Vertical, "todos">>(
     defaultVertical && defaultVertical !== "todos" ? defaultVertical : "google_ads"
   );
 
+  const isDuplicate = existingNames.some(
+    (n) => n.toLowerCase() === name.trim().toLowerCase()
+  );
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
+    if (!name.trim() || isDuplicate) return;
 
     const project: DashboardProject = {
       id: crypto.randomUUID(),
