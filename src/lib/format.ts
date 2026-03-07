@@ -59,7 +59,7 @@ export function getRoasColor(roas: number): string {
  */
 export function getRoasCardClass(roas: number): string {
   if (roas >= 1) return "border-profit/30 bg-profit/5";
-  if (roas === -1) return "border-loss/30 bg-loss/5";
+  if (roas <= -1) return "border-loss/30 bg-loss/5";
   return "border-border bg-card";
 }
 
