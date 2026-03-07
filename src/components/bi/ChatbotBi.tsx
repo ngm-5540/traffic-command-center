@@ -98,17 +98,10 @@ export function ChatbotBi() {
       if (open) setTempDateRange(dateRange);
     }}>
       <PopoverTrigger asChild>
-        <Button variant="outline" className={cn(
-          "gap-1.5 font-semibold tracking-wider border-border",
-          focusMode ? "h-6 px-2 text-[10px]" : "h-7 px-2.5 text-[10px]"
-        )}>
-          <CalendarIcon className={focusMode ? "h-2.5 w-2.5" : "h-3 w-3"} />
-          {focusMode ? dateLabel : (
-            <>
-              <span className="hidden sm:inline">{dateLabel}</span>
-              <span className="sm:hidden">Data</span>
-            </>
-          )}
+        <Button variant="outline" className="gap-1.5 font-semibold tracking-wider border-border h-7 px-2.5 text-[10px]">
+          <CalendarIcon className="h-3 w-3" />
+          <span className="hidden sm:inline">{dateLabel}</span>
+          <span className="sm:hidden">Data</span>
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
@@ -185,164 +178,87 @@ export function ChatbotBi() {
   return (
     <div className={cn("flex flex-col", focusMode ? "fixed inset-0 z-[100] bg-background h-screen overflow-auto" : "h-full")}>
 
-      {focusMode ? (
-        /* ── Compact fullscreen: filters + KPIs in single sticky bar ── */
-        <div className="sticky top-0 z-10 border-b border-border bg-background px-4 py-2 sm:px-6">
-          <div className="flex items-center gap-3 flex-wrap">
-            {/* Filters */}
-            <div className="flex items-center gap-1.5 shrink-0">
-              <Select value={fanpage} onValueChange={setFanpage}>
-                <SelectTrigger className="h-6 w-[120px] text-[10px] border-border">
-                  <SelectValue placeholder="Fanpage" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all" className="text-xs">Todas Fanpages</SelectItem>
-                  {fanpageOptions.map((f) => (
-                    <SelectItem key={f} value={f} className="text-xs">{f}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select value={country} onValueChange={setCountry}>
-                <SelectTrigger className="h-6 w-[100px] text-[10px] border-border">
-                  <SelectValue placeholder="País" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all" className="text-xs">Todos Países</SelectItem>
-                  {countryOptions.map((c) => (
-                    <SelectItem key={c} value={c} className="text-xs">{c}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <div className="flex items-center gap-0">
-                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => shiftDateRange(-1)}>
-                  <ChevronLeft className="h-3 w-3" />
-                </Button>
-                {datePickerPopover}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6"
-                  disabled={dateRange?.to ? dateRange.to >= new Date(new Date().toDateString()) : false}
-                  onClick={() => shiftDateRange(1)}
-                >
-                  <ChevronRight className="h-3 w-3" />
-                </Button>
-              </div>
-            </div>
-
-            <div className="h-5 w-px bg-border shrink-0" />
-
-            {/* Inline KPIs */}
-            <div className="flex items-center gap-3 flex-wrap">
-              {kpis.map((kpi) => (
-                <Tooltip key={kpi.label}>
-                  <TooltipTrigger asChild>
-                    <div className="flex items-center gap-1.5 cursor-help">
-                      <span className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold">{kpi.label}</span>
-                      <span
-                        className={cn("font-mono text-xs font-bold", kpi.className || (!kpi.color ? "text-foreground" : undefined))}
-                        style={kpi.color ? { color: kpi.color } : undefined}
-                      >
-                        {kpi.value}
-                      </span>
-                      {popEnabled && (
-                        <PopBadge current={kpi.current} previous={kpi.previous} invertColor={kpi.invertColor} />
-                      )}
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="text-xs">{kpi.tooltip}</TooltipContent>
-                </Tooltip>
+      {/* ── Filter bar ── */}
+      <div className="sticky top-0 z-10 border-b border-border bg-background px-4 py-3 sm:px-6">
+        <div className="flex flex-wrap items-center gap-2">
+          <Select value={fanpage} onValueChange={setFanpage}>
+            <SelectTrigger className="h-7 w-[140px] text-[10px] border-border">
+              <SelectValue placeholder="Fanpage" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all" className="text-xs">Todas Fanpages</SelectItem>
+              {fanpageOptions.map((f) => (
+                <SelectItem key={f} value={f} className="text-xs">{f}</SelectItem>
               ))}
-            </div>
+            </SelectContent>
+          </Select>
+
+          <Select value={country} onValueChange={setCountry}>
+            <SelectTrigger className="h-7 w-[120px] text-[10px] border-border">
+              <SelectValue placeholder="País" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all" className="text-xs">Todos Países</SelectItem>
+              {countryOptions.map((c) => (
+                <SelectItem key={c} value={c} className="text-xs">{c}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <div className="flex items-center gap-0.5">
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => shiftDateRange(-1)}>
+              <ChevronLeft className="h-3.5 w-3.5" />
+            </Button>
+            {datePickerPopover}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              disabled={dateRange?.to ? dateRange.to >= new Date(new Date().toDateString()) : false}
+              onClick={() => shiftDateRange(1)}
+            >
+              <ChevronRight className="h-3.5 w-3.5" />
+            </Button>
           </div>
         </div>
-      ) : (
-        <>
-          {/* ── Normal: separate filter bar + KPI cards ── */}
-          <div className="sticky top-0 z-10 border-b border-border bg-background px-4 py-3 sm:px-6">
-            <div className="flex flex-wrap items-center gap-2">
-              <Select value={fanpage} onValueChange={setFanpage}>
-                <SelectTrigger className="h-7 w-[140px] text-[10px] border-border">
-                  <SelectValue placeholder="Fanpage" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all" className="text-xs">Todas Fanpages</SelectItem>
-                  {fanpageOptions.map((f) => (
-                    <SelectItem key={f} value={f} className="text-xs">{f}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+      </div>
 
-              <Select value={country} onValueChange={setCountry}>
-                <SelectTrigger className="h-7 w-[120px] text-[10px] border-border">
-                  <SelectValue placeholder="País" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all" className="text-xs">Todos Países</SelectItem>
-                  {countryOptions.map((c) => (
-                    <SelectItem key={c} value={c} className="text-xs">{c}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <div className="flex items-center gap-0.5">
-                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => shiftDateRange(-1)}>
-                  <ChevronLeft className="h-3.5 w-3.5" />
-                </Button>
-                {datePickerPopover}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7"
-                  disabled={dateRange?.to ? dateRange.to >= new Date(new Date().toDateString()) : false}
-                  onClick={() => shiftDateRange(1)}
+      {/* KPI Cards */}
+      <div className="grid grid-cols-3 gap-3 px-4 pt-4 sm:grid-cols-6 sm:px-6">
+        {kpis.map((kpi) => (
+          <Tooltip key={kpi.label}>
+            <TooltipTrigger asChild>
+              <div className={cn(
+                "rounded-lg border p-3 cursor-help",
+                kpi.label === "LUCRO"
+                  ? totalProfit >= 0
+                    ? "border-profit/30 bg-profit/5"
+                    : "border-loss/30 bg-loss/5"
+                  : "border-border bg-card"
+              )}>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] uppercase tracking-wider text-foreground font-semibold">{kpi.label}</span>
+                  {popEnabled && (
+                    <PopBadge current={kpi.current} previous={kpi.previous} invertColor={kpi.invertColor} />
+                  )}
+                </div>
+                <p
+                  className={cn("font-mono text-lg font-bold", kpi.className || (!kpi.color ? "text-foreground" : undefined))}
+                  style={kpi.color ? { color: kpi.color } : undefined}
                 >
-                  <ChevronRight className="h-3.5 w-3.5" />
-                </Button>
+                  {kpi.value}
+                </p>
+                {popEnabled && (
+                  <p className="text-[9px] text-muted-foreground font-mono mt-0.5">
+                    ant: {kpi.label === "ROAS" ? formatROAS(kpi.previous) : formatBRL(kpi.previous)}
+                  </p>
+                )}
               </div>
-            </div>
-          </div>
-
-          {/* KPI Cards */}
-          <div className="grid grid-cols-3 gap-3 px-4 pt-4 sm:grid-cols-6 sm:px-6">
-            {kpis.map((kpi) => (
-              <Tooltip key={kpi.label}>
-                <TooltipTrigger asChild>
-                  <div className={cn(
-                    "rounded-lg border p-3 cursor-help",
-                    kpi.label === "LUCRO"
-                      ? totalProfit >= 0
-                        ? "border-profit/30 bg-profit/5"
-                        : "border-loss/30 bg-loss/5"
-                      : "border-border bg-card"
-                  )}>
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] uppercase tracking-wider text-foreground font-semibold">{kpi.label}</span>
-                      {popEnabled && (
-                        <PopBadge current={kpi.current} previous={kpi.previous} invertColor={kpi.invertColor} />
-                      )}
-                    </div>
-                    <p
-                      className={cn("font-mono text-lg font-bold", kpi.className || (!kpi.color ? "text-foreground" : undefined))}
-                      style={kpi.color ? { color: kpi.color } : undefined}
-                    >
-                      {kpi.value}
-                    </p>
-                    {popEnabled && (
-                      <p className="text-[9px] text-muted-foreground font-mono mt-0.5">
-                        ant: {kpi.label === "ROAS" ? formatROAS(kpi.previous) : formatBRL(kpi.previous)}
-                      </p>
-                    )}
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="text-xs">{kpi.tooltip}</TooltipContent>
-              </Tooltip>
-            ))}
-          </div>
-        </>
-      )}
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="text-xs">{kpi.tooltip}</TooltipContent>
+          </Tooltip>
+        ))}
+      </div>
 
       {/* Tabs */}
       <Tabs defaultValue="resultado" className={cn("flex-1 flex flex-col px-4 sm:px-6", focusMode ? "pt-2" : "pt-4")}>
