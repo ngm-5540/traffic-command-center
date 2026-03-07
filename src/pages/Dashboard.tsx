@@ -141,7 +141,11 @@ export default function Dashboard() {
     const totalRevenue = sorted.reduce((s, p) => s + p.revenue, 0);
     const totalProfit = sorted.reduce((s, p) => s + p.profit, 0);
     const avgRoas = sorted.length ? sorted.reduce((s, p) => s + p.roas, 0) / sorted.length : 0;
-    return { totalSpend, totalRevenue, totalProfit, avgRoas };
+    const totalSessions = sorted.reduce((s, p) => s + p.sessions, 0);
+    const totalLeads = sorted.reduce((s, p) => s + p.leads, 0);
+    const avgRps = totalSessions > 0 ? totalRevenue / totalSessions : 0;
+    const avgCps = totalLeads > 0 ? totalSpend / totalLeads : 0;
+    return { totalSpend, totalRevenue, totalProfit, avgRoas, avgRps, avgCps };
   }, [sorted]);
 
   const toggleSortDir = () => { setNewestProjectId(null); setSortDir((d) => (d === "asc" ? "desc" : "asc")); };
@@ -197,12 +201,14 @@ export default function Dashboard() {
       </header>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 gap-3 px-4 pt-4 sm:grid-cols-4 sm:px-6 max-w-[1920px] mx-auto w-full">
+      <div className="grid grid-cols-3 gap-3 px-4 pt-4 sm:grid-cols-6 sm:px-6 max-w-[1920px] mx-auto w-full">
         {[
           { label: "CUSTO", value: formatBRL(kpis.totalSpend) },
           { label: "RECEITA", value: formatBRL(kpis.totalRevenue) },
           { label: "LUCRO", value: formatBRL(kpis.totalProfit), highlight: true },
           { label: "ROAS", value: formatROAS(kpis.avgRoas), roasColor: getRoasColor(kpis.avgRoas), roasNegative: kpis.avgRoas < 0 },
+          { label: "RPS", value: formatBRL(kpis.avgRps) },
+          { label: "CPS", value: formatBRL(kpis.avgCps) },
         ].map((kpi) => (
           <div
             key={kpi.label}

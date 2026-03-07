@@ -44,6 +44,8 @@ export function CreateProjectDialog({ open, onOpenChange, onCreateProject, defau
       spend: 0,
       profit: 0,
       roas: 0,
+      sessions: 0,
+      leads: 0,
     };
 
     onCreateProject(project);
