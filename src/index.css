@@ -51,6 +51,29 @@
     --sidebar-accent-foreground: 210 20% 90%;
     --sidebar-border: 228 10% 14%;
     --sidebar-ring: 210 100% 56%;
+
+    /* KPI card container query variables */
+    --kpi-font-size: 20px;
+    --kpi-label-size: 12px;
+    --kpi-padding: 1rem;
+    --kpi-direction: column;
+  }
+}
+
+/* KPI card container query levels */
+@container kpi (max-width: 200px) {
+  .kpi-card {
+    --kpi-font-size: 14px;
+    --kpi-label-size: 10px;
+    --kpi-padding: 0.625rem;
+  }
+}
+
+@container kpi (max-width: 140px) {
+  .kpi-card {
+    --kpi-font-size: 11px;
+    --kpi-label-size: 9px;
+    --kpi-padding: 0.5rem;
   }
 }
 
