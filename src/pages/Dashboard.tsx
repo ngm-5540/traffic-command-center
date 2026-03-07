@@ -213,7 +213,7 @@ export default function Dashboard() {
           { label: "RPS", value: formatBRL(kpis.avgRps) },
           { label: "CPS", value: formatBRL(kpis.avgCps) },
         ].map((kpi) => {
-          const hasConditionalColor = kpi.isProfit || kpi.isRoas;
+          return (
           return (
             <div
               key={kpi.label}
