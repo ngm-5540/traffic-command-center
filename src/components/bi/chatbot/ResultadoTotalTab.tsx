@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
-import { Maximize2, Minimize2, Pin, Columns3 } from "lucide-react";
+import { Maximize2, Minimize2, Columns3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -7,10 +7,21 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { cn } from "@/lib/utils";
 import { formatBRL, formatROAS, formatPercent, formatNumber, formatDuration, getRoasColor } from "@/lib/format";
 import { SparklineCell } from "./SparklineCell";
-import type { ChatbotCampaign } from "@/data/chatbotMockData";
+import type { ChatbotCampaign, ChatbotAdset, ChatbotAd } from "@/data/chatbotMockData";
 
 interface Props {
   campaigns: ChatbotCampaign[];
+}
+
+type Dimension = "campaign" | "adset" | "ad";
+
+interface FlatRow {
+  id: string;
+  name: string;
+  campaignName?: string;
+  adsetName?: string;
+  data: Record<string, any>;
+  childCount?: string;
 }
 
 interface ColumnDef {
@@ -18,7 +29,7 @@ interface ColumnDef {
   label: string;
   shortLabel?: string;
   group: string;
-  format: (v: any, row?: ChatbotCampaign) => React.ReactNode;
+  format: (v: any, row?: any) => React.ReactNode;
   align?: "left" | "right";
   defaultVisible?: boolean;
 }
@@ -60,12 +71,12 @@ const allColumns: ColumnDef[] = [
   // Automation
   { key: "revenueAut", label: "Rec. Aut.", group: "automation", format: (v) => formatBRL(v), defaultVisible: true },
   { key: "revAutRate", label: "% Rec. Aut.", group: "automation", format: (v) => formatPercent(v), defaultVisible: false },
-  { key: "resultAut", label: "Result. Aut.", group: "automation", format: (v, row) => <span className={v >= 0 ? "text-profit" : "text-loss"}>{formatBRL(v)}</span>, defaultVisible: true },
+  { key: "resultAut", label: "Result. Aut.", group: "automation", format: (v) => <span className={v >= 0 ? "text-profit" : "text-loss"}>{formatBRL(v)}</span>, defaultVisible: true },
   { key: "marginAut", label: "Margem Aut.", group: "automation", format: (v) => formatPercent(v), defaultVisible: false },
   // Broadcast
   { key: "revenueBroad", label: "Rec. Broad.", group: "broadcast", format: (v) => formatBRL(v), defaultVisible: true },
   { key: "revBroadRate", label: "% Rec. Broad.", group: "broadcast", format: (v) => formatPercent(v), defaultVisible: false },
-  { key: "resultBroad", label: "Result. Broad.", group: "broadcast", format: (v, row) => <span className={v >= 0 ? "text-profit" : "text-loss"}>{formatBRL(v)}</span>, defaultVisible: true },
+  { key: "resultBroad", label: "Result. Broad.", group: "broadcast", format: (v) => <span className={v >= 0 ? "text-profit" : "text-loss"}>{formatBRL(v)}</span>, defaultVisible: true },
   { key: "marginBroad", label: "Margem Broad.", group: "broadcast", format: (v) => formatPercent(v), defaultVisible: false },
   // Conversion
   { key: "conversions", label: "Conversões", group: "conversion", format: (v) => formatNumber(v), defaultVisible: true },
@@ -98,10 +109,17 @@ const presets: { label: string; keys: string[] }[] = [
   { label: "Completo", keys: allColumns.map((c) => c.key) },
 ];
 
+const dimensionOptions: { value: Dimension; label: string }[] = [
+  { value: "campaign", label: "Campanha" },
+  { value: "adset", label: "Adset" },
+  { value: "ad", label: "Ad" },
+];
+
 export function ResultadoTotalTab({ campaigns }: Props) {
   const [focusMode, setFocusMode] = useState(false);
-  const [pinnedCols, setPinnedCols] = useState(1); // name column always pinned
   const [visibleKeys, setVisibleKeys] = useState<string[]>(() => loadVisibleColumns() ?? defaultVisibleKeys);
+  const [dimension, setDimension] = useState<Dimension>("campaign");
+  const [showParentCols, setShowParentCols] = useState(true);
 
   const toggleColumn = useCallback((key: string) => {
     setVisibleKeys((prev) => {
@@ -117,6 +135,57 @@ export function ResultadoTotalTab({ campaigns }: Props) {
   }, []);
 
   const visibleColumns = useMemo(() => allColumns.filter((c) => visibleKeys.includes(c.key)), [visibleKeys]);
+
+  // Flatten data based on dimension
+  const rows: FlatRow[] = useMemo(() => {
+    if (dimension === "campaign") {
+      return campaigns.map((c) => ({
+        id: c.id,
+        name: c.name,
+        data: c as any,
+        childCount: `${c.adsets.length} adsets, ${c.adsets.reduce((s, a) => s + a.ads.length, 0)} ads`,
+      }));
+    }
+    if (dimension === "adset") {
+      const result: FlatRow[] = [];
+      for (const c of campaigns) {
+        for (const adset of c.adsets) {
+          result.push({
+            id: adset.id,
+            name: adset.name,
+            campaignName: c.name,
+            data: adset as any,
+            childCount: `${adset.ads.length} ads`,
+          });
+        }
+      }
+      return result;
+    }
+    // ad
+    const result: FlatRow[] = [];
+    for (const c of campaigns) {
+      for (const adset of c.adsets) {
+        for (const ad of adset.ads) {
+          result.push({
+            id: ad.id,
+            name: ad.name,
+            campaignName: c.name,
+            adsetName: adset.name,
+            data: ad as any,
+          });
+        }
+      }
+    }
+    return result;
+  }, [campaigns, dimension]);
+
+  // Number of sticky dimension columns
+  const parentColCount = useMemo(() => {
+    if (!showParentCols) return 1;
+    if (dimension === "ad") return 3; // campaign + adset + ad
+    if (dimension === "adset") return 2; // campaign + adset
+    return 1; // campaign
+  }, [dimension, showParentCols]);
 
   // Compute group spans for super-header
   const superHeaders = useMemo(() => {
@@ -134,7 +203,7 @@ export function ResultadoTotalTab({ campaigns }: Props) {
     return groups;
   }, [visibleColumns]);
 
-  // Expanded adsets
+  // Expanded rows (only for campaign dimension)
   const [expandedCampaigns, setExpandedCampaigns] = useState<Set<string>>(new Set());
 
   const toggleExpand = useCallback((id: string) => {
@@ -149,11 +218,46 @@ export function ResultadoTotalTab({ campaigns }: Props) {
     ? "fixed inset-0 z-[100] bg-background flex flex-col"
     : "flex flex-col";
 
+  const dimensionLabel = dimension === "campaign" ? "Campanha" : dimension === "adset" ? "Adset" : "Ad";
+
+  // Sticky left offsets for dimension columns
+  const dimColWidths = [180, 160, 160]; // approximate widths for each dim col
+
   return (
     <div className={containerClass}>
       {/* Toolbar */}
       <div className="flex items-center justify-between gap-2 px-1 py-2">
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
+          {/* Dimension switcher */}
+          <div className="flex items-center rounded-md border border-border bg-muted/50 p-0.5">
+            {dimensionOptions.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => setDimension(opt.value)}
+                className={cn(
+                  "px-2.5 py-1 text-[10px] font-semibold rounded transition-colors",
+                  dimension === opt.value
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Show parent columns toggle */}
+          {dimension !== "campaign" && (
+            <label className="flex items-center gap-1.5 cursor-pointer">
+              <Checkbox
+                checked={showParentCols}
+                onCheckedChange={(v) => setShowParentCols(!!v)}
+                className="h-3.5 w-3.5"
+              />
+              <span className="text-[10px] text-muted-foreground font-medium">Hierarquia</span>
+            </label>
+          )}
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="h-7 gap-1.5 text-[10px] font-semibold tracking-wider">
@@ -162,7 +266,6 @@ export function ResultadoTotalTab({ campaigns }: Props) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-[260px] max-h-[400px] overflow-y-auto p-2">
-              {/* Presets */}
               <div className="flex flex-wrap gap-1 mb-2 pb-2 border-b border-border">
                 {presets.map((p) => (
                   <button
@@ -207,8 +310,20 @@ export function ResultadoTotalTab({ campaigns }: Props) {
           <thead className="sticky top-0 z-30 bg-background">
             {/* Super-header row */}
             <tr className="border-b border-border">
-              <th className="sticky left-0 z-40 bg-background px-3 py-1.5 text-left text-[10px] font-semibold uppercase tracking-wider text-muted-foreground border-r border-border" rowSpan={2}>
-                Campanha
+              {/* Dimension super-header spanning all dim cols */}
+              <th
+                className="sticky left-0 z-40 bg-background px-3 py-1.5 text-left text-[10px] font-semibold uppercase tracking-wider text-muted-foreground border-r border-border"
+                colSpan={parentColCount}
+                rowSpan={2}
+              >
+                <div className="flex flex-col gap-0.5">
+                  <span>{dimensionLabel}</span>
+                  {dimension !== "campaign" && showParentCols && (
+                    <span className="text-[9px] text-muted-foreground/60 font-normal normal-case">
+                      {dimension === "ad" ? "+ Campanha, Adset" : "+ Campanha"}
+                    </span>
+                  )}
+                </div>
               </th>
               {superHeaders.map((sh) => (
                 <th
@@ -235,57 +350,107 @@ export function ResultadoTotalTab({ campaigns }: Props) {
             </tr>
           </thead>
           <tbody>
-            {campaigns.map((campaign) => (
-              <>
-                {/* Campaign row */}
-                <tr
-                  key={campaign.id}
-                  className="border-b border-border hover:bg-accent/50 cursor-pointer transition-colors"
-                  onClick={() => toggleExpand(campaign.id)}
-                >
-                  <td className="sticky left-0 z-20 bg-background px-3 py-2 font-semibold text-foreground whitespace-nowrap border-r border-border shadow-[2px_0_4px_-2px_rgba(0,0,0,0.3)]">
-                    <span className="mr-1.5 text-muted-foreground text-[10px]">
-                      {expandedCampaigns.has(campaign.id) ? "▼" : "▶"}
-                    </span>
-                    {campaign.name}
-                    <span className="ml-2 text-[10px] text-muted-foreground font-mono">
-                      ({campaign.adsets.length} adsets, {campaign.adsets.reduce((s, a) => s + a.ads.length, 0)} ads)
-                    </span>
-                  </td>
-                  {visibleColumns.map((col) => (
-                    <td key={col.key} className="px-2 py-2 text-right font-mono font-bold whitespace-nowrap">
-                      {col.format((campaign as any)[col.key], campaign)}
-                    </td>
-                  ))}
-                </tr>
-                {/* Expanded adsets */}
-                {expandedCampaigns.has(campaign.id) && campaign.adsets.map((adset) => (
-                  <tr key={adset.id} className="border-b border-border/50 bg-card/30 hover:bg-accent/30 transition-colors">
-                    <td className="sticky left-0 z-20 bg-card/30 px-3 py-1.5 pl-8 text-foreground/80 whitespace-nowrap border-r border-border text-[11px] shadow-[2px_0_4px_-2px_rgba(0,0,0,0.3)]">
-                      ↳ {adset.name}
-                      <span className="ml-2 text-[10px] text-muted-foreground font-mono">({adset.ads.length} ads)</span>
+            {dimension === "campaign" ? (
+              // Campaign view with expand
+              campaigns.map((campaign) => (
+                <>
+                  <tr
+                    key={campaign.id}
+                    className="border-b border-border hover:bg-accent/50 cursor-pointer transition-colors"
+                    onClick={() => toggleExpand(campaign.id)}
+                  >
+                    <td className="sticky left-0 z-20 bg-background px-3 py-2 font-semibold text-foreground whitespace-nowrap border-r border-border shadow-[2px_0_4px_-2px_rgba(0,0,0,0.3)]">
+                      <span className="mr-1.5 text-muted-foreground text-[10px]">
+                        {expandedCampaigns.has(campaign.id) ? "▼" : "▶"}
+                      </span>
+                      {campaign.name}
+                      <span className="ml-2 text-[10px] text-muted-foreground font-mono">
+                        ({campaign.adsets.length} adsets, {campaign.adsets.reduce((s, a) => s + a.ads.length, 0)} ads)
+                      </span>
                     </td>
                     {visibleColumns.map((col) => (
-                      <td key={col.key} className="px-2 py-1.5 text-right font-mono text-[11px] whitespace-nowrap text-foreground/70">
-                        {col.format((adset as any)[col.key])}
+                      <td key={col.key} className="px-2 py-2 text-right font-mono font-bold whitespace-nowrap">
+                        {col.format((campaign as any)[col.key], campaign)}
                       </td>
                     ))}
                   </tr>
-                ))}
-              </>
-            ))}
+                  {expandedCampaigns.has(campaign.id) && campaign.adsets.map((adset) => (
+                    <tr key={adset.id} className="border-b border-border/50 bg-card/30 hover:bg-accent/30 transition-colors">
+                      <td className="sticky left-0 z-20 bg-card/30 px-3 py-1.5 pl-8 text-foreground/80 whitespace-nowrap border-r border-border text-[11px] shadow-[2px_0_4px_-2px_rgba(0,0,0,0.3)]">
+                        ↳ {adset.name}
+                        <span className="ml-2 text-[10px] text-muted-foreground font-mono">({adset.ads.length} ads)</span>
+                      </td>
+                      {visibleColumns.map((col) => (
+                        <td key={col.key} className="px-2 py-1.5 text-right font-mono text-[11px] whitespace-nowrap text-foreground/70">
+                          {col.format((adset as any)[col.key])}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </>
+              ))
+            ) : (
+              // Flat view for adset / ad dimension
+              rows.map((row) => (
+                <tr key={row.id} className="border-b border-border hover:bg-accent/50 transition-colors">
+                  {/* Parent columns */}
+                  {dimension === "ad" && showParentCols && (
+                    <>
+                      <td className="sticky left-0 z-20 bg-background px-3 py-2 text-[10px] text-muted-foreground whitespace-nowrap border-r border-border/50 max-w-[180px] truncate">
+                        {row.campaignName}
+                      </td>
+                      <td className="sticky z-20 bg-background px-3 py-2 text-[10px] text-muted-foreground whitespace-nowrap border-r border-border/50 max-w-[160px] truncate" style={{ left: 180 }}>
+                        {row.adsetName}
+                      </td>
+                    </>
+                  )}
+                  {dimension === "adset" && showParentCols && (
+                    <td className="sticky left-0 z-20 bg-background px-3 py-2 text-[10px] text-muted-foreground whitespace-nowrap border-r border-border/50 max-w-[180px] truncate">
+                      {row.campaignName}
+                    </td>
+                  )}
+                  {/* Name column */}
+                  <td
+                    className={cn(
+                      "sticky z-20 bg-background px-3 py-2 font-semibold text-foreground whitespace-nowrap border-r border-border shadow-[2px_0_4px_-2px_rgba(0,0,0,0.3)]",
+                      "max-w-[200px] truncate"
+                    )}
+                    style={{
+                      left: !showParentCols ? 0
+                        : dimension === "ad" ? 340
+                        : dimension === "adset" ? 180
+                        : 0,
+                    }}
+                  >
+                    {row.name}
+                    {row.childCount && (
+                      <span className="ml-2 text-[10px] text-muted-foreground font-mono">({row.childCount})</span>
+                    )}
+                  </td>
+                  {/* Data columns */}
+                  {visibleColumns.map((col) => (
+                    <td key={col.key} className="px-2 py-2 text-right font-mono whitespace-nowrap">
+                      {col.format(row.data[col.key], row.data)}
+                    </td>
+                  ))}
+                </tr>
+              ))
+            )}
           </tbody>
           {/* Totals */}
           <tfoot className="sticky bottom-0 z-30 bg-background border-t-2 border-primary/30">
             <tr>
-              <td className="sticky left-0 z-40 bg-background px-3 py-2 font-bold text-foreground text-xs border-r border-border shadow-[2px_0_4px_-2px_rgba(0,0,0,0.3)]">
-                TOTAL
+              <td
+                className="sticky left-0 z-40 bg-background px-3 py-2 font-bold text-foreground text-xs border-r border-border shadow-[2px_0_4px_-2px_rgba(0,0,0,0.3)]"
+                colSpan={parentColCount}
+              >
+                TOTAL ({rows.length})
               </td>
               {visibleColumns.map((col) => {
-                const total = campaigns.reduce((s, c) => s + (typeof (c as any)[col.key] === "number" ? (c as any)[col.key] : 0), 0);
+                const total = rows.reduce((s, r) => s + (typeof r.data[col.key] === "number" ? r.data[col.key] : 0), 0);
                 const isAvg = ["roas", "ctr", "cpc", "cpm", "rps", "cps", "ecpm", "bounceRate", "timeToSession", "connectRate", "convRate", "leadsRate", "newLeadsRate", "uniqueLeadsRate", "revAutRate", "revBroadRate", "marginAut", "marginBroad", "costPerConversion", "costPerLead", "costPerNewLead"].includes(col.key);
                 const isTrend = col.key.endsWith("Trend");
-                const value = isTrend ? [] : isAvg && campaigns.length > 0 ? total / campaigns.length : total;
+                const value = isTrend ? [] : isAvg && rows.length > 0 ? total / rows.length : total;
                 return (
                   <td key={col.key} className="px-2 py-2 text-right font-mono font-bold text-xs whitespace-nowrap">
                     {isTrend ? "—" : col.format(value)}
