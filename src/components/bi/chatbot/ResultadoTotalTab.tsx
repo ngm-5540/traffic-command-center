@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
-import { Maximize2, Minimize2, Columns3 } from "lucide-react";
+import { Maximize2, Minimize2, Columns3, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -115,11 +115,41 @@ const dimensionOptions: { value: Dimension; label: string }[] = [
   { value: "ad", label: "Ad" },
 ];
 
+type SortDir = "asc" | "desc";
+interface SortState { key: string; dir: SortDir; }
+
+function sortRows<T>(items: T[], sort: SortState | null, getValue: (item: T, key: string) => any): T[] {
+  if (!sort) return items;
+  return [...items].sort((a, b) => {
+    const va = getValue(a, sort.key) ?? 0;
+    const vb = getValue(b, sort.key) ?? 0;
+    if (typeof va === "string" && typeof vb === "string") {
+      return sort.dir === "asc" ? va.localeCompare(vb) : vb.localeCompare(va);
+    }
+    return sort.dir === "asc" ? va - vb : vb - va;
+  });
+}
+
+function SortIcon({ active, dir }: { active: boolean; dir?: SortDir }) {
+  if (!active) return <ArrowUpDown className="h-2.5 w-2.5 opacity-30" />;
+  return dir === "asc" ? <ArrowUp className="h-2.5 w-2.5 text-primary" /> : <ArrowDown className="h-2.5 w-2.5 text-primary" />;
+}
+
 export function ResultadoTotalTab({ campaigns }: Props) {
   const [focusMode, setFocusMode] = useState(false);
   const [visibleKeys, setVisibleKeys] = useState<string[]>(() => loadVisibleColumns() ?? defaultVisibleKeys);
   const [dimension, setDimension] = useState<Dimension>("campaign");
   const [showParentCols, setShowParentCols] = useState(true);
+  const [sort, setSort] = useState<SortState | null>(null);
+
+  const toggleSort = useCallback((key: string) => {
+    setSort((prev) => {
+      if (prev?.key === key) {
+        return prev.dir === "asc" ? { key, dir: "desc" } : null;
+      }
+      return { key, dir: "desc" };
+    });
+  }, []);
 
   const toggleColumn = useCallback((key: string) => {
     setVisibleKeys((prev) => {
@@ -178,6 +208,22 @@ export function ResultadoTotalTab({ campaigns }: Props) {
     }
     return result;
   }, [campaigns, dimension]);
+
+  // Sort rows
+  const sortedRows = useMemo(() => {
+    if (!sort) return rows;
+    if (sort.key === "name") return sortRows(rows, sort, (r) => r.name);
+    if (sort.key === "campaignName") return sortRows(rows, sort, (r) => r.campaignName ?? "");
+    if (sort.key === "adsetName") return sortRows(rows, sort, (r) => r.adsetName ?? "");
+    return sortRows(rows, sort, (r, k) => r.data[k]);
+  }, [rows, sort]);
+
+  // Sort campaigns for campaign view
+  const sortedCampaigns = useMemo(() => {
+    if (!sort || dimension !== "campaign") return campaigns;
+    if (sort.key === "name") return sortRows(campaigns, sort, (c) => c.name);
+    return sortRows(campaigns, sort, (c, k) => (c as any)[k]);
+  }, [campaigns, sort, dimension]);
 
   // Number of sticky dimension columns
   const parentColCount = useMemo(() => {
@@ -337,22 +383,30 @@ export function ResultadoTotalTab({ campaigns }: Props) {
             </tr>
             {/* Column headers */}
             <tr className="border-b border-border">
-              {visibleColumns.map((col) => (
-                <th key={col.key} className="px-2 py-1.5 text-right text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span className="cursor-help">{col.shortLabel ?? col.label}</span>
-                    </TooltipTrigger>
-                    <TooltipContent side="top" className="text-xs">{col.label}</TooltipContent>
-                  </Tooltip>
-                </th>
-              ))}
+              {visibleColumns.map((col) => {
+                const isTrend = col.key.endsWith("Trend");
+                return (
+                  <th
+                    key={col.key}
+                    className={cn(
+                      "px-2 py-1.5 text-right text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap",
+                      !isTrend && "cursor-pointer hover:text-foreground select-none"
+                    )}
+                    onClick={!isTrend ? () => toggleSort(col.key) : undefined}
+                  >
+                    <span className="inline-flex items-center gap-0.5">
+                      {col.shortLabel ?? col.label}
+                      {!isTrend && <SortIcon active={sort?.key === col.key} dir={sort?.dir} />}
+                    </span>
+                  </th>
+                );
+              })}
             </tr>
           </thead>
           <tbody>
             {dimension === "campaign" ? (
               // Campaign view with expand
-              campaigns.map((campaign) => (
+              sortedCampaigns.map((campaign) => (
                 <>
                   <tr
                     key={campaign.id}
@@ -391,7 +445,7 @@ export function ResultadoTotalTab({ campaigns }: Props) {
               ))
             ) : (
               // Flat view for adset / ad dimension
-              rows.map((row) => (
+              sortedRows.map((row) => (
                 <tr key={row.id} className="border-b border-border hover:bg-accent/50 transition-colors">
                   {/* Parent columns */}
                   {dimension === "ad" && showParentCols && (
