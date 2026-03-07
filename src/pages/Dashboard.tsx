@@ -1,19 +1,43 @@
 import { useState, useMemo } from "react";
-import { dashboardProjects, verticals, periods, type Vertical, type Period } from "@/data/dashboardData";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { CalendarIcon, ArrowUpDown } from "lucide-react";
+import { dashboardProjects, verticals, type Vertical } from "@/data/dashboardData";
 import { formatBRL, formatROAS } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import type { DateRange } from "react-day-picker";
 
-// Status still used for card background logic
+type SortKey = "name" | "profit" | "spend" | "revenue" | "roas";
+type SortDir = "asc" | "desc";
+
+const sortOptions: { key: SortKey; label: string }[] = [
+  { key: "name", label: "Nome" },
+  { key: "profit", label: "Lucro" },
+  { key: "spend", label: "Custo" },
+  { key: "revenue", label: "Receita" },
+  { key: "roas", label: "ROAS" },
+];
+
+const presets: { label: string; getValue: () => DateRange }[] = [
+  { label: "Hoje", getValue: () => { const d = new Date(); return { from: d, to: d }; } },
+  { label: "Ontem", getValue: () => { const d = new Date(); d.setDate(d.getDate() - 1); return { from: d, to: d }; } },
+  { label: "Últimos 7 dias", getValue: () => { const to = new Date(); const from = new Date(); from.setDate(to.getDate() - 6); return { from, to }; } },
+  { label: "Últimos 14 dias", getValue: () => { const to = new Date(); const from = new Date(); from.setDate(to.getDate() - 13); return { from, to }; } },
+  { label: "Últimos 30 dias", getValue: () => { const to = new Date(); const from = new Date(); from.setDate(to.getDate() - 29); return { from, to }; } },
+  { label: "Este mês", getValue: () => { const now = new Date(); return { from: new Date(now.getFullYear(), now.getMonth(), 1), to: now }; } },
+  { label: "Mês passado", getValue: () => { const now = new Date(); return { from: new Date(now.getFullYear(), now.getMonth() - 1, 1), to: new Date(now.getFullYear(), now.getMonth(), 0) }; } },
+];
 
 export default function Dashboard() {
   const [activeVertical, setActiveVertical] = useState<Vertical>("todos");
-  const [activePeriod, setActivePeriod] = useState<Period>("hoje");
-
-  const filtered = useMemo(
-    () => activeVertical === "todos" ? dashboardProjects : dashboardProjects.filter((p) => p.vertical === activeVertical),
-    [activeVertical]
-  );
+  const [sortKey, setSortKey] = useState<SortKey>("profit");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(() => presets[0].getValue());
 
   const verticalConfig: Record<string, { label: string; className: string }> = {
     google_ads: { label: "GOOGLE ADS", className: "bg-yellow-500/15 text-yellow-500 border-yellow-500/30" },
@@ -21,13 +45,37 @@ export default function Dashboard() {
     chatbot: { label: "CHATBOT", className: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" },
   };
 
+  const sorted = useMemo(() => {
+    const base = activeVertical === "todos"
+      ? [...dashboardProjects]
+      : dashboardProjects.filter((p) => p.vertical === activeVertical);
+
+    base.sort((a, b) => {
+      const mul = sortDir === "asc" ? 1 : -1;
+      if (sortKey === "name") return mul * a.name.localeCompare(b.name, "pt-BR");
+      return mul * (a[sortKey] - b[sortKey]);
+    });
+
+    return base;
+  }, [activeVertical, sortKey, sortDir]);
+
   const kpis = useMemo(() => {
-    const totalSpend = filtered.reduce((s, p) => s + p.spend, 0);
-    const totalRevenue = filtered.reduce((s, p) => s + p.revenue, 0);
-    const totalProfit = filtered.reduce((s, p) => s + p.profit, 0);
-    const avgRoas = filtered.length ? filtered.reduce((s, p) => s + p.roas, 0) / filtered.length : 0;
+    const totalSpend = sorted.reduce((s, p) => s + p.spend, 0);
+    const totalRevenue = sorted.reduce((s, p) => s + p.revenue, 0);
+    const totalProfit = sorted.reduce((s, p) => s + p.profit, 0);
+    const avgRoas = sorted.length ? sorted.reduce((s, p) => s + p.roas, 0) / sorted.length : 0;
     return { totalSpend, totalRevenue, totalProfit, avgRoas };
-  }, [filtered]);
+  }, [sorted]);
+
+  const toggleSortDir = () => setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+
+  const dateLabel = useMemo(() => {
+    if (!dateRange?.from) return "Selecionar período";
+    if (!dateRange.to || dateRange.from.toDateString() === dateRange.to.toDateString()) {
+      return format(dateRange.from, "dd MMM yyyy", { locale: ptBR });
+    }
+    return `${format(dateRange.from, "dd MMM", { locale: ptBR })} – ${format(dateRange.to, "dd MMM yyyy", { locale: ptBR })}`;
+  }, [dateRange]);
 
   return (
     <div className="flex flex-col h-full">
@@ -52,25 +100,65 @@ export default function Dashboard() {
             ))}
           </nav>
 
-          {/* Right side */}
-          <div className="flex items-center gap-4">
-            <div className="flex gap-1 rounded-md border border-border p-0.5">
-              {periods.map((p) => (
-                <button
-                  key={p.key}
-                  onClick={() => setActivePeriod(p.key)}
-                  className={cn(
-                    "rounded px-2.5 py-1 text-[10px] font-semibold tracking-wider transition-colors",
-                    activePeriod === p.key
-                      ? "bg-accent text-accent-foreground"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  {p.label}
-                </button>
-              ))}
+          {/* Right side: sort + date picker */}
+          <div className="flex items-center gap-2">
+            {/* Sort */}
+            <div className="flex items-center gap-1">
+              <Select value={sortKey} onValueChange={(v) => setSortKey(v as SortKey)}>
+                <SelectTrigger className="h-7 w-[100px] text-[10px] border-border">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {sortOptions.map((o) => (
+                    <SelectItem key={o.key} value={o.key} className="text-xs">
+                      {o.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={toggleSortDir}>
+                <ArrowUpDown className={cn("h-3.5 w-3.5 transition-transform", sortDir === "asc" && "rotate-180")} />
+              </Button>
             </div>
-            <span className="hidden text-xs text-muted-foreground sm:inline">Usuário</span>
+
+            {/* Date picker */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="h-7 gap-1.5 px-2.5 text-[10px] font-semibold tracking-wider border-border">
+                  <CalendarIcon className="h-3 w-3" />
+                  <span className="hidden sm:inline">{dateLabel}</span>
+                  <span className="sm:hidden">Data</span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <div className="flex">
+                  {/* Presets sidebar */}
+                  <div className="border-r border-border p-2 space-y-0.5 min-w-[140px]">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground px-2 pb-1">Período</p>
+                    {presets.map((preset) => (
+                      <button
+                        key={preset.label}
+                        onClick={() => setDateRange(preset.getValue())}
+                        className="w-full rounded px-2 py-1.5 text-left text-xs text-foreground hover:bg-accent transition-colors"
+                      >
+                        {preset.label}
+                      </button>
+                    ))}
+                  </div>
+                  {/* Calendar */}
+                  <Calendar
+                    mode="range"
+                    selected={dateRange}
+                    onSelect={setDateRange}
+                    numberOfMonths={2}
+                    locale={ptBR}
+                    className="p-3 pointer-events-auto"
+                  />
+                </div>
+              </PopoverContent>
+            </Popover>
+
+            <span className="hidden text-xs text-muted-foreground sm:inline ml-1">Usuário</span>
           </div>
         </div>
 
@@ -104,7 +192,7 @@ export default function Dashboard() {
       {/* Grid */}
       <div className="flex-1 overflow-auto p-4 sm:p-6">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {filtered.map((project) => {
+          {sorted.map((project) => {
             const isProfit = project.profit >= 0;
 
             return (
