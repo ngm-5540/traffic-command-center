@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarIcon, ArrowUpDown, Plus } from "lucide-react";
+import { CalendarIcon, ArrowUp, ArrowDown, Plus } from "lucide-react";
 import { dashboardProjects, verticals, type Vertical } from "@/data/dashboardData";
 import { formatBRL, formatROAS } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
@@ -161,7 +161,11 @@ export default function Dashboard() {
             </SelectContent>
           </Select>
           <Button variant="ghost" size="icon" className="h-7 w-7" onClick={toggleSortDir}>
-            <ArrowUpDown className={cn("h-3.5 w-3.5 transition-transform", sortDir === "asc" && "rotate-180")} />
+            {sortDir === "desc" ? (
+              <ArrowDown className="h-3.5 w-3.5 transition-transform" />
+            ) : (
+              <ArrowUp className="h-3.5 w-3.5 transition-transform" />
+            )}
           </Button>
         </div>
 
