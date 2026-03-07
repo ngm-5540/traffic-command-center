@@ -397,6 +397,13 @@ export default function Dashboard() {
           })}
         </div>
       </div>
+
+      <CreateProjectDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+        onCreateProject={handleCreateProject}
+        defaultVertical={activeVertical}
+      />
     </div>
   );
 }
