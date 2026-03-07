@@ -81,7 +81,7 @@ export default function Dashboard() {
     <div className="flex flex-col h-full">
       {/* Header */}
       <header className="sticky top-0 z-10 border-b border-border bg-background">
-        <div className="flex items-center justify-between px-4 py-2.5 sm:px-6">
+        <div className="relative flex items-center justify-center px-4 py-2.5 sm:px-6">
           {/* Vertical selector */}
           <nav className="flex gap-6">
             {verticals.map((v) => (
@@ -100,7 +100,7 @@ export default function Dashboard() {
             ))}
           </nav>
 
-          <Button size="sm" className="h-7 gap-1.5 text-[11px] font-semibold tracking-wider">
+          <Button size="sm" className="absolute right-4 sm:right-6 h-7 gap-1.5 text-[11px] font-semibold tracking-wider">
             <Plus className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Novo Projeto</span>
           </Button>
