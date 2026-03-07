@@ -2,11 +2,14 @@ import { useState, useMemo, useCallback } from "react";
 import { ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 import { formatBRL, formatNumber, formatROAS, getRoasColor } from "@/lib/format";
 import { DrilldownSheet } from "./DrilldownSheet";
+import { PopBadge } from "./PopBadge";
 import { cn } from "@/lib/utils";
+import { generatePreviousRecord } from "@/data/popMockData";
 import type { BroadcastDispatch } from "@/data/chatbotMockData";
 
 interface Props {
   broadcasts: BroadcastDispatch[];
+  popEnabled?: boolean;
 }
 
 type SortDir = "asc" | "desc";
@@ -31,9 +34,17 @@ const columns: { key: string; label: string; align: "left" | "right"; getValue: 
   { key: "roas", label: "ROAS", align: "right", getValue: (b) => b.roas },
 ];
 
-export function BroadcastTab({ broadcasts }: Props) {
+const invertColorKeys = new Set(["cost"]);
+
+export function BroadcastTab({ broadcasts, popEnabled = false }: Props) {
   const [selected, setSelected] = useState<BroadcastDispatch | null>(null);
   const [sort, setSort] = useState<SortState | null>(null);
+
+  const previousData = useMemo(() => {
+    const map = new Map<string, Record<string, number>>();
+    broadcasts.forEach((b, i) => map.set(b.id, generatePreviousRecord(b, i * 200)));
+    return map;
+  }, [broadcasts]);
 
   const toggleSort = useCallback((key: string) => {
     setSort((prev) => {
@@ -82,32 +93,52 @@ export function BroadcastTab({ broadcasts }: Props) {
           <tbody>
             {sorted.map((b) => {
               const heatOpacity = maxRevenue > 0 ? (b.revenue / maxRevenue) * 0.4 : 0;
+              const prev = previousData.get(b.id);
               return (
                 <tr
                   key={b.id}
                   className="border-b border-border/50 hover:bg-accent/50 cursor-pointer transition-colors"
                   onClick={() => setSelected(b)}
                 >
-                  <td className="px-3 py-2 text-foreground font-medium whitespace-nowrap">{b.name}</td>
-                  <td className="px-3 py-2 text-muted-foreground font-mono whitespace-nowrap">{b.date}</td>
-                  <td className="px-3 py-2 text-right font-mono font-bold">{formatNumber(b.sent)}</td>
-                  <td className="px-3 py-2 text-right font-mono font-bold">{formatNumber(b.delivered)}</td>
-                  <td className="px-3 py-2 text-right font-mono font-bold">{formatNumber(b.read)}</td>
-                  <td className="px-3 py-2 text-right font-mono font-bold">{formatNumber(b.clicked)}</td>
-                  <td className="px-3 py-2 text-right font-mono font-bold">{formatNumber(b.replied)}</td>
-                  <td
-                    className="px-3 py-2 text-right font-mono font-bold"
-                    style={{ backgroundColor: `hsla(var(--success), ${heatOpacity})` }}
-                  >
-                    {formatBRL(b.revenue)}
-                  </td>
-                  <td className="px-3 py-2 text-right font-mono font-bold">{formatBRL(b.cost)}</td>
-                  <td className={`px-3 py-2 text-right font-mono font-bold ${b.profit >= 0 ? "text-profit" : "text-loss"}`}>
-                    {formatBRL(b.profit)}
-                  </td>
-                  <td className="px-3 py-2 text-right font-mono font-bold" style={{ color: getRoasColor(b.roas) }}>
-                    {formatROAS(b.roas)}
-                  </td>
+                  {columns.map((col) => {
+                    const val = col.getValue(b);
+                    const prevVal = prev ? prev[col.key] : undefined;
+                    const isName = col.key === "name";
+                    const isDate = col.key === "date";
+                    const isRevenue = col.key === "revenue";
+                    const isProfit = col.key === "profit";
+                    const isRoas = col.key === "roas";
+
+                    return (
+                      <td
+                        key={col.key}
+                        className={cn(
+                          "px-3 py-2 font-mono font-bold whitespace-nowrap",
+                          isName && "text-foreground font-medium font-sans",
+                          isDate && "text-muted-foreground font-sans",
+                          !isName && !isDate && "text-right"
+                        )}
+                        style={isRevenue ? { backgroundColor: `hsla(var(--success), ${heatOpacity})` } : undefined}
+                      >
+                        <div className={cn("flex flex-col", !isName && !isDate && "items-end")}>
+                          <span className={cn(
+                            isProfit && (b.profit >= 0 ? "text-profit" : "text-loss")
+                          )} style={isRoas ? { color: getRoasColor(b.roas) } : undefined}>
+                            {isName ? b.name
+                              : isDate ? b.date
+                              : isProfit ? formatBRL(val)
+                              : isRoas ? formatROAS(val)
+                              : isRevenue ? formatBRL(val)
+                              : col.key === "cost" ? formatBRL(val)
+                              : formatNumber(val)}
+                          </span>
+                          {popEnabled && !isName && !isDate && typeof val === "number" && prevVal != null && (
+                            <PopBadge current={val} previous={prevVal} invertColor={invertColorKeys.has(col.key)} />
+                          )}
+                        </div>
+                      </td>
+                    );
+                  })}
                 </tr>
               );
             })}
