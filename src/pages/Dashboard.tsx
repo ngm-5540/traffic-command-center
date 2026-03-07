@@ -162,32 +162,43 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* KPI bar */}
-        <div className="flex items-center gap-6 border-t border-border/50 px-4 py-2 sm:gap-10 sm:px-6">
-          {[
-            { label: "CUSTO", value: formatBRL(kpis.totalSpend) },
-            { label: "RECEITA", value: formatBRL(kpis.totalRevenue) },
-            { label: "LUCRO", value: formatBRL(kpis.totalProfit), highlight: true },
-            { label: "ROAS", value: formatROAS(kpis.avgRoas) },
-          ].map((kpi) => (
-            <div key={kpi.label} className="flex flex-col">
-              <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{kpi.label}</span>
-              <span
-                className={cn(
-                  "font-mono text-sm font-semibold",
-                  kpi.highlight
-                    ? kpis.totalProfit >= 0
-                      ? "text-profit"
-                      : "text-loss"
-                    : "text-foreground"
-                )}
-              >
-                {kpi.value}
-              </span>
-            </div>
-          ))}
-        </div>
       </header>
+
+      {/* KPI Cards */}
+      <div className="grid grid-cols-2 gap-3 px-4 pt-4 sm:grid-cols-4 sm:px-6">
+        {[
+          { label: "CUSTO", value: formatBRL(kpis.totalSpend) },
+          { label: "RECEITA", value: formatBRL(kpis.totalRevenue) },
+          { label: "LUCRO", value: formatBRL(kpis.totalProfit), highlight: true },
+          { label: "ROAS", value: formatROAS(kpis.avgRoas) },
+        ].map((kpi) => (
+          <div
+            key={kpi.label}
+            className={cn(
+              "rounded-lg border p-3 sm:p-4",
+              kpi.highlight
+                ? kpis.totalProfit >= 0
+                  ? "border-profit/30 bg-profit/5"
+                  : "border-loss/30 bg-loss/5"
+                : "border-border bg-card"
+            )}
+          >
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{kpi.label}</span>
+            <p
+              className={cn(
+                "font-mono text-lg font-bold sm:text-xl",
+                kpi.highlight
+                  ? kpis.totalProfit >= 0
+                    ? "text-profit"
+                    : "text-loss"
+                  : "text-foreground"
+              )}
+            >
+              {kpi.value}
+            </p>
+          </div>
+        ))}
+      </div>
 
       {/* Grid */}
       <div className="flex-1 overflow-auto p-4 sm:p-6">
