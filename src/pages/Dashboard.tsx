@@ -226,19 +226,23 @@ export default function Dashboard() {
                   disabled={(date) => date > new Date()}
                   className="p-3 pointer-events-auto"
                 />
-                <div className="flex justify-end p-2 pt-0">
-                  <Button
-                    size="sm"
-                    className="h-7 text-[11px] font-semibold tracking-wider"
-                    disabled={!tempDateRange?.from}
-                    onClick={() => {
-                      setDateRange(tempDateRange);
-                      setDatePickerOpen(false);
-                    }}
-                  >
-                    Aplicar
-                  </Button>
-                </div>
+                {tempDateRange?.from && (
+                  tempDateRange.from.toDateString() !== dateRange?.from?.toDateString() ||
+                  (tempDateRange.to?.toDateString() ?? '') !== (dateRange?.to?.toDateString() ?? '')
+                ) && (
+                  <div className="flex justify-end p-2 pt-0">
+                    <Button
+                      size="sm"
+                      className="h-7 text-[11px] font-semibold tracking-wider"
+                      onClick={() => {
+                        setDateRange(tempDateRange);
+                        setDatePickerOpen(false);
+                      }}
+                    >
+                      Aplicar
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
           </PopoverContent>
