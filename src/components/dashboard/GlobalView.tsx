@@ -25,12 +25,12 @@ export function GlobalView({ projects }: GlobalViewProps) {
               <div>
                 <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Lucro Hoje</p>
                 <p className={`text-lg font-bold ${project.profit >= 0 ? "text-profit" : "text-loss"}`}>
-                  R$ {project.profit.toLocaleString("pt-BR")}
+                  R$ {project.profit.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </p>
               </div>
               <div>
                 <p className="text-[10px] uppercase tracking-wider text-muted-foreground">ROAS</p>
-                <p className="text-lg font-bold text-foreground">{project.roas.toFixed(2)}</p>
+                <p className="text-lg font-bold text-foreground">{(project.roas * 100).toFixed(0)}%</p>
               </div>
             </div>
 
