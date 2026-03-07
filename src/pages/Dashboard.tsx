@@ -402,6 +402,7 @@ export default function Dashboard() {
         <div className="grid gap-4 max-w-[1920px] mx-auto" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' }}>
           {sorted.map((project) => {
             const isProfit = project.profit >= 0;
+            const prev = popEnabled ? generatePreviousRecord(project, project.id.charCodeAt(0)) : null;
 
             return (
               <div
@@ -432,15 +433,16 @@ export default function Dashboard() {
 
                   {/* Metrics */}
                   <div className="grid grid-cols-2 gap-x-2 gap-y-2">
-                    <Metric label="RECEITA" value={formatBRL(project.revenue)} />
-                    <Metric label="CUSTO" value={formatBRL(project.spend)} />
+                    <Metric label="RECEITA" value={formatBRL(project.revenue)} pop={prev ? { current: project.revenue, previous: prev.revenue } : undefined} />
+                    <Metric label="CUSTO" value={formatBRL(project.spend)} pop={prev ? { current: project.spend, previous: prev.spend, invertColor: true } : undefined} />
                     <Metric
                       label="LUCRO"
                       value={formatBRL(project.profit)}
                       className={project.profit === 0 ? "text-foreground" : isProfit ? "text-profit" : "text-loss"}
                       bold
+                      pop={prev ? { current: project.profit, previous: prev.profit } : undefined}
                     />
-                    <Metric label="ROAS" value={formatROAS(project.roas)} style={{ color: getRoasColor(project.roas) }} />
+                    <Metric label="ROAS" value={formatROAS(project.roas)} style={{ color: getRoasColor(project.roas) }} pop={prev ? { current: project.roas, previous: prev.roas } : undefined} />
                   </div>
                 </div>
               </div>
