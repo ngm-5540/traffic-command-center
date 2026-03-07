@@ -442,19 +442,14 @@ export default function Dashboard() {
 
 function Metric({ label, value, className, bold, style }: { label: string; value: string; className?: string; bold?: boolean; style?: React.CSSProperties }) {
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <button type="button" className="min-w-0 text-left cursor-help block">
-          <span className="uppercase tracking-wider text-foreground/60 font-medium block" style={{ fontSize: "clamp(8px, 4cqw, 11px)" }}>{label}</span>
-          <p
-            className={cn("font-mono whitespace-nowrap font-bold", !style && (className || "text-foreground"))}
-            style={{ fontSize: "clamp(9px, 5cqw, 13px)", ...style }}
-          >
-            {value}
-          </p>
-        </button>
-      </TooltipTrigger>
-      <TooltipContent side="bottom" className="text-xs">{label}: {value}</TooltipContent>
-    </Tooltip>
+    <div className="min-w-0 cursor-help" title={`${label}: ${value}`}>
+      <span className="uppercase tracking-wider text-foreground/60 font-medium block" style={{ fontSize: "clamp(8px, 4cqw, 11px)" }}>{label}</span>
+      <p
+        className={cn("font-mono whitespace-nowrap font-bold", !style && (className || "text-foreground"))}
+        style={{ fontSize: "clamp(9px, 5cqw, 13px)", ...style }}
+      >
+        {value}
+      </p>
+    </div>
   );
 }
