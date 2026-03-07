@@ -1,7 +1,7 @@
-import { useState, useMemo } from "react";
-import { format } from "date-fns";
+import { useState, useMemo, useCallback } from "react";
+import { format, differenceInCalendarDays, addDays, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarIcon, GitCompareArrows } from "lucide-react";
+import { CalendarIcon, GitCompareArrows, ChevronLeft, ChevronRight } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,16 @@ import {
 import { generatePreviousKpis } from "@/data/popMockData";
 import type { DateRange } from "react-day-picker";
 
+const presets: { label: string; getValue: () => DateRange }[] = [
+  { label: "Hoje", getValue: () => { const d = new Date(); return { from: d, to: d }; } },
+  { label: "Ontem", getValue: () => { const d = new Date(); d.setDate(d.getDate() - 1); return { from: d, to: d }; } },
+  { label: "Últimos 7 dias", getValue: () => { const to = new Date(); const from = new Date(); from.setDate(to.getDate() - 6); return { from, to }; } },
+  { label: "Últimos 14 dias", getValue: () => { const to = new Date(); const from = new Date(); from.setDate(to.getDate() - 13); return { from, to }; } },
+  { label: "Últimos 30 dias", getValue: () => { const to = new Date(); const from = new Date(); from.setDate(to.getDate() - 29); return { from, to }; } },
+  { label: "Este mês", getValue: () => { const now = new Date(); return { from: new Date(now.getFullYear(), now.getMonth(), 1), to: now }; } },
+  { label: "Mês passado", getValue: () => { const now = new Date(); return { from: new Date(now.getFullYear(), now.getMonth() - 1, 1), to: new Date(now.getFullYear(), now.getMonth(), 0) }; } },
+];
+
 export function ChatbotBi() {
   const [fanpage, setFanpage] = useState("all");
   const [country, setCountry] = useState("all");
@@ -32,6 +42,19 @@ export function ChatbotBi() {
     from: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
     to: new Date(),
   });
+  const [tempDateRange, setTempDateRange] = useState<DateRange | undefined>(dateRange);
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
+
+  const shiftDateRange = useCallback((direction: 1 | -1) => {
+    if (!dateRange?.from) return;
+    const to = dateRange.to ?? dateRange.from;
+    const span = differenceInCalendarDays(to, dateRange.from) + 1;
+    const shiftDays = span * direction;
+    setDateRange({
+      from: direction === 1 ? addDays(dateRange.from, shiftDays) : subDays(dateRange.from, Math.abs(shiftDays)),
+      to: direction === 1 ? addDays(to, shiftDays) : subDays(to, Math.abs(shiftDays)),
+    });
+  }, [dateRange]);
 
   // Aggregate KPIs from campaigns
   const totalCost = chatbotCampaigns.reduce((s, c) => s + c.cost, 0);
@@ -50,11 +73,13 @@ export function ChatbotBi() {
     [totalCost, totalRevenue, totalProfit, avgRoas, avgRps, avgCostPerLead]
   );
 
-  const dateLabel = dateRange?.from
-    ? dateRange.to && dateRange.from.toDateString() !== dateRange.to.toDateString()
-      ? `${format(dateRange.from, "dd MMM", { locale: ptBR })} – ${format(dateRange.to, "dd MMM yyyy", { locale: ptBR })}`
-      : format(dateRange.from, "dd MMM yyyy", { locale: ptBR })
-    : "Período";
+  const dateLabel = useMemo(() => {
+    if (!dateRange?.from) return "Selecionar período";
+    if (!dateRange.to || dateRange.from.toDateString() === dateRange.to.toDateString()) {
+      return format(dateRange.from, "dd MMM yyyy", { locale: ptBR });
+    }
+    return `${format(dateRange.from, "dd MMM", { locale: ptBR })} – ${format(dateRange.to, "dd MMM yyyy", { locale: ptBR })}`;
+  }, [dateRange]);
 
   const kpis = [
     { label: "ROAS", value: formatROAS(avgRoas), color: getRoasColor(avgRoas), tooltip: "Retorno médio sobre investimento", current: avgRoas, previous: previousKpis.avgRoas },
