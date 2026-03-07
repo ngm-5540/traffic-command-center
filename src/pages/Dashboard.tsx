@@ -33,13 +33,54 @@ const presets: { label: string; getValue: () => DateRange }[] = [
   { label: "Mês passado", getValue: () => { const now = new Date(); return { from: new Date(now.getFullYear(), now.getMonth() - 1, 1), to: new Date(now.getFullYear(), now.getMonth(), 0) }; } },
 ];
 
+function loadSavedFilters() {
+  try {
+    const raw = localStorage.getItem("dashboard_filters");
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return {
+      vertical: parsed.vertical as Vertical,
+      sortKey: parsed.sortKey as SortKey,
+      sortDir: parsed.sortDir as SortDir,
+      dateRange: parsed.dateRange
+        ? {
+            from: new Date(parsed.dateRange.from),
+            to: parsed.dateRange.to ? new Date(parsed.dateRange.to) : undefined,
+          }
+        : undefined,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function saveFilters(filters: { vertical: Vertical; sortKey: SortKey; sortDir: SortDir; dateRange: DateRange | undefined }) {
+  localStorage.setItem(
+    "dashboard_filters",
+    JSON.stringify({
+      vertical: filters.vertical,
+      sortKey: filters.sortKey,
+      sortDir: filters.sortDir,
+      dateRange: filters.dateRange
+        ? { from: filters.dateRange.from?.toISOString(), to: filters.dateRange.to?.toISOString() }
+        : null,
+    })
+  );
+}
+
 export default function Dashboard() {
-  const [activeVertical, setActiveVertical] = useState<Vertical>("todos");
-  const [sortKey, setSortKey] = useState<SortKey>("profit");
-  const [sortDir, setSortDir] = useState<SortDir>("desc");
-  const [dateRange, setDateRange] = useState<DateRange | undefined>(() => presets[0].getValue());
-  const [tempDateRange, setTempDateRange] = useState<DateRange | undefined>(() => presets[0].getValue());
+  const saved = useMemo(() => loadSavedFilters(), []);
+  const [activeVertical, setActiveVertical] = useState<Vertical>(saved?.vertical ?? "todos");
+  const [sortKey, setSortKey] = useState<SortKey>(saved?.sortKey ?? "profit");
+  const [sortDir, setSortDir] = useState<SortDir>(saved?.sortDir ?? "desc");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(saved?.dateRange ?? presets[0].getValue());
+  const [tempDateRange, setTempDateRange] = useState<DateRange | undefined>(saved?.dateRange ?? presets[0].getValue());
   const [datePickerOpen, setDatePickerOpen] = useState(false);
+
+  // Persist filters on change
+  useMemo(() => {
+    saveFilters({ vertical: activeVertical, sortKey, sortDir, dateRange });
+  }, [activeVertical, sortKey, sortDir, dateRange]);
 
   const verticalConfig: Record<string, { label: string; className: string }> = {
     google_ads: { label: "GOOGLE ADS", className: "bg-yellow-500/15 text-yellow-500 border-yellow-500/30" },
