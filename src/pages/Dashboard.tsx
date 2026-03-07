@@ -179,7 +179,7 @@ export default function Dashboard() {
             ))}
           </nav>
 
-          <Button variant="outline" size="sm" className="absolute right-4 sm:right-6 h-8 gap-1.5 text-xs font-semibold tracking-wider border-border text-foreground hover:bg-accent">
+          <Button variant="outline" size="sm" className="absolute right-4 sm:right-6 h-8 gap-1.5 text-xs font-semibold tracking-wider border-border text-foreground hover:bg-accent" onClick={() => setCreateDialogOpen(true)}>
             <Plus className="h-4 w-4" />
             <span className="hidden sm:inline">Projeto</span>
           </Button>
