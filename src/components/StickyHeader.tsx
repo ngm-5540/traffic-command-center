@@ -70,9 +70,6 @@ function SummaryCard({ title, value, trend, icon, trendColor = "profit" }: Summa
   return (
     <div className="min-w-0 overflow-hidden rounded-md border border-border bg-card px-2 py-1.5 sm:px-3 sm:py-2 lg:px-4 lg:py-3">
       <div className="flex items-center gap-1.5 sm:gap-3">
-        <div className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-md bg-secondary sm:flex">
-          {icon}
-        </div>
         <div className="min-w-0 flex-1">
           <p className="text-[8px] uppercase tracking-wider text-muted-foreground sm:text-[10px]">{title}</p>
           <div className="flex items-center gap-1 sm:gap-2">
