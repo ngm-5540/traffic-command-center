@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { format, differenceInCalendarDays, addDays, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -382,21 +382,7 @@ export default function Dashboard() {
                 >
                   {/* Card header */}
                   <div className="mb-3 flex items-center justify-between">
-                    <div className="flex items-baseline gap-2 truncate pr-2">
-                      <h3
-                        className="font-semibold text-foreground truncate"
-                        style={{ fontSize: "clamp(11px, 5cqw, 14px)" }}
-                        title={project.name}
-                      >
-                        {project.name}
-                      </h3>
-                      <span
-                        className="font-mono text-muted-foreground shrink-0"
-                        style={{ fontSize: "clamp(8px, 4cqw, 10px)" }}
-                      >
-                        #{project.id.substring(0, 5)}
-                      </span>
-                    </div>
+                    <ProjectName name={project.name} id={project.id} />
                     <Badge
                       variant="outline"
                       className={cn("shrink-0", verticalConfig[project.vertical]?.className)}
@@ -446,6 +432,46 @@ function Metric({ label, value, className, bold, style }: { label: string; value
       >
         {value}
       </p>
+    </div>
+  );
+}
+
+function ProjectName({ name, id }: { name: string; id: string }) {
+  const nameRef = useRef<HTMLHeadingElement>(null);
+  const [isTruncated, setIsTruncated] = useState(false);
+
+  useEffect(() => {
+    const el = nameRef.current;
+    if (!el) return;
+    const check = () => setIsTruncated(el.scrollWidth > el.clientWidth);
+    check();
+    const observer = new ResizeObserver(check);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [name]);
+
+  const shortId = `#${id.substring(0, 5)}`;
+
+  return (
+    <div
+      className="flex items-baseline gap-2 truncate pr-2"
+      title={`${name} ${shortId}`}
+    >
+      <h3
+        ref={nameRef}
+        className="font-semibold text-foreground truncate"
+        style={{ fontSize: "clamp(11px, 5cqw, 14px)" }}
+      >
+        {name}
+      </h3>
+      {!isTruncated && (
+        <span
+          className="font-mono text-muted-foreground shrink-0"
+          style={{ fontSize: "clamp(8px, 4cqw, 10px)" }}
+        >
+          {shortId}
+        </span>
+      )}
     </div>
   );
 }
