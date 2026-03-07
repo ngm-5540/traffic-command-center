@@ -4,7 +4,7 @@ import { format, differenceInCalendarDays, addDays, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CalendarIcon, ArrowUp, ArrowDown, Plus, ChevronLeft, ChevronRight, GitCompareArrows } from "lucide-react";
 import { dashboardProjects as defaultProjects, verticals, type Vertical, type DashboardProject } from "@/data/dashboardData";
-import { formatBRL, formatROAS, getRoasColor } from "@/lib/format";
+import { formatBRL, formatBRLFull, formatROAS, getRoasColor } from "@/lib/format";
 import { PopBadge } from "@/components/bi/chatbot/PopBadge";
 import { generatePreviousKpis, generatePreviousRecord } from "@/data/popMockData";
 import { CreateProjectDialog } from "@/components/CreateProjectDialog";
@@ -433,11 +433,12 @@ export default function Dashboard() {
 
                   {/* Metrics */}
                   <div className="grid grid-cols-2 gap-x-2 gap-y-2">
-                    <Metric label="RECEITA" value={formatBRL(project.revenue)} pop={prev ? { current: project.revenue, previous: prev.revenue } : undefined} />
-                    <Metric label="CUSTO" value={formatBRL(project.spend)} pop={prev ? { current: project.spend, previous: prev.spend, invertColor: true } : undefined} />
+                    <Metric label="RECEITA" value={formatBRL(project.revenue)} fullValue={formatBRLFull(project.revenue)} pop={prev ? { current: project.revenue, previous: prev.revenue } : undefined} />
+                    <Metric label="CUSTO" value={formatBRL(project.spend)} fullValue={formatBRLFull(project.spend)} pop={prev ? { current: project.spend, previous: prev.spend, invertColor: true } : undefined} />
                     <Metric
                       label="LUCRO"
                       value={formatBRL(project.profit)}
+                      fullValue={formatBRLFull(project.profit)}
                       className={project.profit === 0 ? "text-foreground" : isProfit ? "text-profit" : "text-loss"}
                       bold
                       pop={prev ? { current: project.profit, previous: prev.profit } : undefined}
@@ -462,9 +463,9 @@ export default function Dashboard() {
   );
 }
 
-function Metric({ label, value, className, bold, style, pop }: { label: string; value: string; className?: string; bold?: boolean; style?: React.CSSProperties; pop?: { current: number; previous: number; invertColor?: boolean } }) {
+function Metric({ label, value, fullValue, className, bold, style, pop }: { label: string; value: string; fullValue?: string; className?: string; bold?: boolean; style?: React.CSSProperties; pop?: { current: number; previous: number; invertColor?: boolean } }) {
   return (
-    <div className="min-w-0 cursor-help" title={`${label}: ${value}`}>
+    <div className="min-w-0 cursor-help" title={`${label}: ${fullValue || value}`}>
       <span className="uppercase tracking-wider text-foreground/60 font-medium block" style={{ fontSize: "clamp(8px, 4cqw, 11px)" }}>{label}</span>
       <p
         className={cn("font-mono whitespace-nowrap font-bold", !style && (className || "text-foreground"))}
