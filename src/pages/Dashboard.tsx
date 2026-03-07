@@ -119,7 +119,7 @@ export default function Dashboard() {
                     {project.name}
                   </h3>
                   <Badge variant="outline" className="text-[10px] shrink-0 bg-accent/50 text-accent-foreground border-border">
-                    {project.type}
+                    {verticalLabels[project.vertical]}
                   </Badge>
                 </div>
 
