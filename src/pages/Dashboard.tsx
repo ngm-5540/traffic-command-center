@@ -4,11 +4,7 @@ import { formatBRL, formatROAS } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
-const statusConfig = {
-  ativo: { label: "ATIVO", className: "bg-success/15 text-success border-success/30" },
-  alerta: { label: "ALERTA", className: "bg-warning/15 text-warning border-warning/30" },
-  pausado: { label: "PAUSADO", className: "bg-muted text-muted-foreground border-border" },
-};
+// Status still used for card background logic
 
 export default function Dashboard() {
   const [activeVertical, setActiveVertical] = useState<Vertical>("google_ads");
@@ -104,7 +100,6 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {filtered.map((project) => {
             const isProfit = project.profit >= 0;
-            const status = statusConfig[project.status];
 
             return (
               <div
@@ -121,8 +116,8 @@ export default function Dashboard() {
                   <h3 className="text-sm font-semibold text-foreground truncate pr-2">
                     {project.name}
                   </h3>
-                  <Badge variant="outline" className={cn("text-[10px] shrink-0", status.className)}>
-                    {status.label}
+                  <Badge variant="outline" className="text-[10px] shrink-0 bg-accent/50 text-accent-foreground border-border">
+                    {project.type}
                   </Badge>
                 </div>
 
