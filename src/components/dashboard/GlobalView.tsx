@@ -17,8 +17,9 @@ export function GlobalView({ projects }: GlobalViewProps) {
             key={project.id}
             className="rounded-lg border border-border bg-card p-5 transition-colors hover:border-primary/30"
           >
-            <div className="mb-4">
+            <div className="mb-4 flex items-center justify-between">
               <h3 className="text-sm font-semibold text-foreground">{project.name}</h3>
+              <span className="font-mono text-[10px] text-muted-foreground">#{project.uuid}</span>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
