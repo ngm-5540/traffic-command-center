@@ -15,7 +15,11 @@ export default function Dashboard() {
     [activeVertical]
   );
 
-  const verticalLabels: Record<string, string> = { google_ads: "GOOGLE ADS", meta_ads: "META ADS", chatbot: "CHATBOT" };
+  const verticalConfig: Record<string, { label: string; className: string }> = {
+    google_ads: { label: "GOOGLE ADS", className: "bg-yellow-500/15 text-yellow-500 border-yellow-500/30" },
+    meta_ads: { label: "META ADS", className: "bg-blue-500/15 text-blue-400 border-blue-500/30" },
+    chatbot: { label: "CHATBOT", className: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" },
+  };
 
   const kpis = useMemo(() => {
     const totalSpend = filtered.reduce((s, p) => s + p.spend, 0);
@@ -118,8 +122,8 @@ export default function Dashboard() {
                   <h3 className="text-sm font-semibold text-foreground truncate pr-2">
                     {project.name}
                   </h3>
-                  <Badge variant="outline" className="text-[10px] shrink-0 bg-accent/50 text-accent-foreground border-border">
-                    {verticalLabels[project.vertical]}
+                  <Badge variant="outline" className={cn("text-[10px] shrink-0", verticalConfig[project.vertical]?.className)}>
+                    {verticalConfig[project.vertical]?.label}
                   </Badge>
                 </div>
 
