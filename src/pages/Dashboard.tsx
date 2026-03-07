@@ -183,7 +183,7 @@ export default function Dashboard() {
                 : "border-border bg-card"
             )}
           >
-            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{kpi.label}</span>
+            <span className="text-[11px] uppercase tracking-wider text-muted-foreground/80 font-medium">{kpi.label}</span>
             <p
               className={cn(
                 "font-mono text-lg font-bold sm:text-xl",
