@@ -53,8 +53,10 @@ interface StickyHeaderProps {
 }
 
 export function StickyHeader({ selectedProject, onProjectChange, summary, projectOptions }: StickyHeaderProps) {
-  const fmt = (v: number) =>
+  const fmtFull = (v: number) =>
     `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const fmtCompact = (v: number) =>
+    `R$ ${v.toLocaleString("pt-BR", { maximumFractionDigits: 0 })}`;
 
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
