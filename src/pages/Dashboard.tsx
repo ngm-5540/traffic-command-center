@@ -371,11 +371,9 @@ export default function Dashboard() {
                   onClick={() => navigate(`/project/${project.id}`)}
                   className={cn(
                     "rounded-lg border p-3 sm:p-4 transition-all cursor-pointer hover:ring-1 hover:ring-primary/30",
-                    project.roas <= -1
-                      ? "border-loss/20 bg-loss/5"
-                      : project.roas >= 1
-                        ? "border-profit/30 bg-profit/10"
-                        : "border-border bg-card"
+                    project.profit >= 0
+                      ? "border-profit/30 bg-profit/5"
+                      : "border-loss/20 bg-loss/5"
                   )}
                 >
                   {/* Card header */}
