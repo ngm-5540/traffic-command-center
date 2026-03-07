@@ -93,6 +93,7 @@ export default function Dashboard() {
   const [tempDateRange, setTempDateRange] = useState<DateRange | undefined>(saved?.dateRange ?? presets[0].getValue());
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [newestProjectId, setNewestProjectId] = useState<string | null>(null);
 
   const handleCreateProject = useCallback((project: DashboardProject) => {
     setProjects((prev) => {
@@ -100,6 +101,7 @@ export default function Dashboard() {
       saveProjects(next);
       return next;
     });
+    setNewestProjectId(project.id);
   }, []);
 
   // Persist filters on change
@@ -119,13 +121,18 @@ export default function Dashboard() {
       : projects.filter((p) => p.vertical === activeVertical);
 
     base.sort((a, b) => {
+      // Keep newest project at the top
+      if (newestProjectId) {
+        if (a.id === newestProjectId) return -1;
+        if (b.id === newestProjectId) return 1;
+      }
       const mul = sortDir === "asc" ? 1 : -1;
       if (sortKey === "name") return mul * a.name.localeCompare(b.name, "pt-BR");
       return mul * (a[sortKey] - b[sortKey]);
     });
 
     return base;
-  }, [activeVertical, sortKey, sortDir, projects]);
+  }, [activeVertical, sortKey, sortDir, projects, newestProjectId]);
 
   const kpis = useMemo(() => {
     const totalSpend = sorted.reduce((s, p) => s + p.spend, 0);
@@ -135,7 +142,7 @@ export default function Dashboard() {
     return { totalSpend, totalRevenue, totalProfit, avgRoas };
   }, [sorted]);
 
-  const toggleSortDir = () => setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+  const toggleSortDir = () => { setNewestProjectId(null); setSortDir((d) => (d === "asc" ? "desc" : "asc")); };
 
   const shiftDateRange = useCallback((direction: 1 | -1) => {
     if (!dateRange?.from) return;
@@ -230,7 +237,7 @@ export default function Dashboard() {
       <div className="flex items-center justify-end gap-2 px-4 pt-4 sm:px-6 max-w-[1920px] mx-auto w-full">
         {/* Sort */}
         <div className="flex items-center gap-1">
-          <Select value={sortKey} onValueChange={(v) => setSortKey(v as SortKey)}>
+          <Select value={sortKey} onValueChange={(v) => { setNewestProjectId(null); setSortKey(v as SortKey); }}>
             <SelectTrigger className="h-7 w-[100px] text-[10px] border-border">
               <SelectValue />
             </SelectTrigger>
