@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 
 interface SummaryCardProps {
   title: string;
-  value: string;
+  value: React.ReactNode;
   trend: number;
   icon: React.ReactNode;
   trendColor?: "profit" | "loss";
@@ -53,8 +53,10 @@ interface StickyHeaderProps {
 }
 
 export function StickyHeader({ selectedProject, onProjectChange, summary, projectOptions }: StickyHeaderProps) {
-  const fmt = (v: number) =>
+  const fmtFull = (v: number) =>
     `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const fmtCompact = (v: number) =>
+    `R$ ${v.toLocaleString("pt-BR", { maximumFractionDigits: 0 })}`;
 
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
@@ -77,20 +79,35 @@ export function StickyHeader({ selectedProject, onProjectChange, summary, projec
         <div className="grid grid-cols-2 gap-1.5 sm:gap-2 lg:grid-cols-4">
           <SummaryCard
             title="Custo"
-            value={fmt(summary.spend)}
+            value={
+              <>
+                <span className="sm:hidden">{fmtCompact(summary.spend)}</span>
+                <span className="hidden sm:inline">{fmtFull(summary.spend)}</span>
+              </>
+            }
             trend={summary.spendTrend}
             icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
             trendColor="loss"
           />
           <SummaryCard
             title="Receita"
-            value={fmt(summary.revenue)}
+            value={
+              <>
+                <span className="sm:hidden">{fmtCompact(summary.revenue)}</span>
+                <span className="hidden sm:inline">{fmtFull(summary.revenue)}</span>
+              </>
+            }
             trend={summary.revenueTrend}
             icon={<TrendingUp className="h-4 w-4 text-muted-foreground" />}
           />
           <SummaryCard
             title="Lucro"
-            value={fmt(summary.profit)}
+            value={
+              <>
+                <span className="sm:hidden">{fmtCompact(summary.profit)}</span>
+                <span className="hidden sm:inline">{fmtFull(summary.profit)}</span>
+              </>
+            }
             trend={summary.profitTrend}
             icon={<BarChart3 className="h-4 w-4 text-muted-foreground" />}
           />
