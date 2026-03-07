@@ -68,7 +68,12 @@ export function CreateProjectDialog({ open, onOpenChange, onCreateProject, defau
               maxLength={30}
               autoFocus
             />
-            <span className="text-[10px] text-muted-foreground text-right block">{name.length}/30</span>
+            <div className="flex justify-between">
+              {isDuplicate ? (
+                <span className="text-[10px] text-destructive">Já existe um projeto com esse nome</span>
+              ) : <span />}
+              <span className="text-[10px] text-muted-foreground">{name.length}/30</span>
+            </div>
           </div>
           <div className="space-y-2">
             <Label>Tipo</Label>
