@@ -17,17 +17,22 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   onCreateProject: (project: DashboardProject) => void;
   defaultVertical?: Vertical;
+  existingNames: string[];
 }
 
-export function CreateProjectDialog({ open, onOpenChange, onCreateProject, defaultVertical }: Props) {
+export function CreateProjectDialog({ open, onOpenChange, onCreateProject, defaultVertical, existingNames }: Props) {
   const [name, setName] = useState("");
   const [vertical, setVertical] = useState<Exclude<Vertical, "todos">>(
     defaultVertical && defaultVertical !== "todos" ? defaultVertical : "google_ads"
   );
 
+  const isDuplicate = existingNames.some(
+    (n) => n.toLowerCase() === name.trim().toLowerCase()
+  );
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
+    if (!name.trim() || isDuplicate) return;
 
     const project: DashboardProject = {
       id: crypto.randomUUID(),
@@ -63,7 +68,12 @@ export function CreateProjectDialog({ open, onOpenChange, onCreateProject, defau
               maxLength={30}
               autoFocus
             />
-            <span className="text-[10px] text-muted-foreground text-right block">{name.length}/30</span>
+            <div className="flex justify-between">
+              {isDuplicate ? (
+                <span className="text-[10px] text-destructive">Já existe um projeto com esse nome</span>
+              ) : <span />}
+              <span className="text-[10px] text-muted-foreground">{name.length}/30</span>
+            </div>
           </div>
           <div className="space-y-2">
             <Label>Tipo</Label>
@@ -84,7 +94,7 @@ export function CreateProjectDialog({ open, onOpenChange, onCreateProject, defau
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={!name.trim()}>
+            <Button type="submit" disabled={!name.trim() || isDuplicate}>
               Criar
             </Button>
           </DialogFooter>
