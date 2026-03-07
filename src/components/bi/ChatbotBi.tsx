@@ -98,17 +98,10 @@ export function ChatbotBi() {
       if (open) setTempDateRange(dateRange);
     }}>
       <PopoverTrigger asChild>
-        <Button variant="outline" className={cn(
-          "gap-1.5 font-semibold tracking-wider border-border",
-          focusMode ? "h-6 px-2 text-[10px]" : "h-7 px-2.5 text-[10px]"
-        )}>
-          <CalendarIcon className={focusMode ? "h-2.5 w-2.5" : "h-3 w-3"} />
-          {focusMode ? dateLabel : (
-            <>
-              <span className="hidden sm:inline">{dateLabel}</span>
-              <span className="sm:hidden">Data</span>
-            </>
-          )}
+        <Button variant="outline" className="gap-1.5 font-semibold tracking-wider border-border h-7 px-2.5 text-[10px]">
+          <CalendarIcon className="h-3 w-3" />
+          <span className="hidden sm:inline">{dateLabel}</span>
+          <span className="sm:hidden">Data</span>
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
