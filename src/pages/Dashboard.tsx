@@ -201,7 +201,10 @@ export default function Dashboard() {
       </header>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 gap-2 px-4 pt-4 md:grid-cols-3 xl:grid-cols-6 sm:gap-3 sm:px-6 max-w-[1920px] mx-auto w-full">
+      <div
+        className="grid gap-2 px-4 pt-4 sm:gap-3 sm:px-6 max-w-[1920px] mx-auto w-full"
+        style={{ gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))" }}
+      >
         {[
           { label: "CUSTO", value: formatBRL(kpis.totalSpend) },
           { label: "RECEITA", value: formatBRL(kpis.totalRevenue) },
@@ -226,7 +229,7 @@ export default function Dashboard() {
             <span className="text-[10px] sm:text-xs uppercase tracking-wider text-foreground font-semibold">{kpi.label}</span>
             <p
               className={cn(
-                "font-mono text-[10px] font-bold sm:text-xs md:text-sm lg:text-base xl:text-lg 2xl:text-xl whitespace-nowrap leading-tight",
+                "font-mono text-[clamp(9px,1.8vw,20px)] font-bold whitespace-nowrap leading-tight tracking-tight",
                 kpi.highlight
                   ? kpis.totalProfit >= 0
                     ? "text-profit"
