@@ -151,18 +151,25 @@ export function ChatbotBi() {
                       </button>
                     ))}
                     <div className="border-t border-border mt-2 pt-2 px-2">
-                      <button
-                        onClick={() => setPopEnabled((p) => !p)}
-                        className={cn(
-                          "w-full flex items-center gap-1.5 rounded px-2 py-1.5 text-left text-xs transition-colors",
-                          popEnabled
-                            ? "bg-primary text-primary-foreground font-semibold"
-                            : "text-foreground hover:bg-accent"
-                        )}
-                      >
-                        <GitCompareArrows className="h-3 w-3" />
-                        Comparar
-                      </button>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            onClick={() => setPopEnabled((p) => !p)}
+                            className={cn(
+                              "w-full flex items-center gap-1.5 rounded px-2 py-1.5 text-left text-xs transition-colors",
+                              popEnabled
+                                ? "bg-primary text-primary-foreground font-semibold"
+                                : "text-foreground hover:bg-accent"
+                            )}
+                          >
+                            <GitCompareArrows className="h-3 w-3" />
+                            Comparar
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="right" className="text-xs">
+                          Comparar com o período anterior
+                        </TooltipContent>
+                      </Tooltip>
                     </div>
                   </div>
                   <div className="flex flex-col">
