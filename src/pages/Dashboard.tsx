@@ -337,7 +337,7 @@ function Metric({ label, value, className, bold, style }: { label: string; value
     <div>
       <span className="text-[11px] uppercase tracking-wider text-foreground/60 font-medium">{label}</span>
       <p
-        className={cn("font-mono text-sm whitespace-nowrap", bold ? "font-bold" : "font-medium", !style && (className || "text-foreground"))}
+        className={cn("font-mono text-sm whitespace-nowrap font-bold", !style && (className || "text-foreground"))}
         style={style}
       >
         {value}
