@@ -2,9 +2,11 @@ import { useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { format, differenceInCalendarDays, addDays, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarIcon, ArrowUp, ArrowDown, Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import { CalendarIcon, ArrowUp, ArrowDown, Plus, ChevronLeft, ChevronRight, GitCompareArrows } from "lucide-react";
 import { dashboardProjects as defaultProjects, verticals, type Vertical, type DashboardProject } from "@/data/dashboardData";
 import { formatBRL, formatROAS, getRoasColor } from "@/lib/format";
+import { PopBadge } from "@/components/bi/chatbot/PopBadge";
+import { generatePreviousKpis } from "@/data/popMockData";
 import { CreateProjectDialog } from "@/components/CreateProjectDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -97,6 +99,7 @@ export default function Dashboard() {
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [newestProjectId, setNewestProjectId] = useState<string | null>(null);
+  const [popEnabled, setPopEnabled] = useState(false);
 
   const handleCreateProject = useCallback((project: DashboardProject) => {
     setProjects((prev) => {
