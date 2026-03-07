@@ -382,7 +382,7 @@ export default function Dashboard() {
                 >
                   <Badge
                     variant="outline"
-                    className={cn("absolute top-1.5 right-1.5 px-1 py-0 h-3.5 text-[6px] font-semibold tracking-wider", verticalConfig[project.vertical]?.className)}
+                    className={cn("absolute top-2 right-2 px-1 py-0 h-3.5 text-[6px] font-semibold tracking-wider", verticalConfig[project.vertical]?.className)}
                   >
                     {verticalConfig[project.vertical]?.label}
                   </Badge>
