@@ -176,7 +176,7 @@ export default function Dashboard() {
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="end">
             <div className="flex">
-              <div className="border-r border-border p-2 space-y-0.5 min-w-[140px]">
+              <div className="border-r border-border p-2 space-y-0.5 w-[120px]">
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground px-2 pb-1">Período</p>
                 {presets.map((preset) => (
                   <button
