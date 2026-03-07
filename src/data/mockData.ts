@@ -70,7 +70,6 @@ export const projects: Project[] = [
         revenue: 8500,
         roas: 1.70,
         matchRate: 98,
-        campaigns: [],
         adsets: [
           {
             id: "lal-1",
