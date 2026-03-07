@@ -241,7 +241,10 @@ export default function Dashboard() {
             </div>
           </PopoverContent>
         </Popover>
-      </div>
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => shiftDateRange(1)}>
+            <ChevronRight className="h-3.5 w-3.5" />
+          </Button>
+        </div>
 
       {/* Grid */}
       <div className="flex-1 overflow-auto p-4 sm:p-6">
