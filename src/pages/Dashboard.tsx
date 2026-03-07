@@ -320,7 +320,7 @@ export default function Dashboard() {
                   mode="range"
                   selected={tempDateRange}
                   onSelect={setTempDateRange}
-                  numberOfMonths={2}
+                  numberOfMonths={1}
                   locale={ptBR}
                   disabled={(date) => date > new Date()}
                   className="p-3 pointer-events-auto"
