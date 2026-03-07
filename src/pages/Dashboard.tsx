@@ -383,17 +383,13 @@ export default function Dashboard() {
                   {/* Card header */}
                   <div className="mb-3 flex items-center justify-between">
                     <div className="flex items-baseline gap-2 truncate pr-2">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <h3
-                            className="font-semibold text-foreground truncate"
-                            style={{ fontSize: "clamp(11px, 5cqw, 14px)" }}
-                          >
-                            {project.name}
-                          </h3>
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom" className="text-xs">{project.name}</TooltipContent>
-                      </Tooltip>
+                      <h3
+                        className="font-semibold text-foreground truncate"
+                        style={{ fontSize: "clamp(11px, 5cqw, 14px)" }}
+                        title={project.name}
+                      >
+                        {project.name}
+                      </h3>
                       <span
                         className="font-mono text-muted-foreground shrink-0"
                         style={{ fontSize: "clamp(8px, 4cqw, 10px)" }}
