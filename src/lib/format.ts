@@ -34,7 +34,7 @@ export function formatDuration(seconds: number): string {
  * > 0 = green, < 0 = red, 0 = neutral.
  */
 export function getRoasColor(roas: number): string {
-  if (roas == null || isNaN(roas) || roas === 0) return `hsl(210, 20%, 90%)`;
+  if (roas == null || isNaN(roas) || roas === 0) return `hsl(0, 0%, 100%)`;
   if (roas > 0) {
     const t = Math.min(1, roas);
     const s = 45 + t * 26;
