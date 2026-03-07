@@ -1,4 +1,5 @@
 export function formatBRL(value: number): string {
+  if (value == null || isNaN(value)) return "R$ 0,00";
   return value.toLocaleString("pt-BR", {
     style: "currency",
     currency: "BRL",
@@ -7,14 +8,17 @@ export function formatBRL(value: number): string {
 }
 
 export function formatROAS(value: number): string {
+  if (value == null || isNaN(value)) return "0%";
   return `${(value * 100).toFixed(0)}%`;
 }
 
 export function formatPercent(value: number): string {
+  if (value == null || isNaN(value)) return "0,0%";
   return `${(value * 100).toFixed(1)}%`;
 }
 
 export function formatNumber(value: number): string {
+  if (value == null || isNaN(value)) return "0";
   return value.toLocaleString("pt-BR");
 }
 
@@ -31,6 +35,7 @@ export function formatDuration(seconds: number): string {
  * Interpolates saturation and lightness for intensity.
  */
 export function getRoasColor(roas: number): string {
+  if (roas == null || isNaN(roas)) return `hsl(0, 0%, 95%)`;
   const pct = Math.max(-1, Math.min(1, roas));
 
   if (pct === 0) return `hsl(0, 0%, 95%)`;
