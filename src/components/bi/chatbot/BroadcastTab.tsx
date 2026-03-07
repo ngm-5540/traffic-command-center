@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback } from "react";
-import { ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
+import { ArrowUp, ArrowDown, ArrowUpDown, Maximize2, Minimize2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { formatBRL, formatNumber, formatROAS, getRoasColor } from "@/lib/format";
 import { DrilldownSheet } from "./DrilldownSheet";
 import { PopBadge } from "./PopBadge";
@@ -10,6 +11,10 @@ import type { BroadcastDispatch } from "@/data/chatbotMockData";
 interface Props {
   broadcasts: BroadcastDispatch[];
   popEnabled?: boolean;
+  focusMode?: boolean;
+  onToggleFocusMode?: () => void;
+  filtersNode?: React.ReactNode;
+  tabsListNode?: React.ReactNode;
 }
 
 type SortDir = "asc" | "desc";
@@ -36,7 +41,7 @@ const columns: { key: string; label: string; align: "left" | "right"; getValue: 
 
 const invertColorKeys = new Set(["cost"]);
 
-export function BroadcastTab({ broadcasts, popEnabled = false }: Props) {
+export function BroadcastTab({ broadcasts, popEnabled = false, focusMode, onToggleFocusMode, filtersNode, tabsListNode }: Props) {
   const [selected, setSelected] = useState<BroadcastDispatch | null>(null);
   const [sort, setSort] = useState<SortState | null>(null);
 
@@ -69,81 +74,98 @@ export function BroadcastTab({ broadcasts, popEnabled = false }: Props) {
 
   return (
     <>
-      <div className="overflow-auto">
-        <table className="w-full text-xs border-collapse">
-          <thead className="sticky top-0 z-10 bg-background">
-            <tr className="border-b border-border">
-              {columns.map((col) => (
-                <th
-                  key={col.key}
-                  className={cn(
-                    "px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap cursor-pointer hover:text-foreground select-none",
-                    col.align === "left" ? "text-left" : "text-right"
-                  )}
-                  onClick={() => toggleSort(col.key)}
-                >
-                  <span className="inline-flex items-center gap-0.5">
-                    {col.label}
-                    <SortIcon active={sort?.key === col.key} dir={sort?.dir} />
-                  </span>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {sorted.map((b) => {
-              const heatOpacity = maxRevenue > 0 ? (b.revenue / maxRevenue) * 0.4 : 0;
-              const prev = previousData.get(b.id);
-              return (
-                <tr
-                  key={b.id}
-                  className="border-b border-border/50 hover:bg-accent/50 cursor-pointer transition-colors"
-                  onClick={() => setSelected(b)}
-                >
-                  {columns.map((col) => {
-                    const val = col.getValue(b);
-                    const prevVal = prev ? prev[col.key] : undefined;
-                    const isName = col.key === "name";
-                    const isDate = col.key === "date";
-                    const isRevenue = col.key === "revenue";
-                    const isProfit = col.key === "profit";
-                    const isRoas = col.key === "roas";
+      <div className="flex flex-col">
+        {/* Toolbar */}
+        <div className="flex items-center justify-between gap-2 px-1 py-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            {tabsListNode}
+            <div className="h-5 w-px bg-border shrink-0" />
+            {filtersNode}
+          </div>
+          {onToggleFocusMode && (
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onToggleFocusMode}>
+              {focusMode ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
+            </Button>
+          )}
+        </div>
 
-                    return (
-                      <td
-                        key={col.key}
-                        className={cn(
-                          "px-3 py-2 font-mono font-bold whitespace-nowrap",
-                          isName && "text-foreground font-medium font-sans",
-                          isDate && "text-muted-foreground font-sans",
-                          !isName && !isDate && "text-right"
-                        )}
-                        style={isRevenue ? { backgroundColor: `hsla(var(--success), ${heatOpacity})` } : undefined}
-                      >
-                        <div className={cn("flex flex-col", !isName && !isDate && "items-end")}>
-                          <span className={cn(
-                            isProfit && (b.profit >= 0 ? "text-profit" : "text-loss")
-                          )} style={isRoas ? { color: getRoasColor(b.roas) } : undefined}>
-                            {isName ? b.name
-                              : isDate ? b.date
-                              : isProfit ? formatBRL(val)
-                              : isRoas ? formatROAS(val)
-                              : isRevenue ? formatBRL(val)
-                              : col.key === "cost" ? formatBRL(val)
-                              : formatNumber(val)}
-                          </span>
-                          {popEnabled && !isName && !isDate && typeof val === "number" && prevVal != null && (
-                            <PopBadge current={val} previous={prevVal} invertColor={invertColorKeys.has(col.key)} />
+        {/* Table */}
+        <div className="overflow-auto">
+          <table className="w-full text-xs border-collapse">
+            <thead className="sticky top-0 z-10 bg-background">
+              <tr className="border-b border-border">
+                {columns.map((col) => (
+                  <th
+                    key={col.key}
+                    className={cn(
+                      "px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap cursor-pointer hover:text-foreground select-none",
+                      col.align === "left" ? "text-left" : "text-right"
+                    )}
+                    onClick={() => toggleSort(col.key)}
+                  >
+                    <span className="inline-flex items-center gap-0.5">
+                      {col.label}
+                      <SortIcon active={sort?.key === col.key} dir={sort?.dir} />
+                    </span>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {sorted.map((b) => {
+                const heatOpacity = maxRevenue > 0 ? (b.revenue / maxRevenue) * 0.4 : 0;
+                const prev = previousData.get(b.id);
+                return (
+                  <tr
+                    key={b.id}
+                    className="border-b border-border/50 hover:bg-accent/50 cursor-pointer transition-colors"
+                    onClick={() => setSelected(b)}
+                  >
+                    {columns.map((col) => {
+                      const val = col.getValue(b);
+                      const prevVal = prev ? prev[col.key] : undefined;
+                      const isName = col.key === "name";
+                      const isDate = col.key === "date";
+                      const isRevenue = col.key === "revenue";
+                      const isProfit = col.key === "profit";
+                      const isRoas = col.key === "roas";
+
+                      return (
+                        <td
+                          key={col.key}
+                          className={cn(
+                            "px-3 py-2 font-mono font-bold whitespace-nowrap",
+                            isName && "text-foreground font-medium font-sans",
+                            isDate && "text-muted-foreground font-sans",
+                            !isName && !isDate && "text-right"
                           )}
-                        </div>
-                      </td>
-                    );
-                  })}
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                          style={isRevenue ? { backgroundColor: `hsla(var(--success), ${heatOpacity})` } : undefined}
+                        >
+                          <div className={cn("flex flex-col", !isName && !isDate && "items-end")}>
+                            <span className={cn(
+                              isProfit && (b.profit >= 0 ? "text-profit" : "text-loss")
+                            )} style={isRoas ? { color: getRoasColor(b.roas) } : undefined}>
+                              {isName ? b.name
+                                : isDate ? b.date
+                                : isProfit ? formatBRL(val)
+                                : isRoas ? formatROAS(val)
+                                : isRevenue ? formatBRL(val)
+                                : col.key === "cost" ? formatBRL(val)
+                                : formatNumber(val)}
+                            </span>
+                            {popEnabled && !isName && !isDate && typeof val === "number" && prevVal != null && (
+                              <PopBadge current={val} previous={prevVal} invertColor={invertColorKeys.has(col.key)} />
+                            )}
+                          </div>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
       <DrilldownSheet
         open={!!selected}

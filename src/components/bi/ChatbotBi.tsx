@@ -277,11 +277,37 @@ export function ChatbotBi() {
             }
           />
         </TabsContent>
-        <TabsContent value="automacao" className="flex-1 mt-4">
-          <AutomacaoTab automations={chatbotAutomations} popEnabled={popEnabled} />
+        <TabsContent value="automacao" className="flex-1">
+          <AutomacaoTab
+            automations={chatbotAutomations}
+            popEnabled={popEnabled}
+            focusMode={focusMode}
+            onToggleFocusMode={() => setFocusMode(f => !f)}
+            filtersNode={filtersNode}
+            tabsListNode={
+              <TabsList className="w-fit h-auto p-0.5 bg-muted/50 border border-border">
+                <TabsTrigger value="resultado" className="text-[10px] font-semibold px-2.5 py-1 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground">Resultado Total</TabsTrigger>
+                <TabsTrigger value="automacao" className="text-[10px] font-semibold px-2.5 py-1 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground">Automação</TabsTrigger>
+                <TabsTrigger value="broadcast" className="text-[10px] font-semibold px-2.5 py-1 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground">Broadcast</TabsTrigger>
+              </TabsList>
+            }
+          />
         </TabsContent>
-        <TabsContent value="broadcast" className="flex-1 mt-4">
-          <BroadcastTab broadcasts={chatbotBroadcasts} popEnabled={popEnabled} />
+        <TabsContent value="broadcast" className="flex-1">
+          <BroadcastTab
+            broadcasts={chatbotBroadcasts}
+            popEnabled={popEnabled}
+            focusMode={focusMode}
+            onToggleFocusMode={() => setFocusMode(f => !f)}
+            filtersNode={filtersNode}
+            tabsListNode={
+              <TabsList className="w-fit h-auto p-0.5 bg-muted/50 border border-border">
+                <TabsTrigger value="resultado" className="text-[10px] font-semibold px-2.5 py-1 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground">Resultado Total</TabsTrigger>
+                <TabsTrigger value="automacao" className="text-[10px] font-semibold px-2.5 py-1 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground">Automação</TabsTrigger>
+                <TabsTrigger value="broadcast" className="text-[10px] font-semibold px-2.5 py-1 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground">Broadcast</TabsTrigger>
+              </TabsList>
+            }
+          />
         </TabsContent>
       </Tabs>
     </div>
