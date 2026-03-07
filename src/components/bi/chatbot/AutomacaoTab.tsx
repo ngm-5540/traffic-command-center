@@ -1,14 +1,59 @@
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
+import { ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 import { formatBRL, formatNumber, formatPercent, formatROAS, getRoasColor } from "@/lib/format";
 import { DrilldownSheet } from "./DrilldownSheet";
+import { cn } from "@/lib/utils";
 import type { Automation } from "@/data/chatbotMockData";
 
 interface Props {
   automations: Automation[];
 }
 
+type SortDir = "asc" | "desc";
+interface SortState { key: string; dir: SortDir; }
+
+function SortIcon({ active, dir }: { active: boolean; dir?: SortDir }) {
+  if (!active) return <ArrowUpDown className="h-2.5 w-2.5 opacity-30" />;
+  return dir === "asc" ? <ArrowUp className="h-2.5 w-2.5 text-primary" /> : <ArrowDown className="h-2.5 w-2.5 text-primary" />;
+}
+
+const columns: { key: string; label: string; align: "left" | "right"; getValue: (a: Automation) => any }[] = [
+  { key: "name", label: "Nome", align: "left", getValue: (a) => a.name },
+  { key: "msgs", label: "Msgs", align: "right", getValue: (a) => a.messages.length },
+  { key: "totalSent", label: "Enviados", align: "right", getValue: (a) => a.totalSent },
+  { key: "totalDelivered", label: "Entregues", align: "right", getValue: (a) => a.totalDelivered },
+  { key: "totalRead", label: "Lidos", align: "right", getValue: (a) => a.totalRead },
+  { key: "totalClicked", label: "Clicados", align: "right", getValue: (a) => a.totalClicked },
+  { key: "totalReplied", label: "Respondidos", align: "right", getValue: (a) => a.totalReplied },
+  { key: "revenue", label: "Receita", align: "right", getValue: (a) => a.revenue },
+  { key: "cost", label: "Custo", align: "right", getValue: (a) => a.cost },
+  { key: "profit", label: "Lucro", align: "right", getValue: (a) => a.profit },
+  { key: "roas", label: "ROAS", align: "right", getValue: (a) => a.roas },
+  { key: "revMsgRate", label: "Rev/MSG", align: "right", getValue: (a) => a.revMsgRate },
+];
+
 export function AutomacaoTab({ automations }: Props) {
   const [selected, setSelected] = useState<Automation | null>(null);
+  const [sort, setSort] = useState<SortState | null>(null);
+
+  const toggleSort = useCallback((key: string) => {
+    setSort((prev) => {
+      if (prev?.key === key) return prev.dir === "asc" ? { key, dir: "desc" } : null;
+      return { key, dir: "desc" };
+    });
+  }, []);
+
+  const sorted = useMemo(() => {
+    if (!sort) return automations;
+    const col = columns.find((c) => c.key === sort.key);
+    if (!col) return automations;
+    return [...automations].sort((a, b) => {
+      const va = col.getValue(a);
+      const vb = col.getValue(b);
+      if (typeof va === "string") return sort.dir === "asc" ? va.localeCompare(vb) : vb.localeCompare(va);
+      return sort.dir === "asc" ? va - vb : vb - va;
+    });
+  }, [automations, sort]);
 
   return (
     <>
@@ -16,15 +61,25 @@ export function AutomacaoTab({ automations }: Props) {
         <table className="w-full text-xs border-collapse">
           <thead className="sticky top-0 z-10 bg-background">
             <tr className="border-b border-border">
-              {["Nome", "Msgs", "Enviados", "Entregues", "Lidos", "Clicados", "Respondidos", "Receita", "Custo", "Lucro", "ROAS", "Rev/MSG"].map((h) => (
-                <th key={h} className={`px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap ${h === "Nome" ? "text-left" : "text-right"}`}>
-                  {h}
+              {columns.map((col) => (
+                <th
+                  key={col.key}
+                  className={cn(
+                    "px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap cursor-pointer hover:text-foreground select-none",
+                    col.align === "left" ? "text-left" : "text-right"
+                  )}
+                  onClick={() => toggleSort(col.key)}
+                >
+                  <span className="inline-flex items-center gap-0.5">
+                    {col.label}
+                    <SortIcon active={sort?.key === col.key} dir={sort?.dir} />
+                  </span>
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {automations.map((aut) => (
+            {sorted.map((aut) => (
               <tr
                 key={aut.id}
                 className="border-b border-border/50 hover:bg-accent/50 cursor-pointer transition-colors"
