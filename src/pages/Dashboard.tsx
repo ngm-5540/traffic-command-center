@@ -81,7 +81,7 @@ export default function Dashboard() {
     <div className="flex flex-col h-full">
       {/* Header */}
       <header className="sticky top-0 z-10 border-b border-border bg-background">
-        <div className="flex items-center justify-between px-4 py-2.5 sm:px-6">
+        <div className="flex items-center justify-center px-4 py-2.5 sm:px-6">
           {/* Vertical selector */}
           <nav className="flex gap-6">
             {verticals.map((v) => (
