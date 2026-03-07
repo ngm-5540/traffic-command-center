@@ -57,10 +57,23 @@ export function StickyHeader({ selectedProject, onProjectChange, summary, projec
     `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   const fmtCompact = (v: number) =>
     `R$ ${v.toLocaleString("pt-BR", { maximumFractionDigits: 0 })}`;
+  const fmtTight = (v: number) => {
+    const abs = Math.abs(v);
+    if (abs >= 1_000_000) {
+      return `R$ ${(v / 1_000_000).toLocaleString("pt-BR", {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
+      })}M`;
+    }
+    if (abs >= 1_000) {
+      return `R$ ${Math.round(v / 1_000)}k`;
+    }
+    return fmtCompact(v);
+  };
 
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-      <div className="flex flex-col gap-2 px-3 py-2 sm:gap-3 sm:px-4 sm:py-3 lg:flex-row lg:items-center lg:justify-between">
+      <div className="flex flex-col gap-2 px-3 py-2 sm:gap-3 sm:px-4 sm:py-3 xl:flex-row xl:items-center xl:justify-between">
         {/* Project Switcher */}
         <div className="flex items-center gap-3">
           <select
