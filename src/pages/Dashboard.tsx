@@ -38,6 +38,8 @@ export default function Dashboard() {
   const [sortKey, setSortKey] = useState<SortKey>("profit");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(() => presets[0].getValue());
+  const [tempDateRange, setTempDateRange] = useState<DateRange | undefined>(() => presets[0].getValue());
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
 
   const verticalConfig: Record<string, { label: string; className: string }> = {
     google_ads: { label: "GOOGLE ADS", className: "bg-yellow-500/15 text-yellow-500 border-yellow-500/30" },
