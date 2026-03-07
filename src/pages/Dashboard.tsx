@@ -222,6 +222,7 @@ export default function Dashboard() {
                   onSelect={setTempDateRange}
                   numberOfMonths={2}
                   locale={ptBR}
+                  disabled={(date) => date > new Date()}
                   className="p-3 pointer-events-auto"
                 />
                 <div className="flex justify-end p-2 pt-0">
