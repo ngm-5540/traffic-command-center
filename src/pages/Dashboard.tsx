@@ -77,10 +77,10 @@ export default function Dashboard() {
         {/* KPI bar */}
         <div className="flex items-center gap-6 border-t border-border/50 px-4 py-2 sm:gap-10 sm:px-6">
           {[
-            { label: "TOTAL SPEND", value: formatBRL(kpis.totalSpend) },
-            { label: "TOTAL REVENUE", value: formatBRL(kpis.totalRevenue) },
-            { label: "TOTAL PROFIT", value: formatBRL(kpis.totalProfit), highlight: true },
-            { label: "AVG ROAS", value: formatROAS(kpis.avgRoas) },
+            { label: "CUSTO", value: formatBRL(kpis.totalSpend) },
+            { label: "RECEITA", value: formatBRL(kpis.totalRevenue) },
+            { label: "LUCRO", value: formatBRL(kpis.totalProfit), highlight: true },
+            { label: "ROAS", value: formatROAS(kpis.avgRoas) },
           ].map((kpi) => (
             <div key={kpi.label} className="flex flex-col">
               <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{kpi.label}</span>
