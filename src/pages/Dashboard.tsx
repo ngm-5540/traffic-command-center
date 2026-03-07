@@ -441,13 +441,13 @@ function ProjectName({ name, id }: { name: string; id: string }) {
     <div className="truncate pr-2" title={`${name} ${shortId}`}>
       <h3
         className="font-semibold text-foreground truncate leading-none"
-        style={{ fontSize: "clamp(11px, 5cqw, 14px)" }}
+        style={{ fontSize: "clamp(13px, 6cqw, 16px)" }}
       >
         {name}
       </h3>
       <span
         className="font-mono text-muted-foreground leading-none -mt-px block"
-        style={{ fontSize: "clamp(8px, 4cqw, 10px)" }}
+        style={{ fontSize: "clamp(9px, 4.5cqw, 11px)" }}
       >
         {shortId}
       </span>
