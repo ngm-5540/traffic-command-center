@@ -1,5 +1,10 @@
 export function formatBRL(value: number): string {
   if (value == null || isNaN(value)) return "R$ 0,00";
+  const abs = Math.abs(value);
+  if (abs >= 1_000_000) {
+    const shortened = value / 1_000;
+    return `R$ ${shortened.toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}M`;
+  }
   return value.toLocaleString("pt-BR", {
     style: "currency",
     currency: "BRL",
