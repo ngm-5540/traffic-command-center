@@ -6,7 +6,7 @@ import { CalendarIcon, ArrowUp, ArrowDown, Plus, ChevronLeft, ChevronRight, GitC
 import { dashboardProjects as defaultProjects, verticals, type Vertical, type DashboardProject } from "@/data/dashboardData";
 import { formatBRL, formatROAS, getRoasColor } from "@/lib/format";
 import { PopBadge } from "@/components/bi/chatbot/PopBadge";
-import { generatePreviousKpis } from "@/data/popMockData";
+import { generatePreviousKpis, generatePreviousRecord } from "@/data/popMockData";
 import { CreateProjectDialog } from "@/components/CreateProjectDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -402,6 +402,7 @@ export default function Dashboard() {
         <div className="grid gap-4 max-w-[1920px] mx-auto" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' }}>
           {sorted.map((project) => {
             const isProfit = project.profit >= 0;
+            const prev = popEnabled ? generatePreviousRecord(project, project.id.charCodeAt(0)) : null;
 
             return (
               <div
@@ -432,15 +433,16 @@ export default function Dashboard() {
 
                   {/* Metrics */}
                   <div className="grid grid-cols-2 gap-x-2 gap-y-2">
-                    <Metric label="RECEITA" value={formatBRL(project.revenue)} />
-                    <Metric label="CUSTO" value={formatBRL(project.spend)} />
+                    <Metric label="RECEITA" value={formatBRL(project.revenue)} pop={prev ? { current: project.revenue, previous: prev.revenue } : undefined} />
+                    <Metric label="CUSTO" value={formatBRL(project.spend)} pop={prev ? { current: project.spend, previous: prev.spend, invertColor: true } : undefined} />
                     <Metric
                       label="LUCRO"
                       value={formatBRL(project.profit)}
                       className={project.profit === 0 ? "text-foreground" : isProfit ? "text-profit" : "text-loss"}
                       bold
+                      pop={prev ? { current: project.profit, previous: prev.profit } : undefined}
                     />
-                    <Metric label="ROAS" value={formatROAS(project.roas)} style={{ color: getRoasColor(project.roas) }} />
+                    <Metric label="ROAS" value={formatROAS(project.roas)} style={{ color: getRoasColor(project.roas) }} pop={prev ? { current: project.roas, previous: prev.roas } : undefined} />
                   </div>
                 </div>
               </div>
@@ -460,7 +462,7 @@ export default function Dashboard() {
   );
 }
 
-function Metric({ label, value, className, bold, style }: { label: string; value: string; className?: string; bold?: boolean; style?: React.CSSProperties }) {
+function Metric({ label, value, className, bold, style, pop }: { label: string; value: string; className?: string; bold?: boolean; style?: React.CSSProperties; pop?: { current: number; previous: number; invertColor?: boolean } }) {
   return (
     <div className="min-w-0 cursor-help" title={`${label}: ${value}`}>
       <span className="uppercase tracking-wider text-foreground/60 font-medium block" style={{ fontSize: "clamp(8px, 4cqw, 11px)" }}>{label}</span>
@@ -470,6 +472,7 @@ function Metric({ label, value, className, bold, style }: { label: string; value
       >
         {value}
       </p>
+      {pop && <PopBadge current={pop.current} previous={pop.previous} invertColor={pop.invertColor} />}
     </div>
   );
 }
