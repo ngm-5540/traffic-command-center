@@ -183,7 +183,7 @@ export default function Dashboard() {
                 : "border-border bg-card"
             )}
           >
-            <span className="text-[11px] uppercase tracking-wider text-muted-foreground/80 font-medium">{kpi.label}</span>
+            <span className="text-[11px] uppercase tracking-wider text-foreground/60 font-medium">{kpi.label}</span>
             <p
               className={cn(
                 "font-mono text-lg font-bold sm:text-xl",
@@ -270,7 +270,7 @@ export default function Dashboard() {
 function Metric({ label, value, className, bold }: { label: string; value: string; className?: string; bold?: boolean }) {
   return (
     <div>
-      <span className="text-[11px] uppercase tracking-wider text-muted-foreground/80 font-medium">{label}</span>
+      <span className="text-[11px] uppercase tracking-wider text-foreground/60 font-medium">{label}</span>
       <p className={cn("font-mono text-sm whitespace-nowrap", bold ? "font-bold" : "font-medium", className || "text-foreground")}>
         {value}
       </p>
