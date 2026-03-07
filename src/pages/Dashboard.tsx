@@ -383,17 +383,13 @@ export default function Dashboard() {
                   {/* Card header */}
                   <div className="mb-3 flex items-center justify-between">
                     <div className="flex items-baseline gap-2 truncate pr-2">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <h3
-                            className="font-semibold text-foreground truncate"
-                            style={{ fontSize: "clamp(11px, 5cqw, 14px)" }}
-                          >
-                            {project.name}
-                          </h3>
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom" className="text-xs">{project.name}</TooltipContent>
-                      </Tooltip>
+                      <h3
+                        className="font-semibold text-foreground truncate"
+                        style={{ fontSize: "clamp(11px, 5cqw, 14px)" }}
+                        title={project.name}
+                      >
+                        {project.name}
+                      </h3>
                       <span
                         className="font-mono text-muted-foreground shrink-0"
                         style={{ fontSize: "clamp(8px, 4cqw, 10px)" }}
@@ -442,19 +438,14 @@ export default function Dashboard() {
 
 function Metric({ label, value, className, bold, style }: { label: string; value: string; className?: string; bold?: boolean; style?: React.CSSProperties }) {
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <button type="button" className="min-w-0 text-left cursor-help block">
-          <span className="uppercase tracking-wider text-foreground/60 font-medium block" style={{ fontSize: "clamp(8px, 4cqw, 11px)" }}>{label}</span>
-          <p
-            className={cn("font-mono whitespace-nowrap font-bold", !style && (className || "text-foreground"))}
-            style={{ fontSize: "clamp(9px, 5cqw, 13px)", ...style }}
-          >
-            {value}
-          </p>
-        </button>
-      </TooltipTrigger>
-      <TooltipContent side="bottom" className="text-xs">{label}: {value}</TooltipContent>
-    </Tooltip>
+    <div className="min-w-0 cursor-help" title={`${label}: ${value}`}>
+      <span className="uppercase tracking-wider text-foreground/60 font-medium block" style={{ fontSize: "clamp(8px, 4cqw, 11px)" }}>{label}</span>
+      <p
+        className={cn("font-mono whitespace-nowrap font-bold", !style && (className || "text-foreground"))}
+        style={{ fontSize: "clamp(9px, 5cqw, 13px)", ...style }}
+      >
+        {value}
+      </p>
+    </div>
   );
 }
