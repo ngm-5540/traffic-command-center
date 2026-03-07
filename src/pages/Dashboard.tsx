@@ -215,11 +215,11 @@ export default function Dashboard() {
         ].map((kpi) => (
           <div
             key={kpi.label}
-            style={{ containerType: "inline-size", containerName: "card" }}
+            style={{ containerType: "inline-size" }}
           >
             <div
               className={cn(
-                "cq-card rounded-lg border min-w-0",
+                "rounded-lg border min-w-0 p-2.5 sm:p-3 md:p-4",
                 kpi.highlight
                   ? kpis.totalProfit >= 0
                     ? "border-profit/30 bg-profit/5"
@@ -228,11 +228,10 @@ export default function Dashboard() {
                     ? "border-loss/30 bg-loss/5"
                     : "border-border bg-card"
               )}
-              style={{ padding: "var(--card-padding)" }}
             >
               <span
                 className="uppercase tracking-wider text-foreground font-semibold block"
-                style={{ fontSize: "var(--card-label-size)" }}
+                style={{ fontSize: "clamp(9px, 7cqw, 12px)" }}
               >
                 {kpi.label}
               </span>
@@ -246,7 +245,7 @@ export default function Dashboard() {
                     : !kpi.roasColor ? "text-foreground" : undefined
                 )}
                 style={{
-                  fontSize: "var(--card-value-size)",
+                  fontSize: "clamp(10px, 10cqw, 20px)",
                   ...(kpi.roasColor ? { color: kpi.roasColor } : {}),
                 }}
               >
@@ -367,37 +366,47 @@ export default function Dashboard() {
             return (
               <div
                 key={project.id}
-                style={{ containerType: "inline-size", containerName: "card" }}
+                style={{ containerType: "inline-size" }}
               >
                 <div
                   onClick={() => navigate(`/project/${project.id}`)}
                   className={cn(
-                    "cq-card rounded-lg border transition-all cursor-pointer hover:ring-1 hover:ring-primary/30",
+                    "rounded-lg border p-3 sm:p-4 transition-all cursor-pointer hover:ring-1 hover:ring-primary/30",
                     project.roas <= -1
                       ? "border-loss/20 bg-loss/5"
                       : project.roas >= 1
                         ? "border-profit/30 bg-profit/10"
                         : "border-border bg-card"
                   )}
-                  style={{ padding: "var(--card-padding)" }}
                 >
                   {/* Card header */}
                   <div className="mb-3 flex items-center justify-between">
                     <div className="flex items-baseline gap-2 truncate pr-2">
-                      <h3 className="font-semibold text-foreground truncate" style={{ fontSize: "var(--card-title-size)" }} title={project.name}>
+                      <h3
+                        className="font-semibold text-foreground truncate"
+                        style={{ fontSize: "clamp(11px, 5cqw, 14px)" }}
+                        title={project.name}
+                      >
                         {project.name}
                       </h3>
-                      <span className="font-mono text-muted-foreground shrink-0" style={{ fontSize: "var(--card-badge-size)" }}>
+                      <span
+                        className="font-mono text-muted-foreground shrink-0"
+                        style={{ fontSize: "clamp(8px, 4cqw, 10px)" }}
+                      >
                         #{project.id.substring(0, 5)}
                       </span>
                     </div>
-                    <Badge variant="outline" className={cn("shrink-0", verticalConfig[project.vertical]?.className)} style={{ fontSize: "var(--card-badge-size)" }}>
+                    <Badge
+                      variant="outline"
+                      className={cn("shrink-0", verticalConfig[project.vertical]?.className)}
+                      style={{ fontSize: "clamp(8px, 4cqw, 10px)" }}
+                    >
                       {verticalConfig[project.vertical]?.label}
                     </Badge>
                   </div>
 
-                  {/* Metrics grid — collapses to 1 col via container query at Nível 3 */}
-                  <div className="cq-metrics grid grid-cols-2 gap-x-4 gap-y-2">
+                  {/* Metrics */}
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-2">
                     <Metric label="RECEITA" value={formatBRL(project.revenue)} />
                     <Metric label="CUSTO" value={formatBRL(project.spend)} />
                     <Metric
@@ -429,10 +438,10 @@ export default function Dashboard() {
 function Metric({ label, value, className, bold, style }: { label: string; value: string; className?: string; bold?: boolean; style?: React.CSSProperties }) {
   return (
     <div>
-      <span className="uppercase tracking-wider text-foreground/60 font-medium" style={{ fontSize: "var(--card-metric-label-size)" }}>{label}</span>
+      <span className="uppercase tracking-wider text-foreground/60 font-medium" style={{ fontSize: "clamp(9px, 4cqw, 11px)" }}>{label}</span>
       <p
         className={cn("font-mono whitespace-nowrap font-bold", !style && (className || "text-foreground"))}
-        style={{ fontSize: "var(--card-metric-size)", ...style }}
+        style={{ fontSize: "clamp(10px, 6cqw, 14px)", ...style }}
       >
         {value}
       </p>
