@@ -417,7 +417,7 @@ export default function Dashboard() {
                     "relative rounded-lg border p-3 sm:p-4 transition-all cursor-pointer hover:ring-1 hover:ring-primary/30",
                     project.roas >= 1
                       ? "border-profit/30 bg-profit/5"
-                      : project.roas === -1
+                      : project.roas <= -1
                         ? "border-loss/20 bg-loss/5"
                         : "border-border bg-card"
                   )}
