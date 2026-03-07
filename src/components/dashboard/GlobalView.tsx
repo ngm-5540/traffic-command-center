@@ -37,7 +37,7 @@ export function GlobalView({ projects }: GlobalViewProps) {
             <div className="mt-4 flex items-center gap-4 border-t border-border pt-3 text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
                 <DollarSign className="h-3 w-3" />
-                Spend: R$ {project.spend.toLocaleString("pt-BR")}
+                Custo: R$ {project.spend.toLocaleString("pt-BR")}
               </span>
               <span className="flex items-center gap-1">
                 <TrendingUp className="h-3 w-3" />
