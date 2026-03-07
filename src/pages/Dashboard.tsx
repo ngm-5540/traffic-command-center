@@ -125,7 +125,7 @@ export default function Dashboard() {
     });
 
     return base;
-  }, [activeVertical, sortKey, sortDir]);
+  }, [activeVertical, sortKey, sortDir, projects]);
 
   const kpis = useMemo(() => {
     const totalSpend = sorted.reduce((s, p) => s + p.spend, 0);
