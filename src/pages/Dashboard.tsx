@@ -410,7 +410,7 @@ export default function Dashboard() {
         onOpenChange={setCreateDialogOpen}
         onCreateProject={handleCreateProject}
         defaultVertical={activeVertical}
-        existingNames={projects.map((p) => p.name)}
+        existingProjects={projects}
       />
     </div>
   );
