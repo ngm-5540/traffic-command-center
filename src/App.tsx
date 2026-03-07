@@ -40,11 +40,11 @@ function AppLayout() {
         })();
 
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={false}>
       <div className="min-h-screen flex w-full">
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0">
-          <div className="flex items-center gap-1 border-b border-border bg-background px-2 py-1.5 lg:hidden">
+          <div className="flex items-center gap-1 border-b border-border bg-background px-2 py-1.5">
             <SidebarTrigger />
             <span className="text-xs font-medium text-muted-foreground">Menu</span>
           </div>
