@@ -212,9 +212,7 @@ export default function Dashboard() {
           { label: "ROAS", value: formatROAS(kpis.avgRoas), isRoas: true, positive: kpis.avgRoas >= 1, roasColor: getRoasColor(kpis.avgRoas) },
           { label: "RPS", value: formatBRL(kpis.avgRps) },
           { label: "CPS", value: formatBRL(kpis.avgCps) },
-        ].map((kpi) => {
-          return (
-          return (
+        ].map((kpi) => (
             <div
               key={kpi.label}
               style={{ containerType: "inline-size" }}
