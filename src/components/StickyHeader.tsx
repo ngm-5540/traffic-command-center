@@ -16,13 +16,13 @@ function SummaryCard({ title, value, trend, icon, trendColor = "profit" }: Summa
       <div className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-md bg-secondary sm:flex">
         {icon}
       </div>
-      <div className="min-w-0">
+      <div className="min-w-0 flex-1">
         <p className="text-[8px] uppercase tracking-wider text-muted-foreground sm:text-[10px]">{title}</p>
         <div className="flex items-center gap-1 sm:gap-2">
-          <span className="text-xs font-semibold text-foreground sm:text-lg">{value}</span>
+          <span className="whitespace-nowrap text-xs font-semibold text-foreground sm:text-lg">{value}</span>
           <Badge
             variant="outline"
-            className={`text-[10px] px-1.5 py-0 border-0 ${
+            className={`shrink-0 text-[10px] px-1.5 py-0 border-0 ${
               isPositive ? "bg-profit/15 text-profit" : "bg-loss/15 text-loss"
             }`}
           >
