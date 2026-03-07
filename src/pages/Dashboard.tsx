@@ -410,7 +410,7 @@ export default function Dashboard() {
                     <Metric
                       label="LUCRO"
                       value={formatBRL(project.profit)}
-                      className={isProfit ? "text-profit" : "text-loss"}
+                      className={project.profit === 0 ? "text-foreground" : isProfit ? "text-profit" : "text-loss"}
                       bold
                     />
                     <Metric label="ROAS" value={formatROAS(project.roas)} style={{ color: getRoasColor(project.roas) }} />
