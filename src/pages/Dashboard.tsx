@@ -12,6 +12,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type { DateRange } from "react-day-picker";
 
 type SortKey = "name" | "profit" | "spend" | "revenue" | "roas";
@@ -380,13 +381,17 @@ export default function Dashboard() {
                   {/* Card header */}
                   <div className="mb-3 flex items-center justify-between">
                     <div className="flex items-baseline gap-2 truncate pr-2">
-                      <h3
-                        className="font-semibold text-foreground truncate"
-                        style={{ fontSize: "clamp(11px, 5cqw, 14px)" }}
-                        title={project.name}
-                      >
-                        {project.name}
-                      </h3>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <h3
+                            className="font-semibold text-foreground truncate"
+                            style={{ fontSize: "clamp(11px, 5cqw, 14px)" }}
+                          >
+                            {project.name}
+                          </h3>
+                        </TooltipTrigger>
+                        <TooltipContent>{project.name}</TooltipContent>
+                      </Tooltip>
                       <span
                         className="font-mono text-muted-foreground shrink-0"
                         style={{ fontSize: "clamp(8px, 4cqw, 10px)" }}
@@ -435,14 +440,19 @@ export default function Dashboard() {
 
 function Metric({ label, value, className, bold, style }: { label: string; value: string; className?: string; bold?: boolean; style?: React.CSSProperties }) {
   return (
-    <div className="min-w-0 overflow-hidden">
-      <span className="uppercase tracking-wider text-foreground/60 font-medium block" style={{ fontSize: "clamp(8px, 4cqw, 11px)" }}>{label}</span>
-      <p
-        className={cn("font-mono whitespace-nowrap font-bold", !style && (className || "text-foreground"))}
-        style={{ fontSize: "clamp(9px, 5cqw, 13px)", ...style }}
-      >
-        {value}
-      </p>
-    </div>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <div className="min-w-0 overflow-hidden">
+          <span className="uppercase tracking-wider text-foreground/60 font-medium block" style={{ fontSize: "clamp(8px, 4cqw, 11px)" }}>{label}</span>
+          <p
+            className={cn("font-mono whitespace-nowrap font-bold", !style && (className || "text-foreground"))}
+            style={{ fontSize: "clamp(9px, 5cqw, 13px)", ...style }}
+          >
+            {value}
+          </p>
+        </div>
+      </TooltipTrigger>
+      <TooltipContent>{label}: {value}</TooltipContent>
+    </Tooltip>
   );
 }
