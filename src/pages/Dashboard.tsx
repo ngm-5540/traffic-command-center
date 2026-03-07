@@ -202,7 +202,7 @@ export default function Dashboard() {
 
       {/* Grid */}
       <div className="flex-1 overflow-auto p-4 sm:p-6">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 max-w-[1920px] mx-auto">
+        <div className="grid gap-4 max-w-[1920px] mx-auto" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))' }}>
           {sorted.map((project) => {
             const isProfit = project.profit >= 0;
 
@@ -218,7 +218,7 @@ export default function Dashboard() {
               >
                 {/* Card header */}
                 <div className="mb-3 flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-foreground truncate pr-2">
+                  <h3 className="text-sm font-semibold text-foreground truncate pr-2" title={project.name}>
                     {project.name}
                   </h3>
                   <Badge variant="outline" className={cn("text-[10px] shrink-0", verticalConfig[project.vertical]?.className)}>
@@ -271,7 +271,7 @@ function Metric({ label, value, className, bold }: { label: string; value: strin
   return (
     <div>
       <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</span>
-      <p className={cn("font-mono text-sm", bold ? "font-bold" : "font-medium", className || "text-foreground")}>
+      <p className={cn("font-mono text-sm whitespace-nowrap", bold ? "font-bold" : "font-medium", className || "text-foreground")}>
         {value}
       </p>
     </div>
