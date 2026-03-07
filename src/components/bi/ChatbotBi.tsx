@@ -175,53 +175,52 @@ export function ChatbotBi() {
     </Popover>
   );
 
+  const filtersNode = (
+    <>
+      <Select value={fanpage} onValueChange={setFanpage}>
+        <SelectTrigger className="h-7 w-[140px] text-[10px] border-border">
+          <SelectValue placeholder="Fanpage" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all" className="text-xs">Todas Fanpages</SelectItem>
+          {fanpageOptions.map((f) => (
+            <SelectItem key={f} value={f} className="text-xs">{f}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      <Select value={country} onValueChange={setCountry}>
+        <SelectTrigger className="h-7 w-[120px] text-[10px] border-border">
+          <SelectValue placeholder="País" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all" className="text-xs">Todos Países</SelectItem>
+          {countryOptions.map((c) => (
+            <SelectItem key={c} value={c} className="text-xs">{c}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      <div className="flex items-center gap-0.5">
+        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => shiftDateRange(-1)}>
+          <ChevronLeft className="h-3.5 w-3.5" />
+        </Button>
+        {datePickerPopover}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7"
+          disabled={dateRange?.to ? dateRange.to >= new Date(new Date().toDateString()) : false}
+          onClick={() => shiftDateRange(1)}
+        >
+          <ChevronRight className="h-3.5 w-3.5" />
+        </Button>
+      </div>
+    </>
+  );
+
   return (
     <div className={cn("flex flex-col", focusMode ? "fixed inset-0 z-[100] bg-background h-screen overflow-auto" : "h-full")}>
-
-      {/* ── Filter bar ── */}
-      <div className="sticky top-0 z-10 border-b border-border bg-background px-4 py-3 sm:px-6">
-        <div className="flex flex-wrap items-center gap-2">
-          <Select value={fanpage} onValueChange={setFanpage}>
-            <SelectTrigger className="h-7 w-[140px] text-[10px] border-border">
-              <SelectValue placeholder="Fanpage" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all" className="text-xs">Todas Fanpages</SelectItem>
-              {fanpageOptions.map((f) => (
-                <SelectItem key={f} value={f} className="text-xs">{f}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select value={country} onValueChange={setCountry}>
-            <SelectTrigger className="h-7 w-[120px] text-[10px] border-border">
-              <SelectValue placeholder="País" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all" className="text-xs">Todos Países</SelectItem>
-              {countryOptions.map((c) => (
-                <SelectItem key={c} value={c} className="text-xs">{c}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <div className="flex items-center gap-0.5">
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => shiftDateRange(-1)}>
-              <ChevronLeft className="h-3.5 w-3.5" />
-            </Button>
-            {datePickerPopover}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7"
-              disabled={dateRange?.to ? dateRange.to >= new Date(new Date().toDateString()) : false}
-              onClick={() => shiftDateRange(1)}
-            >
-              <ChevronRight className="h-3.5 w-3.5" />
-            </Button>
-          </div>
-        </div>
-      </div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-3 gap-3 px-4 pt-4 sm:grid-cols-6 sm:px-6">
@@ -268,7 +267,7 @@ export function ChatbotBi() {
           <TabsTrigger value="broadcast" className="text-xs">Broadcast</TabsTrigger>
         </TabsList>
         <TabsContent value="resultado" className="flex-1 mt-4">
-          <ResultadoTotalTab campaigns={chatbotCampaigns} popEnabled={popEnabled} focusMode={focusMode} onToggleFocusMode={() => setFocusMode(f => !f)} />
+          <ResultadoTotalTab campaigns={chatbotCampaigns} popEnabled={popEnabled} focusMode={focusMode} onToggleFocusMode={() => setFocusMode(f => !f)} filtersNode={filtersNode} />
         </TabsContent>
         <TabsContent value="automacao" className="flex-1 mt-4">
           <AutomacaoTab automations={chatbotAutomations} popEnabled={popEnabled} />
