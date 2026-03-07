@@ -115,8 +115,8 @@ export default function Dashboard() {
 
   const sorted = useMemo(() => {
     const base = activeVertical === "todos"
-      ? [...dashboardProjects]
-      : dashboardProjects.filter((p) => p.vertical === activeVertical);
+      ? [...projects]
+      : projects.filter((p) => p.vertical === activeVertical);
 
     base.sort((a, b) => {
       const mul = sortDir === "asc" ? 1 : -1;
