@@ -525,11 +525,22 @@ export function ResultadoTotalTab({ campaigns, popEnabled = false }: Props) {
                     )}
                   </td>
                   {/* Data columns */}
-                  {visibleColumns.map((col) => (
-                    <td key={col.key} className="px-2 py-2 text-right font-mono whitespace-nowrap">
-                      {col.format(row.data[col.key], row.data)}
-                    </td>
-                  ))}
+                  {visibleColumns.map((col) => {
+                    const val = row.data[col.key];
+                    const prev = previousRowData.get(row.id);
+                    const prevVal = prev?.[col.key];
+                    const isTrend = col.key.endsWith("Trend");
+                    return (
+                      <td key={col.key} className="px-2 py-2 text-right font-mono whitespace-nowrap">
+                        <div className="flex flex-col items-end">
+                          <span>{col.format(val, row.data)}</span>
+                          {popEnabled && !isTrend && typeof val === "number" && prevVal != null && (
+                            <PopBadge current={val} previous={prevVal} invertColor={invertColorKeys.has(col.key)} />
+                          )}
+                        </div>
+                      </td>
+                    );
+                  })}
                 </tr>
               ))
             )}
