@@ -17,6 +17,7 @@ interface Props {
   focusMode?: boolean;
   onToggleFocusMode?: () => void;
   filtersNode?: React.ReactNode;
+  tabsListNode?: React.ReactNode;
 }
 
 type Dimension = "campaign" | "adset" | "ad";
@@ -143,7 +144,7 @@ function SortIcon({ active, dir }: { active: boolean; dir?: SortDir }) {
 
 const invertColorKeys = new Set(["cost", "cpc", "cpm", "cps", "costPerConversion", "costPerLead", "costPerNewLead", "bounceRate", "timeToSession"]);
 
-export function ResultadoTotalTab({ campaigns, popEnabled = false, focusMode = false, onToggleFocusMode, filtersNode }: Props) {
+export function ResultadoTotalTab({ campaigns, popEnabled = false, focusMode = false, onToggleFocusMode, filtersNode, tabsListNode }: Props) {
   const [visibleKeys, setVisibleKeys] = useState<string[]>(() => loadVisibleColumns() ?? defaultVisibleKeys);
   const [dimension, setDimension] = useState<Dimension>("campaign");
   const [showParentCols, setShowParentCols] = useState(true);
@@ -295,9 +296,6 @@ export function ResultadoTotalTab({ campaigns, popEnabled = false, focusMode = f
       {/* Toolbar */}
       <div className="flex items-center justify-between gap-2 px-1 py-2">
         <div className="flex items-center gap-2 flex-wrap">
-          {/* Page filters */}
-          {filtersNode}
-          {filtersNode && <div className="h-5 w-px bg-border shrink-0" />}
           {/* Dimension switcher */}
           <div className="flex items-center rounded-md border border-border bg-muted/50 p-0.5">
             {dimensionOptions.map((opt) => (
@@ -328,6 +326,7 @@ export function ResultadoTotalTab({ campaigns, popEnabled = false, focusMode = f
             </label>
           )}
 
+          {/* Column toggler */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="h-7 gap-1.5 text-[10px] font-semibold tracking-wider">
@@ -368,6 +367,14 @@ export function ResultadoTotalTab({ campaigns, popEnabled = false, focusMode = f
               })}
             </DropdownMenuContent>
           </DropdownMenu>
+
+          {/* Tabs list */}
+          {tabsListNode}
+
+          <div className="h-5 w-px bg-border shrink-0" />
+
+          {/* Page filters */}
+          {filtersNode}
         </div>
         <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onToggleFocusMode}>
           {focusMode ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}

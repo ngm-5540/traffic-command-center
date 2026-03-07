@@ -261,13 +261,21 @@ export function ChatbotBi() {
 
       {/* Tabs */}
       <Tabs defaultValue="resultado" className={cn("flex-1 flex flex-col px-4 sm:px-6", focusMode ? "pt-2" : "pt-4")}>
-        <TabsList className="w-fit">
-          <TabsTrigger value="resultado" className="text-xs">Resultado Total</TabsTrigger>
-          <TabsTrigger value="automacao" className="text-xs">Automação</TabsTrigger>
-          <TabsTrigger value="broadcast" className="text-xs">Broadcast</TabsTrigger>
-        </TabsList>
-        <TabsContent value="resultado" className="flex-1 mt-4">
-          <ResultadoTotalTab campaigns={chatbotCampaigns} popEnabled={popEnabled} focusMode={focusMode} onToggleFocusMode={() => setFocusMode(f => !f)} filtersNode={filtersNode} />
+        <TabsContent value="resultado" className="flex-1">
+          <ResultadoTotalTab
+            campaigns={chatbotCampaigns}
+            popEnabled={popEnabled}
+            focusMode={focusMode}
+            onToggleFocusMode={() => setFocusMode(f => !f)}
+            filtersNode={filtersNode}
+            tabsListNode={
+              <TabsList className="w-fit">
+                <TabsTrigger value="resultado" className="text-xs">Resultado Total</TabsTrigger>
+                <TabsTrigger value="automacao" className="text-xs">Automação</TabsTrigger>
+                <TabsTrigger value="broadcast" className="text-xs">Broadcast</TabsTrigger>
+              </TabsList>
+            }
+          />
         </TabsContent>
         <TabsContent value="automacao" className="flex-1 mt-4">
           <AutomacaoTab automations={chatbotAutomations} popEnabled={popEnabled} />
