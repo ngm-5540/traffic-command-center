@@ -1,4 +1,4 @@
-import { LayoutDashboard, Link2, Settings, Zap } from "lucide-react";
+import { LayoutDashboard, Settings, Zap } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import {
@@ -16,7 +16,6 @@ import {
 
 const items = [
   { title: "Projetos", url: "/", icon: LayoutDashboard },
-  { title: "URL Builder", url: "/url-builder", icon: Link2 },
   { title: "Configurações", url: "/settings", icon: Settings },
 ];
 
