@@ -26,27 +26,27 @@ export function GlobalView({ projects }: GlobalViewProps) {
 
             {/* Linha 1: Lucro + ROAS */}
             <div className="grid grid-cols-2 gap-1.5 sm:gap-3">
-              <div>
+              <div className="min-w-0">
                 <p className="text-[8px] uppercase tracking-wider text-muted-foreground sm:text-[9px]">Lucro</p>
-                <p className={`text-xs font-bold sm:text-sm ${project.profit >= 0 ? "text-profit" : "text-loss"}`}>
+                <p className={`truncate text-xs font-bold sm:text-sm ${project.profit >= 0 ? "text-profit" : "text-loss"}`}>
                   {fmt(project.profit)}
                 </p>
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-[8px] uppercase tracking-wider text-muted-foreground sm:text-[9px]">ROAS</p>
-                <p className="text-xs font-bold text-foreground sm:text-sm">{(project.roas * 100).toFixed(0)}%</p>
+                <p className="truncate text-xs font-bold text-foreground sm:text-sm">{(project.roas * 100).toFixed(0)}%</p>
               </div>
             </div>
 
             {/* Linha 2: Custo + Receita */}
             <div className="mt-1.5 grid grid-cols-2 gap-1.5 border-t border-border pt-1.5 sm:mt-2 sm:gap-3 sm:pt-2">
-              <div>
+              <div className="min-w-0">
                 <p className="text-[8px] uppercase tracking-wider text-muted-foreground sm:text-[9px]">Custo</p>
-                <p className="text-[11px] font-semibold text-foreground sm:text-xs">{fmt(project.spend)}</p>
+                <p className="truncate text-[11px] font-semibold text-foreground sm:text-xs">{fmt(project.spend)}</p>
               </div>
-              <div>
+              <div className="min-w-0">
                 <p className="text-[8px] uppercase tracking-wider text-muted-foreground sm:text-[9px]">Receita</p>
-                <p className="text-[11px] font-semibold text-foreground sm:text-xs">{fmt(project.revenue)}</p>
+                <p className="truncate text-[11px] font-semibold text-foreground sm:text-xs">{fmt(project.revenue)}</p>
               </div>
             </div>
           </div>
