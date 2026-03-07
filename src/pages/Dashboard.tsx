@@ -208,52 +208,51 @@ export default function Dashboard() {
         {[
           { label: "CUSTO", value: formatBRL(kpis.totalSpend) },
           { label: "RECEITA", value: formatBRL(kpis.totalRevenue) },
-          { label: "LUCRO", value: formatBRL(kpis.totalProfit), highlight: true },
-          { label: "ROAS", value: formatROAS(kpis.avgRoas), roasColor: getRoasColor(kpis.avgRoas), roasNegative: kpis.avgRoas < 0 },
+          { label: "LUCRO", value: formatBRL(kpis.totalProfit), isProfit: true, positive: kpis.totalProfit >= 0 },
+          { label: "ROAS", value: formatROAS(kpis.avgRoas), isRoas: true, positive: kpis.avgRoas >= 1, roasColor: getRoasColor(kpis.avgRoas) },
           { label: "RPS", value: formatBRL(kpis.avgRps) },
           { label: "CPS", value: formatBRL(kpis.avgCps) },
-        ].map((kpi) => (
-          <div
-            key={kpi.label}
-            style={{ containerType: "inline-size" }}
-          >
+        ].map((kpi) => {
+          const hasConditionalColor = kpi.isProfit || kpi.isRoas;
+          return (
             <div
-              className={cn(
-                "rounded-lg border min-w-0 p-2.5 sm:p-3 md:p-4",
-                kpi.highlight
-                  ? kpis.totalProfit >= 0
-                    ? "border-profit/30 bg-profit/5"
-                    : "border-loss/30 bg-loss/5"
-                  : kpi.roasNegative
-                    ? "border-loss/30 bg-loss/5"
-                    : "border-border bg-card"
-              )}
+              key={kpi.label}
+              style={{ containerType: "inline-size" }}
             >
-              <span
-                className="uppercase tracking-wider text-foreground font-semibold block"
-                style={{ fontSize: "clamp(9px, 7cqw, 12px)" }}
-              >
-                {kpi.label}
-              </span>
-              <p
+              <div
                 className={cn(
-                  "font-mono font-bold whitespace-nowrap leading-tight tracking-tight",
-                  kpi.highlight
-                    ? kpis.totalProfit >= 0
-                      ? "text-profit"
-                      : "text-loss"
-                    : !kpi.roasColor ? "text-foreground" : undefined
+                  "rounded-lg border min-w-0 p-2.5 sm:p-3 md:p-4",
+                  hasConditionalColor
+                    ? kpi.positive
+                      ? "border-profit/30 bg-profit/5"
+                      : "border-loss/30 bg-loss/5"
+                    : "border-border bg-card"
                 )}
-                style={{
-                  fontSize: "clamp(10px, 10cqw, 20px)",
-                  ...(kpi.roasColor ? { color: kpi.roasColor } : {}),
-                }}
               >
-                {kpi.value}
-              </p>
+                <span
+                  className="uppercase tracking-wider text-foreground font-semibold block"
+                  style={{ fontSize: "clamp(9px, 7cqw, 12px)" }}
+                >
+                  {kpi.label}
+                </span>
+                <p
+                  className={cn(
+                    "font-mono font-bold whitespace-nowrap leading-tight tracking-tight",
+                    kpi.isProfit
+                      ? kpi.positive ? "text-profit" : "text-loss"
+                      : !kpi.isRoas ? "text-foreground" : undefined
+                  )}
+                  style={{
+                    fontSize: "clamp(10px, 10cqw, 20px)",
+                    ...(kpi.isRoas ? { color: kpi.roasColor } : {}),
+                  }}
+                >
+                  {kpi.value}
+                </p>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Filters bar */}
@@ -372,11 +371,9 @@ export default function Dashboard() {
                   onClick={() => navigate(`/project/${project.id}`)}
                   className={cn(
                     "rounded-lg border p-3 sm:p-4 transition-all cursor-pointer hover:ring-1 hover:ring-primary/30",
-                    project.roas <= -1
-                      ? "border-loss/20 bg-loss/5"
-                      : project.roas >= 1
-                        ? "border-profit/30 bg-profit/10"
-                        : "border-border bg-card"
+                    project.profit >= 0
+                      ? "border-profit/30 bg-profit/5"
+                      : "border-loss/20 bg-loss/5"
                   )}
                 >
                   {/* Card header */}

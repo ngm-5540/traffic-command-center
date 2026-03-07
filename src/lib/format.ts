@@ -30,25 +30,32 @@ export function formatDuration(seconds: number): string {
 }
 
 /**
- * Returns an HSL color string for ROAS values.
- * -100% (-1) = vivid red, 0% (0) = muted red, +100% (1) = vivid green.
- * Interpolates saturation and lightness for intensity.
+ * Returns an HSL color for ROAS values.
+ * >= 100% (1.0) = green (profit), < 100% = red (loss).
+ * Intensity scales with distance from threshold.
  */
 export function getRoasColor(roas: number): string {
-  if (roas == null || isNaN(roas)) return `hsl(0, 0%, 95%)`;
-  const pct = Math.max(-1, Math.min(1, roas));
+  if (roas == null || isNaN(roas)) return `hsl(0, 0%, 60%)`;
 
-  if (pct === 0) return `hsl(0, 0%, 95%)`;
-
-  if (pct < 0) {
-    const t = Math.abs(pct);
-    const s = 30 + t * 42;
-    const l = 55 + t * -4;
-    return `hsl(0, ${s.toFixed(0)}%, ${l.toFixed(0)}%)`;
+  if (roas >= 1) {
+    // Green — intensity scales from 100% to 200%+
+    const t = Math.min(1, roas - 1);
+    const s = 40 + t * 31;
+    const l = 55 + t * -10;
+    return `hsl(142, ${s.toFixed(0)}%, ${l.toFixed(0)}%)`;
   }
 
-  const t = pct;
-  const s = 25 + t * 46;
-  const l = 55 + t * -10;
-  return `hsl(142, ${s.toFixed(0)}%, ${l.toFixed(0)}%)`;
+  // Red — intensity scales from 100% down to 0% and below
+  const t = Math.min(1, 1 - roas);
+  const s = 40 + t * 32;
+  const l = 55 + t * -4;
+  return `hsl(0, ${s.toFixed(0)}%, ${l.toFixed(0)}%)`;
+}
+
+/**
+ * Returns profit (green) or loss (red) color for monetary values.
+ */
+export function getProfitColor(value: number): string {
+  if (value == null || isNaN(value)) return `hsl(0, 0%, 60%)`;
+  return value >= 0 ? `hsl(142, 71%, 45%)` : `hsl(0, 72%, 51%)`;
 }
