@@ -14,6 +14,8 @@ import type { ChatbotCampaign, ChatbotAdset, ChatbotAd } from "@/data/chatbotMoc
 interface Props {
   campaigns: ChatbotCampaign[];
   popEnabled?: boolean;
+  focusMode?: boolean;
+  onToggleFocusMode?: () => void;
 }
 
 type Dimension = "campaign" | "adset" | "ad";
@@ -140,8 +142,7 @@ function SortIcon({ active, dir }: { active: boolean; dir?: SortDir }) {
 
 const invertColorKeys = new Set(["cost", "cpc", "cpm", "cps", "costPerConversion", "costPerLead", "costPerNewLead", "bounceRate", "timeToSession"]);
 
-export function ResultadoTotalTab({ campaigns, popEnabled = false }: Props) {
-  const [focusMode, setFocusMode] = useState(false);
+export function ResultadoTotalTab({ campaigns, popEnabled = false, focusMode = false, onToggleFocusMode }: Props) {
   const [visibleKeys, setVisibleKeys] = useState<string[]>(() => loadVisibleColumns() ?? defaultVisibleKeys);
   const [dimension, setDimension] = useState<Dimension>("campaign");
   const [showParentCols, setShowParentCols] = useState(true);
@@ -281,9 +282,7 @@ export function ResultadoTotalTab({ campaigns, popEnabled = false }: Props) {
     });
   }, []);
 
-  const containerClass = focusMode
-    ? "fixed inset-0 z-[100] bg-background flex flex-col"
-    : "flex flex-col";
+  const containerClass = "flex flex-col";
 
   const dimensionLabel = dimension === "campaign" ? "Campanha" : dimension === "adset" ? "Adset" : "Ad";
 
@@ -366,7 +365,7 @@ export function ResultadoTotalTab({ campaigns, popEnabled = false }: Props) {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setFocusMode((f) => !f)}>
+        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onToggleFocusMode}>
           {focusMode ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
         </Button>
       </div>
