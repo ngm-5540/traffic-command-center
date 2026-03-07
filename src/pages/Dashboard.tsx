@@ -219,10 +219,10 @@ export default function Dashboard() {
               key={kpi.label}
               style={{ containerType: "inline-size" }}
             >
-              <div
+               <div
                 className={cn(
                   "rounded-lg border min-w-0 p-2.5 sm:p-3 md:p-4",
-                  hasConditionalColor
+                  kpi.isRoas
                     ? kpi.positive
                       ? "border-profit/30 bg-profit/5"
                       : "border-loss/30 bg-loss/5"
@@ -371,7 +371,7 @@ export default function Dashboard() {
                   onClick={() => navigate(`/project/${project.id}`)}
                   className={cn(
                     "rounded-lg border p-3 sm:p-4 transition-all cursor-pointer hover:ring-1 hover:ring-primary/30",
-                    project.profit >= 0
+                    project.roas >= 1
                       ? "border-profit/30 bg-profit/5"
                       : "border-loss/20 bg-loss/5"
                   )}
