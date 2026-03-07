@@ -2,8 +2,9 @@ import { useState, useMemo, useCallback } from "react";
 import { format, differenceInCalendarDays, addDays, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CalendarIcon, ArrowUp, ArrowDown, Plus, ChevronLeft, ChevronRight } from "lucide-react";
-import { dashboardProjects, verticals, type Vertical } from "@/data/dashboardData";
+import { dashboardProjects as defaultProjects, verticals, type Vertical, type DashboardProject } from "@/data/dashboardData";
 import { formatBRL, formatROAS, getRoasColor } from "@/lib/format";
+import { CreateProjectDialog } from "@/components/CreateProjectDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -32,6 +33,20 @@ const presets: { label: string; getValue: () => DateRange }[] = [
   { label: "Este mês", getValue: () => { const now = new Date(); return { from: new Date(now.getFullYear(), now.getMonth(), 1), to: now }; } },
   { label: "Mês passado", getValue: () => { const now = new Date(); return { from: new Date(now.getFullYear(), now.getMonth() - 1, 1), to: new Date(now.getFullYear(), now.getMonth(), 0) }; } },
 ];
+
+function loadSavedProjects(): DashboardProject[] | null {
+  try {
+    const raw = localStorage.getItem("dashboard_projects");
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+function saveProjects(projects: DashboardProject[]) {
+  localStorage.setItem("dashboard_projects", JSON.stringify(projects));
+}
 
 function loadSavedFilters() {
   try {
@@ -70,12 +85,22 @@ function saveFilters(filters: { vertical: Vertical; sortKey: SortKey; sortDir: S
 
 export default function Dashboard() {
   const saved = useMemo(() => loadSavedFilters(), []);
+  const [projects, setProjects] = useState<DashboardProject[]>(() => loadSavedProjects() ?? defaultProjects);
   const [activeVertical, setActiveVertical] = useState<Vertical>(saved?.vertical ?? "todos");
   const [sortKey, setSortKey] = useState<SortKey>(saved?.sortKey ?? "profit");
   const [sortDir, setSortDir] = useState<SortDir>(saved?.sortDir ?? "desc");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(saved?.dateRange ?? presets[0].getValue());
   const [tempDateRange, setTempDateRange] = useState<DateRange | undefined>(saved?.dateRange ?? presets[0].getValue());
   const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+
+  const handleCreateProject = useCallback((project: DashboardProject) => {
+    setProjects((prev) => {
+      const next = [...prev, project];
+      saveProjects(next);
+      return next;
+    });
+  }, []);
 
   // Persist filters on change
   useMemo(() => {
