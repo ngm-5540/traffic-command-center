@@ -1,4 +1,4 @@
-export type Vertical = "google_ads" | "meta_ads" | "chatbot";
+export type Vertical = "todos" | "google_ads" | "meta_ads" | "chatbot";
 export type ProjectStatus = "ativo" | "alerta" | "pausado";
 export type Period = "hoje" | "ontem" | "7d";
 
@@ -15,6 +15,7 @@ export interface DashboardProject {
 }
 
 export const verticals: { key: Vertical; label: string }[] = [
+  { key: "todos", label: "TODOS" },
   { key: "google_ads", label: "GOOGLE ADS" },
   { key: "meta_ads", label: "META ADS" },
   { key: "chatbot", label: "CHATBOT" },
