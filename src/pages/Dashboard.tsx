@@ -93,6 +93,7 @@ export default function Dashboard() {
   const [tempDateRange, setTempDateRange] = useState<DateRange | undefined>(saved?.dateRange ?? presets[0].getValue());
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [newestProjectId, setNewestProjectId] = useState<string | null>(null);
 
   const handleCreateProject = useCallback((project: DashboardProject) => {
     setProjects((prev) => {
@@ -100,6 +101,7 @@ export default function Dashboard() {
       saveProjects(next);
       return next;
     });
+    setNewestProjectId(project.id);
   }, []);
 
   // Persist filters on change
@@ -119,13 +121,18 @@ export default function Dashboard() {
       : projects.filter((p) => p.vertical === activeVertical);
 
     base.sort((a, b) => {
+      // Keep newest project at the top
+      if (newestProjectId) {
+        if (a.id === newestProjectId) return -1;
+        if (b.id === newestProjectId) return 1;
+      }
       const mul = sortDir === "asc" ? 1 : -1;
       if (sortKey === "name") return mul * a.name.localeCompare(b.name, "pt-BR");
       return mul * (a[sortKey] - b[sortKey]);
     });
 
     return base;
-  }, [activeVertical, sortKey, sortDir, projects]);
+  }, [activeVertical, sortKey, sortDir, projects, newestProjectId]);
 
   const kpis = useMemo(() => {
     const totalSpend = sorted.reduce((s, p) => s + p.spend, 0);
