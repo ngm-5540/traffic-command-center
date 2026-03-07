@@ -224,7 +224,7 @@ export default function Dashboard() {
         {[
           { label: "CUSTO", value: formatBRL(kpis.totalSpend), fullValue: formatBRLFull(kpis.totalSpend), tooltip: "Investimento total em ads", popCurrent: kpis.totalSpend, popPrevious: previousKpis.totalCost, invertColor: true },
           { label: "RECEITA", value: formatBRL(kpis.totalRevenue), fullValue: formatBRLFull(kpis.totalRevenue), tooltip: "Receita total gerada", popCurrent: kpis.totalRevenue, popPrevious: previousKpis.totalRevenue },
-          { label: "LUCRO", value: formatBRL(kpis.totalProfit), fullValue: formatBRLFull(kpis.totalProfit), isProfit: true, profitValue: kpis.totalProfit, tooltip: "Receita total menos custo total", popCurrent: kpis.totalProfit, popPrevious: previousKpis.totalProfit },
+          { label: "LUCRO", value: formatBRL(kpis.totalProfit), fullValue: formatBRLFull(kpis.totalProfit), isProfit: true, profitValue: kpis.totalProfit, isLossCard: kpis.avgRoas === -1, tooltip: "Receita total menos custo total", popCurrent: kpis.totalProfit, popPrevious: previousKpis.totalProfit },
           { label: "ROAS", value: formatROAS(kpis.avgRoas), isRoas: true, isRoasPositive: kpis.avgRoas >= 1, isRoasCritical: kpis.avgRoas === -1, roasColor: getRoasColor(kpis.avgRoas), tooltip: "Retorno médio sobre investimento", popCurrent: kpis.avgRoas, popPrevious: previousKpis.avgRoas },
           { label: "RPS", value: formatBRL(kpis.avgRps), fullValue: formatBRLFull(kpis.avgRps), tooltip: "Receita por sessão média", popCurrent: kpis.avgRps, popPrevious: previousKpis.avgRps },
           { label: "CPS", value: formatBRL(kpis.avgCps), fullValue: formatBRLFull(kpis.avgCps), tooltip: "Custo por sessão média", popCurrent: kpis.avgCps, popPrevious: previousKpis.avgCostPerLead, invertColor: true },
@@ -235,13 +235,15 @@ export default function Dashboard() {
                   <div
                     className={cn(
                       "rounded-lg border min-w-0 p-2.5 sm:p-3 md:p-4 cursor-help",
-                      kpi.isRoas
-                        ? kpi.isRoasPositive
-                          ? "border-profit/30 bg-profit/5"
-                          : kpi.isRoasCritical
-                            ? "border-loss/30 bg-loss/5"
-                            : "border-border bg-card"
-                        : "border-border bg-card"
+                      kpi.isLossCard
+                        ? "border-loss/30 bg-loss/5"
+                        : kpi.isRoas
+                          ? kpi.isRoasPositive
+                            ? "border-profit/30 bg-profit/5"
+                            : kpi.isRoasCritical
+                              ? "border-loss/30 bg-loss/5"
+                              : "border-border bg-card"
+                          : "border-border bg-card"
                     )}
                   >
                     <span
