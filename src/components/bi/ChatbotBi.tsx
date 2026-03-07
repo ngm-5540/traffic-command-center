@@ -150,6 +150,20 @@ export function ChatbotBi() {
                         {preset.label}
                       </button>
                     ))}
+                    <div className="border-t border-border mt-2 pt-2 px-2">
+                      <button
+                        onClick={() => setPopEnabled((p) => !p)}
+                        className={cn(
+                          "w-full flex items-center gap-1.5 rounded px-2 py-1.5 text-left text-xs transition-colors",
+                          popEnabled
+                            ? "bg-primary text-primary-foreground font-semibold"
+                            : "text-foreground hover:bg-accent"
+                        )}
+                      >
+                        <GitCompareArrows className="h-3 w-3" />
+                        Comparar
+                      </button>
+                    </div>
                   </div>
                   <div className="flex flex-col">
                     <Calendar
@@ -193,17 +207,6 @@ export function ChatbotBi() {
             </Button>
           </div>
 
-          <Button
-            variant={popEnabled ? "default" : "outline"}
-            className={cn(
-              "h-7 gap-1.5 px-2.5 text-[10px] font-semibold tracking-wider",
-              popEnabled && "bg-primary text-primary-foreground"
-            )}
-            onClick={() => setPopEnabled((p) => !p)}
-          >
-            <GitCompareArrows className="h-3 w-3" />
-            PoP
-          </Button>
         </div>
       </div>
 
