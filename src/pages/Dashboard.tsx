@@ -222,6 +222,7 @@ export default function Dashboard() {
                   onSelect={setTempDateRange}
                   numberOfMonths={2}
                   locale={ptBR}
+                  disabled={(date) => date > new Date()}
                   className="p-3 pointer-events-auto"
                 />
                 <div className="flex justify-end p-2 pt-0">
@@ -241,7 +242,13 @@ export default function Dashboard() {
             </div>
           </PopoverContent>
         </Popover>
-          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => shiftDateRange(1)}>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7"
+            disabled={dateRange?.to ? dateRange.to >= new Date(new Date().toDateString()) : false}
+            onClick={() => shiftDateRange(1)}
+          >
             <ChevronRight className="h-3.5 w-3.5" />
           </Button>
         </div>
