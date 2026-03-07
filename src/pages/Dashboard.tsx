@@ -1,7 +1,7 @@
-import { useState, useMemo } from "react";
-import { format } from "date-fns";
+import { useState, useMemo, useCallback } from "react";
+import { format, differenceInCalendarDays, addDays, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarIcon, ArrowUp, ArrowDown, Plus } from "lucide-react";
+import { CalendarIcon, ArrowUp, ArrowDown, Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import { dashboardProjects, verticals, type Vertical } from "@/data/dashboardData";
 import { formatBRL, formatROAS } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
@@ -70,6 +70,17 @@ export default function Dashboard() {
   }, [sorted]);
 
   const toggleSortDir = () => setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+
+  const shiftDateRange = useCallback((direction: 1 | -1) => {
+    if (!dateRange?.from) return;
+    const to = dateRange.to ?? dateRange.from;
+    const span = differenceInCalendarDays(to, dateRange.from) + 1;
+    const shiftDays = span * direction;
+    setDateRange({
+      from: direction === 1 ? addDays(dateRange.from, shiftDays) : subDays(dateRange.from, Math.abs(shiftDays)),
+      to: direction === 1 ? addDays(to, shiftDays) : subDays(to, Math.abs(shiftDays)),
+    });
+  }, [dateRange]);
 
   const dateLabel = useMemo(() => {
     if (!dateRange?.from) return "Selecionar período";
@@ -171,18 +182,22 @@ export default function Dashboard() {
           </Button>
         </div>
 
-        {/* Date picker */}
-        <Popover open={datePickerOpen} onOpenChange={(open) => {
-          setDatePickerOpen(open);
-          if (open) setTempDateRange(dateRange);
-        }}>
-          <PopoverTrigger asChild>
-            <Button variant="outline" className="h-7 gap-1.5 px-2.5 text-[10px] font-semibold tracking-wider border-border">
-              <CalendarIcon className="h-3 w-3" />
-              <span className="hidden sm:inline">{dateLabel}</span>
-              <span className="sm:hidden">Data</span>
-            </Button>
-          </PopoverTrigger>
+        {/* Date picker with navigation */}
+        <div className="flex items-center gap-0.5">
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => shiftDateRange(-1)}>
+            <ChevronLeft className="h-3.5 w-3.5" />
+          </Button>
+          <Popover open={datePickerOpen} onOpenChange={(open) => {
+            setDatePickerOpen(open);
+            if (open) setTempDateRange(dateRange);
+          }}>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className="h-7 gap-1.5 px-2.5 text-[10px] font-semibold tracking-wider border-border">
+                <CalendarIcon className="h-3 w-3" />
+                <span className="hidden sm:inline">{dateLabel}</span>
+                <span className="sm:hidden">Data</span>
+              </Button>
+            </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="end">
             <div className="flex">
               <div className="border-r border-border p-2 space-y-0.5 w-[120px]">
@@ -226,6 +241,10 @@ export default function Dashboard() {
             </div>
           </PopoverContent>
         </Popover>
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => shiftDateRange(1)}>
+            <ChevronRight className="h-3.5 w-3.5" />
+          </Button>
+        </div>
       </div>
 
       {/* Grid */}
