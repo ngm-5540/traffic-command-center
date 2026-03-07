@@ -19,11 +19,11 @@ function SummaryCard({ title, value, trend, icon, trendColor = "profit" }: Summa
         </div>
         <div className="min-w-0 flex-1">
           <p className="text-[8px] uppercase tracking-wider text-muted-foreground sm:text-[10px]">{title}</p>
-          <div className="flex flex-wrap items-center gap-1 sm:gap-2">
-            <span className="text-[11px] font-semibold leading-tight text-foreground sm:text-lg">{value}</span>
+          <div className="flex items-center gap-1 sm:gap-2">
+            <span className="whitespace-nowrap text-[11px] font-semibold leading-tight text-foreground sm:text-lg">{value}</span>
             <Badge
               variant="outline"
-              className={`shrink-0 text-[8px] px-1 py-0 border-0 sm:text-[10px] sm:px-1.5 ${
+              className={`hidden shrink-0 text-[8px] px-1 py-0 border-0 sm:inline-flex sm:text-[10px] sm:px-1.5 ${
                 isPositive ? "bg-profit/15 text-profit" : "bg-loss/15 text-loss"
               }`}
             >
