@@ -1,12 +1,7 @@
-interface DashboardProps {
-  selectedProject: string;
-}
-
-export default function Dashboard({ selectedProject }: DashboardProps) {
+export default function Dashboard() {
   return (
-    <div className="p-3 sm:p-4 lg:p-6">
-      <h1 className="text-base font-semibold text-foreground sm:text-xl">Projetos</h1>
-      <p className="mt-1 text-[11px] text-muted-foreground sm:text-sm">Página em construção</p>
+    <div className="flex flex-1 items-center justify-center p-6">
+      <p className="text-sm text-muted-foreground">Página em construção</p>
     </div>
   );
 }
