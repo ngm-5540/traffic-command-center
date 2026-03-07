@@ -66,7 +66,7 @@ function MobileCard({ name, subtitle, spend, revenue, roas, matchRate, automatio
             <AutomationIcon active={automationActive} />
           </div>
         </div>
-        <div className="grid grid-cols-3 gap-2 text-[11px]">
+        <div className="grid grid-cols-3 gap-2 text-[10px]">
           <div>
             <span className="text-muted-foreground">Custo</span>
             <p className="font-medium tabular-nums text-foreground">{formatCurrency(spend)}</p>
