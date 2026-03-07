@@ -17,18 +17,8 @@ export function GlobalView({ projects }: GlobalViewProps) {
             key={project.id}
             className="rounded-lg border border-border bg-card p-5 transition-colors hover:border-primary/30"
           >
-            <div className="mb-4 flex items-center justify-between">
+            <div className="mb-4">
               <h3 className="text-sm font-semibold text-foreground">{project.name}</h3>
-              <span
-                className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${
-                  project.status === "active"
-                    ? "bg-profit/15 text-profit"
-                    : "bg-warning/15 text-warning"
-                }`}
-              >
-                <Activity className="h-3 w-3" />
-                {project.status === "active" ? "Ativo" : "Pausado"}
-              </span>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
