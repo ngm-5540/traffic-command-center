@@ -286,7 +286,7 @@ export default function Dashboard() {
                       {project.name}
                     </h3>
                     <span className="text-[10px] font-mono text-muted-foreground shrink-0">
-                      {project.id.split("-")[0]}
+                      #{project.id.substring(0, 5)}
                     </span>
                   </div>
                   <Badge variant="outline" className={cn("text-[10px] shrink-0", verticalConfig[project.vertical]?.className)}>
