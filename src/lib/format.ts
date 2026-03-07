@@ -31,25 +31,24 @@ export function formatDuration(seconds: number): string {
 
 /**
  * Returns an HSL color for ROAS values.
- * >= 100% (1.0) = green (profit), < 100% = red (loss).
- * Intensity scales with distance from threshold.
+ * -100% (-1.0) = red, >= 100% (1.0) = green, otherwise neutral.
  */
 export function getRoasColor(roas: number): string {
-  if (roas == null || isNaN(roas)) return `hsl(0, 0%, 60%)`;
+  if (roas == null || isNaN(roas)) return `hsl(210, 20%, 90%)`;
 
   if (roas >= 1) {
-    // Green — intensity scales from 100% to 200%+
+    // Green intensity scales with gains above 100%
     const t = Math.min(1, roas - 1);
-    const s = 40 + t * 31;
-    const l = 55 + t * -10;
+    const s = 45 + t * 26;
+    const l = 52 + t * -7;
     return `hsl(142, ${s.toFixed(0)}%, ${l.toFixed(0)}%)`;
   }
 
-  // Red — intensity scales from 100% down to 0% and below
-  const t = Math.min(1, 1 - roas);
-  const s = 40 + t * 32;
-  const l = 55 + t * -4;
-  return `hsl(0, ${s.toFixed(0)}%, ${l.toFixed(0)}%)`;
+  if (roas === -1) {
+    return `hsl(0, 72%, 51%)`;
+  }
+
+  return `hsl(210, 20%, 90%)`;
 }
 
 /**

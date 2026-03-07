@@ -208,8 +208,8 @@ export default function Dashboard() {
         {[
           { label: "CUSTO", value: formatBRL(kpis.totalSpend) },
           { label: "RECEITA", value: formatBRL(kpis.totalRevenue) },
-          { label: "LUCRO", value: formatBRL(kpis.totalProfit), isProfit: true, positive: kpis.totalProfit >= 0 },
-          { label: "ROAS", value: formatROAS(kpis.avgRoas), isRoas: true, positive: kpis.avgRoas >= 1, roasColor: getRoasColor(kpis.avgRoas) },
+          { label: "LUCRO", value: formatBRL(kpis.totalProfit), isProfit: true, isProfitPositive: kpis.totalProfit >= 0 },
+          { label: "ROAS", value: formatROAS(kpis.avgRoas), isRoas: true, isRoasPositive: kpis.avgRoas >= 1, isRoasCritical: kpis.avgRoas === -1, roasColor: getRoasColor(kpis.avgRoas) },
           { label: "RPS", value: formatBRL(kpis.avgRps) },
           { label: "CPS", value: formatBRL(kpis.avgCps) },
         ].map((kpi) => (
@@ -221,9 +221,11 @@ export default function Dashboard() {
                 className={cn(
                   "rounded-lg border min-w-0 p-2.5 sm:p-3 md:p-4",
                   kpi.isRoas
-                    ? kpi.positive
+                    ? kpi.isRoasPositive
                       ? "border-profit/30 bg-profit/5"
-                      : "border-loss/30 bg-loss/5"
+                      : kpi.isRoasCritical
+                        ? "border-loss/30 bg-loss/5"
+                        : "border-border bg-card"
                     : "border-border bg-card"
                 )}
               >
@@ -237,7 +239,7 @@ export default function Dashboard() {
                   className={cn(
                     "font-mono font-bold whitespace-nowrap leading-tight tracking-tight",
                     kpi.isProfit
-                      ? kpi.positive ? "text-profit" : "text-loss"
+                      ? kpi.isProfitPositive ? "text-profit" : "text-loss"
                       : !kpi.isRoas ? "text-foreground" : undefined
                   )}
                   style={{
@@ -370,7 +372,9 @@ export default function Dashboard() {
                     "rounded-lg border p-3 sm:p-4 transition-all cursor-pointer hover:ring-1 hover:ring-primary/30",
                     project.roas >= 1
                       ? "border-profit/30 bg-profit/5"
-                      : "border-loss/20 bg-loss/5"
+                      : project.roas === -1
+                        ? "border-loss/20 bg-loss/5"
+                        : "border-border bg-card"
                   )}
                 >
                   {/* Card header */}
