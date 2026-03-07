@@ -79,20 +79,35 @@ export function StickyHeader({ selectedProject, onProjectChange, summary, projec
         <div className="grid grid-cols-2 gap-1.5 sm:gap-2 lg:grid-cols-4">
           <SummaryCard
             title="Custo"
-            value={fmt(summary.spend)}
+            value={
+              <>
+                <span className="sm:hidden">{fmtCompact(summary.spend)}</span>
+                <span className="hidden sm:inline">{fmtFull(summary.spend)}</span>
+              </>
+            }
             trend={summary.spendTrend}
             icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
             trendColor="loss"
           />
           <SummaryCard
             title="Receita"
-            value={fmt(summary.revenue)}
+            value={
+              <>
+                <span className="sm:hidden">{fmtCompact(summary.revenue)}</span>
+                <span className="hidden sm:inline">{fmtFull(summary.revenue)}</span>
+              </>
+            }
             trend={summary.revenueTrend}
             icon={<TrendingUp className="h-4 w-4 text-muted-foreground" />}
           />
           <SummaryCard
             title="Lucro"
-            value={fmt(summary.profit)}
+            value={
+              <>
+                <span className="sm:hidden">{fmtCompact(summary.profit)}</span>
+                <span className="hidden sm:inline">{fmtFull(summary.profit)}</span>
+              </>
+            }
             trend={summary.profitTrend}
             icon={<BarChart3 className="h-4 w-4 text-muted-foreground" />}
           />
