@@ -444,7 +444,7 @@ function Metric({ label, value, className, bold, style }: { label: string; value
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <div className="min-w-0 overflow-hidden cursor-help">
+        <button type="button" className="min-w-0 text-left cursor-help block">
           <span className="uppercase tracking-wider text-foreground/60 font-medium block" style={{ fontSize: "clamp(8px, 4cqw, 11px)" }}>{label}</span>
           <p
             className={cn("font-mono whitespace-nowrap font-bold", !style && (className || "text-foreground"))}
@@ -452,7 +452,7 @@ function Metric({ label, value, className, bold, style }: { label: string; value
           >
             {value}
           </p>
-        </div>
+        </button>
       </TooltipTrigger>
       <TooltipContent side="bottom" className="text-xs">{label}: {value}</TooltipContent>
     </Tooltip>
