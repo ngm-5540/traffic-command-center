@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { format, differenceInCalendarDays, addDays, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CalendarIcon, ArrowUp, ArrowDown, Plus, ChevronLeft, ChevronRight } from "lucide-react";
@@ -84,6 +85,7 @@ function saveFilters(filters: { vertical: Vertical; sortKey: SortKey; sortDir: S
 }
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const saved = useMemo(() => loadSavedFilters(), []);
   const [projects, setProjects] = useState<DashboardProject[]>(() => loadSavedProjects() ?? defaultProjects);
   const [activeVertical, setActiveVertical] = useState<Vertical>(saved?.vertical ?? "todos");
@@ -343,8 +345,9 @@ export default function Dashboard() {
             return (
               <div
                 key={project.id}
+                onClick={() => navigate(`/project/${project.id}`)}
                 className={cn(
-                  "rounded-lg border p-4 transition-all",
+                  "rounded-lg border p-4 transition-all cursor-pointer hover:ring-1 hover:ring-primary/30",
                   project.roas <= -1
                     ? "border-loss/20 bg-loss/5"
                     : project.roas >= 1
