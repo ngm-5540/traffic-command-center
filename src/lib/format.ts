@@ -7,5 +7,5 @@ export function formatBRL(value: number): string {
 }
 
 export function formatROAS(value: number): string {
-  return `${value.toFixed(2)}x`;
+  return `${(value * 100).toFixed(0)}%`;
 }
