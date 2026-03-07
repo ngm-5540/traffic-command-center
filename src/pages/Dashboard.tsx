@@ -142,7 +142,7 @@ export default function Dashboard() {
     return { totalSpend, totalRevenue, totalProfit, avgRoas };
   }, [sorted]);
 
-  const toggleSortDir = () => setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+  const toggleSortDir = () => { setNewestProjectId(null); setSortDir((d) => (d === "asc" ? "desc" : "asc")); };
 
   const shiftDateRange = useCallback((direction: 1 | -1) => {
     if (!dateRange?.from) return;
@@ -237,7 +237,7 @@ export default function Dashboard() {
       <div className="flex items-center justify-end gap-2 px-4 pt-4 sm:px-6 max-w-[1920px] mx-auto w-full">
         {/* Sort */}
         <div className="flex items-center gap-1">
-          <Select value={sortKey} onValueChange={(v) => setSortKey(v as SortKey)}>
+          <Select value={sortKey} onValueChange={(v) => { setNewestProjectId(null); setSortKey(v as SortKey); }}>
             <SelectTrigger className="h-7 w-[100px] text-[10px] border-border">
               <SelectValue />
             </SelectTrigger>
