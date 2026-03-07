@@ -165,7 +165,7 @@ export default function Dashboard() {
       </header>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 gap-3 px-4 pt-4 sm:grid-cols-4 sm:px-6">
+      <div className="grid grid-cols-2 gap-3 px-4 pt-4 sm:grid-cols-4 sm:px-6 max-w-[1920px] mx-auto w-full">
         {[
           { label: "CUSTO", value: formatBRL(kpis.totalSpend) },
           { label: "RECEITA", value: formatBRL(kpis.totalRevenue) },
@@ -202,7 +202,7 @@ export default function Dashboard() {
 
       {/* Grid */}
       <div className="flex-1 overflow-auto p-4 sm:p-6">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 max-w-[1920px] mx-auto">
           {sorted.map((project) => {
             const isProfit = project.profit >= 0;
 
