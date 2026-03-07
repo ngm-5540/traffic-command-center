@@ -7,13 +7,15 @@ import { cn } from "@/lib/utils";
 // Status still used for card background logic
 
 export default function Dashboard() {
-  const [activeVertical, setActiveVertical] = useState<Vertical>("google_ads");
+  const [activeVertical, setActiveVertical] = useState<Vertical>("todos");
   const [activePeriod, setActivePeriod] = useState<Period>("hoje");
 
   const filtered = useMemo(
-    () => dashboardProjects.filter((p) => p.vertical === activeVertical),
+    () => activeVertical === "todos" ? dashboardProjects : dashboardProjects.filter((p) => p.vertical === activeVertical),
     [activeVertical]
   );
+
+  const verticalLabels: Record<string, string> = { google_ads: "GOOGLE ADS", meta_ads: "META ADS", chatbot: "CHATBOT" };
 
   const kpis = useMemo(() => {
     const totalSpend = filtered.reduce((s, p) => s + p.spend, 0);
