@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { format, differenceInCalendarDays, addDays, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -382,21 +382,7 @@ export default function Dashboard() {
                 >
                   {/* Card header */}
                   <div className="mb-3 flex items-center justify-between">
-                    <div className="flex items-baseline gap-2 truncate pr-2">
-                      <h3
-                        className="font-semibold text-foreground truncate"
-                        style={{ fontSize: "clamp(11px, 5cqw, 14px)" }}
-                        title={project.name}
-                      >
-                        {project.name}
-                      </h3>
-                      <span
-                        className="font-mono text-muted-foreground shrink-0"
-                        style={{ fontSize: "clamp(8px, 4cqw, 10px)" }}
-                      >
-                        #{project.id.substring(0, 5)}
-                      </span>
-                    </div>
+                    <ProjectName name={project.name} id={project.id} />
                     <Badge
                       variant="outline"
                       className={cn("shrink-0", verticalConfig[project.vertical]?.className)}
