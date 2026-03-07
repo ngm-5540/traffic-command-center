@@ -392,7 +392,7 @@ export default function Dashboard() {
                             {project.name}
                           </h3>
                         </TooltipTrigger>
-                        <TooltipContent>{project.name}</TooltipContent>
+                        <TooltipContent side="bottom" className="text-xs">{project.name}</TooltipContent>
                       </Tooltip>
                       <span
                         className="font-mono text-muted-foreground shrink-0"
