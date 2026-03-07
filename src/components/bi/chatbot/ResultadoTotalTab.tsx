@@ -7,10 +7,13 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { cn } from "@/lib/utils";
 import { formatBRL, formatROAS, formatPercent, formatNumber, formatDuration, getRoasColor } from "@/lib/format";
 import { SparklineCell } from "./SparklineCell";
+import { PopBadge } from "./PopBadge";
+import { generatePreviousRecord } from "@/data/popMockData";
 import type { ChatbotCampaign, ChatbotAdset, ChatbotAd } from "@/data/chatbotMockData";
 
 interface Props {
   campaigns: ChatbotCampaign[];
+  popEnabled?: boolean;
 }
 
 type Dimension = "campaign" | "adset" | "ad";
