@@ -17,6 +17,7 @@ interface Props {
   focusMode?: boolean;
   onToggleFocusMode?: () => void;
   filtersNode?: React.ReactNode;
+  tabsListNode?: React.ReactNode;
 }
 
 type Dimension = "campaign" | "adset" | "ad";
