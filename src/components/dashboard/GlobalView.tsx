@@ -39,14 +39,14 @@ export function GlobalView({ projects }: GlobalViewProps) {
             </div>
 
             {/* Linha 2: Custo + Receita */}
-            <div className="mt-2 grid grid-cols-2 gap-2 border-t border-border pt-2 sm:mt-3 sm:gap-4 sm:pt-3">
+            <div className="mt-1.5 grid grid-cols-2 gap-1.5 border-t border-border pt-1.5 sm:mt-2 sm:gap-3 sm:pt-2">
               <div>
-                <p className="text-[9px] uppercase tracking-wider text-muted-foreground sm:text-[10px]">Custo</p>
-                <p className="text-xs font-semibold text-foreground sm:text-sm">{fmt(project.spend)}</p>
+                <p className="text-[8px] uppercase tracking-wider text-muted-foreground sm:text-[9px]">Custo</p>
+                <p className="text-[11px] font-semibold text-foreground sm:text-xs">{fmt(project.spend)}</p>
               </div>
               <div>
-                <p className="text-[9px] uppercase tracking-wider text-muted-foreground sm:text-[10px]">Receita</p>
-                <p className="text-xs font-semibold text-foreground sm:text-sm">{fmt(project.revenue)}</p>
+                <p className="text-[8px] uppercase tracking-wider text-muted-foreground sm:text-[9px]">Receita</p>
+                <p className="text-[11px] font-semibold text-foreground sm:text-xs">{fmt(project.revenue)}</p>
               </div>
             </div>
           </div>
