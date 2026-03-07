@@ -30,25 +30,31 @@ export function formatDuration(seconds: number): string {
 }
 
 /**
- * Returns an HSL color for ROAS values.
- * -100% (-1.0) = red, >= 100% (1.0) = green, otherwise neutral.
+ * Returns an HSL color for ROAS text.
+ * > 0 = green, < 0 = red, 0 = neutral.
  */
 export function getRoasColor(roas: number): string {
-  if (roas == null || isNaN(roas)) return `hsl(210, 20%, 90%)`;
-
-  if (roas >= 1) {
-    // Green intensity scales with gains above 100%
-    const t = Math.min(1, roas - 1);
+  if (roas == null || isNaN(roas) || roas === 0) return `hsl(210, 20%, 90%)`;
+  if (roas > 0) {
+    const t = Math.min(1, roas);
     const s = 45 + t * 26;
     const l = 52 + t * -7;
     return `hsl(142, ${s.toFixed(0)}%, ${l.toFixed(0)}%)`;
   }
+  const t = Math.min(1, Math.abs(roas));
+  const s = 45 + t * 27;
+  const l = 55 + t * -4;
+  return `hsl(0, ${s.toFixed(0)}%, ${l.toFixed(0)}%)`;
+}
 
-  if (roas === -1) {
-    return `hsl(0, 72%, 51%)`;
-  }
-
-  return `hsl(210, 20%, 90%)`;
+/**
+ * Returns card styling class for ROAS.
+ * Only paints card at >= 100% (green) or == -100% (red).
+ */
+export function getRoasCardClass(roas: number): string {
+  if (roas >= 1) return "border-profit/30 bg-profit/5";
+  if (roas === -1) return "border-loss/30 bg-loss/5";
+  return "border-border bg-card";
 }
 
 /**
