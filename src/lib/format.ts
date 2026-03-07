@@ -35,6 +35,7 @@ export function formatDuration(seconds: number): string {
  * Interpolates saturation and lightness for intensity.
  */
 export function getRoasColor(roas: number): string {
+  if (roas == null || isNaN(roas)) return `hsl(0, 0%, 95%)`;
   const pct = Math.max(-1, Math.min(1, roas));
 
   if (pct === 0) return `hsl(0, 0%, 95%)`;
