@@ -8,27 +8,12 @@ const fmt = (v: number) =>
   `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 export function GlobalView({ projects }: GlobalViewProps) {
-  const count = projects.length;
-  const maxCols = Math.min(count, 5);
-
-  // Dynamically set max columns based on project count
-  const gridColsClass =
-    maxCols <= 1
-      ? "grid-cols-1"
-      : maxCols === 2
-        ? "grid-cols-1 sm:grid-cols-2"
-        : maxCols === 3
-          ? "grid-cols-1 sm:grid-cols-2 md:grid-cols-3"
-          : maxCols === 4
-            ? "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
-            : "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5";
-
   return (
     <div className="p-3 sm:p-4 lg:p-6">
       <h1 className="mb-1 text-base font-semibold text-foreground sm:text-xl">Visão Global</h1>
       <p className="mb-4 text-[11px] text-muted-foreground sm:mb-6 sm:text-sm">Todos os projetos ativos</p>
 
-      <div className={`grid gap-2.5 sm:gap-3 ${gridColsClass}`}>
+      <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {projects.map((project) => (
           <div
             key={project.id}
