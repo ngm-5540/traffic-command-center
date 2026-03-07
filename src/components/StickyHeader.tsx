@@ -19,30 +19,45 @@ function AutoFitText({ children }: { children: React.ReactNode }) {
     const text = textRef.current;
     if (!container || !text) return;
 
-    // Reset to max size first
     text.style.fontSize = "";
-    const maxSize = parseFloat(getComputedStyle(text).fontSize);
-    const minSize = 8;
 
-    let size = maxSize;
-    while (text.scrollWidth > container.clientWidth && size > minSize) {
-      size -= 0.5;
-      text.style.fontSize = `${size}px`;
+    let currentSize = Number.parseFloat(getComputedStyle(text).fontSize);
+    const minSize = 7;
+    const availableWidth = container.clientWidth;
+
+    if (!availableWidth) return;
+
+    let attempts = 0;
+    while (text.getBoundingClientRect().width > availableWidth && currentSize > minSize && attempts < 30) {
+      currentSize -= 0.5;
+      text.style.fontSize = `${currentSize}px`;
+      attempts += 1;
     }
   }, []);
 
   useEffect(() => {
-    fit();
-    const ro = new ResizeObserver(fit);
-    if (containerRef.current) ro.observe(containerRef.current);
-    return () => ro.disconnect();
+    const raf = requestAnimationFrame(fit);
+    const ro = new ResizeObserver(() => requestAnimationFrame(fit));
+
+    if (containerRef.current) {
+      ro.observe(containerRef.current);
+    }
+
+    if (document.fonts?.ready) {
+      document.fonts.ready.then(() => requestAnimationFrame(fit));
+    }
+
+    return () => {
+      cancelAnimationFrame(raf);
+      ro.disconnect();
+    };
   }, [fit, children]);
 
   return (
     <div ref={containerRef} className="min-w-0 flex-1 overflow-hidden">
       <span
         ref={textRef}
-        className="whitespace-nowrap font-semibold leading-tight text-foreground text-[10px] sm:text-xs lg:text-sm xl:text-base 2xl:text-lg"
+        className="inline-block max-w-none whitespace-nowrap font-semibold leading-tight text-foreground text-[10px] sm:text-xs lg:text-sm xl:text-base 2xl:text-lg"
       >
         {children}
       </span>
