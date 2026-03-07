@@ -13,7 +13,7 @@ export function GlobalView({ projects }: GlobalViewProps) {
       <h1 className="mb-1 text-base font-semibold text-foreground sm:text-xl">Visão Global</h1>
       <p className="mb-4 text-[11px] text-muted-foreground sm:mb-6 sm:text-sm">Todos os projetos ativos</p>
 
-      <div className="grid gap-2.5 sm:gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))' }}>
+      <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {projects.map((project) => (
           <div
             key={project.id}
