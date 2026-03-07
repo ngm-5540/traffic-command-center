@@ -37,6 +37,7 @@ const presets: { label: string; getValue: () => DateRange }[] = [
 export function ChatbotBi() {
   const [fanpage, setFanpage] = useState("all");
   const [country, setCountry] = useState("all");
+  const [focusMode, setFocusMode] = useState(false);
   const [popEnabled, setPopEnabled] = useState(false);
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
@@ -91,7 +92,7 @@ export function ChatbotBi() {
   ];
 
   return (
-    <div className="flex flex-col h-full">
+    <div className={cn("flex flex-col", focusMode ? "fixed inset-0 z-[100] bg-background h-screen overflow-auto" : "h-full")}>
       {/* Filters */}
       <div className="sticky top-0 z-10 border-b border-border bg-background px-4 py-3 sm:px-6">
         <div className="flex flex-wrap items-center gap-2">
@@ -266,7 +267,7 @@ export function ChatbotBi() {
           <TabsTrigger value="broadcast" className="text-xs">Broadcast</TabsTrigger>
         </TabsList>
         <TabsContent value="resultado" className="flex-1 mt-4">
-          <ResultadoTotalTab campaigns={chatbotCampaigns} popEnabled={popEnabled} />
+          <ResultadoTotalTab campaigns={chatbotCampaigns} popEnabled={popEnabled} focusMode={focusMode} onToggleFocusMode={() => setFocusMode(f => !f)} />
         </TabsContent>
         <TabsContent value="automacao" className="flex-1 mt-4">
           <AutomacaoTab automations={chatbotAutomations} popEnabled={popEnabled} />
