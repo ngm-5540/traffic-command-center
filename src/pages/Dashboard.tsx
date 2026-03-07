@@ -372,7 +372,7 @@ export default function Dashboard() {
                 <div
                   onClick={() => navigate(`/project/${project.id}`)}
                   className={cn(
-                    "rounded-lg border p-3 sm:p-4 transition-all cursor-pointer hover:ring-1 hover:ring-primary/30",
+                    "relative rounded-lg border p-3 sm:p-4 transition-all cursor-pointer hover:ring-1 hover:ring-primary/30",
                     project.roas >= 1
                       ? "border-profit/30 bg-profit/5"
                       : project.roas === -1
@@ -380,15 +380,15 @@ export default function Dashboard() {
                         : "border-border bg-card"
                   )}
                 >
+                  <Badge
+                    variant="outline"
+                    className={cn("absolute top-1.5 right-1.5 px-1 py-0 h-3.5 text-[6px] font-semibold tracking-wider", verticalConfig[project.vertical]?.className)}
+                  >
+                    {verticalConfig[project.vertical]?.label}
+                  </Badge>
                   {/* Card header */}
-                  <div className="mb-2 flex items-start justify-between">
+                  <div className="mb-2 pr-16">
                     <ProjectName name={project.name} id={project.id} />
-                    <Badge
-                      variant="outline"
-                      className={cn("shrink-0 px-1.5 py-0 h-4 text-[7px] font-semibold tracking-wider", verticalConfig[project.vertical]?.className)}
-                    >
-                      {verticalConfig[project.vertical]?.label}
-                    </Badge>
                   </div>
 
                   {/* Metrics */}
