@@ -74,14 +74,6 @@ function SummaryCard({ title, value, trend, icon, trendColor = "profit" }: Summa
           <p className="text-[8px] uppercase tracking-wider text-muted-foreground sm:text-[10px]">{title}</p>
           <div className="flex items-center gap-1 sm:gap-2">
             <AutoFitText>{value}</AutoFitText>
-            <Badge
-              variant="outline"
-              className={`hidden shrink-0 border-0 px-1 py-0 text-[8px] xl:inline-flex xl:text-[10px] xl:px-1.5 ${
-                isPositive ? "bg-profit/15 text-profit" : "bg-loss/15 text-loss"
-              }`}
-            >
-              {isPositive ? "+" : ""}{trend}%
-            </Badge>
           </div>
         </div>
       </div>
