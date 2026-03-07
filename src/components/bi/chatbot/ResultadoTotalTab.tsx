@@ -7,10 +7,13 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { cn } from "@/lib/utils";
 import { formatBRL, formatROAS, formatPercent, formatNumber, formatDuration, getRoasColor } from "@/lib/format";
 import { SparklineCell } from "./SparklineCell";
+import { PopBadge } from "./PopBadge";
+import { generatePreviousRecord } from "@/data/popMockData";
 import type { ChatbotCampaign, ChatbotAdset, ChatbotAd } from "@/data/chatbotMockData";
 
 interface Props {
   campaigns: ChatbotCampaign[];
+  popEnabled?: boolean;
 }
 
 type Dimension = "campaign" | "adset" | "ad";
@@ -135,12 +138,30 @@ function SortIcon({ active, dir }: { active: boolean; dir?: SortDir }) {
   return dir === "asc" ? <ArrowUp className="h-2.5 w-2.5 text-primary" /> : <ArrowDown className="h-2.5 w-2.5 text-primary" />;
 }
 
-export function ResultadoTotalTab({ campaigns }: Props) {
+const invertColorKeys = new Set(["cost", "cpc", "cpm", "cps", "costPerConversion", "costPerLead", "costPerNewLead", "bounceRate", "timeToSession"]);
+
+export function ResultadoTotalTab({ campaigns, popEnabled = false }: Props) {
   const [focusMode, setFocusMode] = useState(false);
   const [visibleKeys, setVisibleKeys] = useState<string[]>(() => loadVisibleColumns() ?? defaultVisibleKeys);
   const [dimension, setDimension] = useState<Dimension>("campaign");
   const [showParentCols, setShowParentCols] = useState(true);
   const [sort, setSort] = useState<SortState | null>(null);
+
+  // Generate previous period data for PoP
+  const previousRowData = useMemo(() => {
+    const map = new Map<string, Record<string, number>>();
+    let idx = 0;
+    for (const c of campaigns) {
+      map.set(c.id, generatePreviousRecord(c, idx++));
+      for (const adset of c.adsets) {
+        map.set(adset.id, generatePreviousRecord(adset, idx++));
+        for (const ad of adset.ads) {
+          map.set(ad.id, generatePreviousRecord(ad, idx++));
+        }
+      }
+    }
+    return map;
+  }, [campaigns]);
 
   const toggleSort = useCallback((key: string) => {
     setSort((prev) => {
@@ -422,11 +443,22 @@ export function ResultadoTotalTab({ campaigns }: Props) {
                         ({campaign.adsets.length} adsets, {campaign.adsets.reduce((s, a) => s + a.ads.length, 0)} ads)
                       </span>
                     </td>
-                    {visibleColumns.map((col) => (
-                      <td key={col.key} className="px-2 py-2 text-right font-mono font-bold whitespace-nowrap">
-                        {col.format((campaign as any)[col.key], campaign)}
-                      </td>
-                    ))}
+                    {visibleColumns.map((col) => {
+                      const val = (campaign as any)[col.key];
+                      const prev = previousRowData.get(campaign.id);
+                      const prevVal = prev?.[col.key];
+                      const isTrend = col.key.endsWith("Trend");
+                      return (
+                        <td key={col.key} className="px-2 py-2 text-right font-mono font-bold whitespace-nowrap">
+                          <div className="flex flex-col items-end">
+                            <span>{col.format(val, campaign)}</span>
+                            {popEnabled && !isTrend && typeof val === "number" && prevVal != null && (
+                              <PopBadge current={val} previous={prevVal} invertColor={invertColorKeys.has(col.key)} />
+                            )}
+                          </div>
+                        </td>
+                      );
+                    })}
                   </tr>
                   {expandedCampaigns.has(campaign.id) && campaign.adsets.map((adset) => (
                     <tr key={adset.id} className="border-b border-border/50 bg-card/30 hover:bg-accent/30 transition-colors">
@@ -434,11 +466,22 @@ export function ResultadoTotalTab({ campaigns }: Props) {
                         ↳ {adset.name}
                         <span className="ml-2 text-[10px] text-muted-foreground font-mono">({adset.ads.length} ads)</span>
                       </td>
-                      {visibleColumns.map((col) => (
-                        <td key={col.key} className="px-2 py-1.5 text-right font-mono text-[11px] whitespace-nowrap text-foreground/70">
-                          {col.format((adset as any)[col.key])}
-                        </td>
-                      ))}
+                      {visibleColumns.map((col) => {
+                        const val = (adset as any)[col.key];
+                        const prev = previousRowData.get(adset.id);
+                        const prevVal = prev?.[col.key];
+                        const isTrend = col.key.endsWith("Trend");
+                        return (
+                          <td key={col.key} className="px-2 py-1.5 text-right font-mono text-[11px] whitespace-nowrap text-foreground/70">
+                            <div className="flex flex-col items-end">
+                              <span>{col.format(val)}</span>
+                              {popEnabled && !isTrend && typeof val === "number" && prevVal != null && (
+                                <PopBadge current={val} previous={prevVal} invertColor={invertColorKeys.has(col.key)} />
+                              )}
+                            </div>
+                          </td>
+                        );
+                      })}
                     </tr>
                   ))}
                 </>
@@ -482,11 +525,22 @@ export function ResultadoTotalTab({ campaigns }: Props) {
                     )}
                   </td>
                   {/* Data columns */}
-                  {visibleColumns.map((col) => (
-                    <td key={col.key} className="px-2 py-2 text-right font-mono whitespace-nowrap">
-                      {col.format(row.data[col.key], row.data)}
-                    </td>
-                  ))}
+                  {visibleColumns.map((col) => {
+                    const val = row.data[col.key];
+                    const prev = previousRowData.get(row.id);
+                    const prevVal = prev?.[col.key];
+                    const isTrend = col.key.endsWith("Trend");
+                    return (
+                      <td key={col.key} className="px-2 py-2 text-right font-mono whitespace-nowrap">
+                        <div className="flex flex-col items-end">
+                          <span>{col.format(val, row.data)}</span>
+                          {popEnabled && !isTrend && typeof val === "number" && prevVal != null && (
+                            <PopBadge current={val} previous={prevVal} invertColor={invertColorKeys.has(col.key)} />
+                          )}
+                        </div>
+                      </td>
+                    );
+                  })}
                 </tr>
               ))
             )}

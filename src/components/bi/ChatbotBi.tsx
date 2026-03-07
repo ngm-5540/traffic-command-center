@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, GitCompareArrows } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import { formatBRL, formatROAS, getRoasColor } from "@/lib/format";
 import { ResultadoTotalTab } from "./chatbot/ResultadoTotalTab";
 import { AutomacaoTab } from "./chatbot/AutomacaoTab";
 import { BroadcastTab } from "./chatbot/BroadcastTab";
+import { PopBadge } from "./chatbot/PopBadge";
 import {
   chatbotCampaigns,
   chatbotAutomations,
@@ -20,11 +21,13 @@ import {
   fanpageOptions,
   countryOptions,
 } from "@/data/chatbotMockData";
+import { generatePreviousKpis } from "@/data/popMockData";
 import type { DateRange } from "react-day-picker";
 
 export function ChatbotBi() {
   const [fanpage, setFanpage] = useState("all");
   const [country, setCountry] = useState("all");
+  const [popEnabled, setPopEnabled] = useState(false);
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
     to: new Date(),
@@ -42,6 +45,11 @@ export function ChatbotBi() {
   const totalLeads = chatbotCampaigns.reduce((s, c) => s + c.leads, 0);
   const avgCostPerLead = totalLeads > 0 ? totalCost / totalLeads : 0;
 
+  const previousKpis = useMemo(
+    () => generatePreviousKpis({ totalCost, totalRevenue, totalProfit, avgRoas, avgRps, avgCostPerLead }),
+    [totalCost, totalRevenue, totalProfit, avgRoas, avgRps, avgCostPerLead]
+  );
+
   const dateLabel = dateRange?.from
     ? dateRange.to && dateRange.from.toDateString() !== dateRange.to.toDateString()
       ? `${format(dateRange.from, "dd MMM", { locale: ptBR })} – ${format(dateRange.to, "dd MMM yyyy", { locale: ptBR })}`
@@ -49,12 +57,12 @@ export function ChatbotBi() {
     : "Período";
 
   const kpis = [
-    { label: "ROAS", value: formatROAS(avgRoas), color: getRoasColor(avgRoas), tooltip: "Retorno médio sobre investimento" },
-    { label: "LUCRO", value: formatBRL(totalProfit), className: totalProfit >= 0 ? "text-profit" : "text-loss", tooltip: "Receita total menos custo total" },
-    { label: "CUSTO", value: formatBRL(totalCost), tooltip: "Investimento total em ads" },
-    { label: "RECEITA", value: formatBRL(totalRevenue), tooltip: "Receita total gerada" },
-    { label: "RPS", value: formatBRL(avgRps), tooltip: "Receita por sessão média" },
-    { label: "C. LEAD", value: formatBRL(avgCostPerLead), tooltip: "Custo médio por lead" },
+    { label: "ROAS", value: formatROAS(avgRoas), color: getRoasColor(avgRoas), tooltip: "Retorno médio sobre investimento", current: avgRoas, previous: previousKpis.avgRoas },
+    { label: "LUCRO", value: formatBRL(totalProfit), className: totalProfit >= 0 ? "text-profit" : "text-loss", tooltip: "Receita total menos custo total", current: totalProfit, previous: previousKpis.totalProfit },
+    { label: "CUSTO", value: formatBRL(totalCost), tooltip: "Investimento total em ads", current: totalCost, previous: previousKpis.totalCost, invertColor: true },
+    { label: "RECEITA", value: formatBRL(totalRevenue), tooltip: "Receita total gerada", current: totalRevenue, previous: previousKpis.totalRevenue },
+    { label: "RPS", value: formatBRL(avgRps), tooltip: "Receita por sessão média", current: avgRps, previous: previousKpis.avgRps },
+    { label: "C. LEAD", value: formatBRL(avgCostPerLead), tooltip: "Custo médio por lead", current: avgCostPerLead, previous: previousKpis.avgCostPerLead, invertColor: true },
   ];
 
   return (
@@ -105,6 +113,18 @@ export function ChatbotBi() {
               />
             </PopoverContent>
           </Popover>
+
+          <Button
+            variant={popEnabled ? "default" : "outline"}
+            className={cn(
+              "h-7 gap-1.5 px-2.5 text-[10px] font-semibold tracking-wider",
+              popEnabled && "bg-primary text-primary-foreground"
+            )}
+            onClick={() => setPopEnabled((p) => !p)}
+          >
+            <GitCompareArrows className="h-3 w-3" />
+            PoP
+          </Button>
         </div>
       </div>
 
@@ -121,13 +141,27 @@ export function ChatbotBi() {
                     : "border-loss/30 bg-loss/5"
                   : "border-border bg-card"
               )}>
-                <span className="text-[10px] uppercase tracking-wider text-foreground font-semibold">{kpi.label}</span>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] uppercase tracking-wider text-foreground font-semibold">{kpi.label}</span>
+                  {popEnabled && (
+                    <PopBadge
+                      current={kpi.current}
+                      previous={kpi.previous}
+                      invertColor={kpi.invertColor}
+                    />
+                  )}
+                </div>
                 <p
                   className={cn("font-mono text-lg font-bold", kpi.className || (!kpi.color ? "text-foreground" : undefined))}
                   style={kpi.color ? { color: kpi.color } : undefined}
                 >
                   {kpi.value}
                 </p>
+                {popEnabled && (
+                  <p className="text-[9px] text-muted-foreground font-mono mt-0.5">
+                    ant: {kpi.label === "ROAS" ? formatROAS(kpi.previous) : formatBRL(kpi.previous)}
+                  </p>
+                )}
               </div>
             </TooltipTrigger>
             <TooltipContent side="bottom" className="text-xs">{kpi.tooltip}</TooltipContent>
@@ -143,13 +177,13 @@ export function ChatbotBi() {
           <TabsTrigger value="broadcast" className="text-xs">Broadcast</TabsTrigger>
         </TabsList>
         <TabsContent value="resultado" className="flex-1 mt-4">
-          <ResultadoTotalTab campaigns={chatbotCampaigns} />
+          <ResultadoTotalTab campaigns={chatbotCampaigns} popEnabled={popEnabled} />
         </TabsContent>
         <TabsContent value="automacao" className="flex-1 mt-4">
-          <AutomacaoTab automations={chatbotAutomations} />
+          <AutomacaoTab automations={chatbotAutomations} popEnabled={popEnabled} />
         </TabsContent>
         <TabsContent value="broadcast" className="flex-1 mt-4">
-          <BroadcastTab broadcasts={chatbotBroadcasts} />
+          <BroadcastTab broadcasts={chatbotBroadcasts} popEnabled={popEnabled} />
         </TabsContent>
       </Tabs>
     </div>

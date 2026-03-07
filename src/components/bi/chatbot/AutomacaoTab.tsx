@@ -2,11 +2,14 @@ import { useState, useMemo, useCallback } from "react";
 import { ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 import { formatBRL, formatNumber, formatPercent, formatROAS, getRoasColor } from "@/lib/format";
 import { DrilldownSheet } from "./DrilldownSheet";
+import { PopBadge } from "./PopBadge";
 import { cn } from "@/lib/utils";
+import { generatePreviousRecord } from "@/data/popMockData";
 import type { Automation } from "@/data/chatbotMockData";
 
 interface Props {
   automations: Automation[];
+  popEnabled?: boolean;
 }
 
 type SortDir = "asc" | "desc";
@@ -32,9 +35,17 @@ const columns: { key: string; label: string; align: "left" | "right"; getValue: 
   { key: "revMsgRate", label: "Rev/MSG", align: "right", getValue: (a) => a.revMsgRate },
 ];
 
-export function AutomacaoTab({ automations }: Props) {
+const invertColorKeys = new Set(["cost"]);
+
+export function AutomacaoTab({ automations, popEnabled = false }: Props) {
   const [selected, setSelected] = useState<Automation | null>(null);
   const [sort, setSort] = useState<SortState | null>(null);
+
+  const previousData = useMemo(() => {
+    const map = new Map<string, Record<string, number>>();
+    automations.forEach((a, i) => map.set(a.id, generatePreviousRecord(a, i * 100)));
+    return map;
+  }, [automations]);
 
   const toggleSort = useCallback((key: string) => {
     setSort((prev) => {
@@ -85,25 +96,37 @@ export function AutomacaoTab({ automations }: Props) {
                 className="border-b border-border/50 hover:bg-accent/50 cursor-pointer transition-colors"
                 onClick={() => setSelected(aut)}
               >
-                <td className="px-3 py-2 text-foreground font-medium whitespace-nowrap">
-                  {aut.name}
-                  <span className="ml-1.5 text-[10px] text-muted-foreground font-mono">({aut.messages.length})</span>
-                </td>
-                <td className="px-3 py-2 text-right font-mono font-bold">{aut.messages.length}</td>
-                <td className="px-3 py-2 text-right font-mono font-bold">{formatNumber(aut.totalSent)}</td>
-                <td className="px-3 py-2 text-right font-mono font-bold">{formatNumber(aut.totalDelivered)}</td>
-                <td className="px-3 py-2 text-right font-mono font-bold">{formatNumber(aut.totalRead)}</td>
-                <td className="px-3 py-2 text-right font-mono font-bold">{formatNumber(aut.totalClicked)}</td>
-                <td className="px-3 py-2 text-right font-mono font-bold">{formatNumber(aut.totalReplied)}</td>
-                <td className="px-3 py-2 text-right font-mono font-bold">{formatBRL(aut.revenue)}</td>
-                <td className="px-3 py-2 text-right font-mono font-bold">{formatBRL(aut.cost)}</td>
-                <td className={`px-3 py-2 text-right font-mono font-bold ${aut.profit >= 0 ? "text-profit" : "text-loss"}`}>
-                  {formatBRL(aut.profit)}
-                </td>
-                <td className="px-3 py-2 text-right font-mono font-bold" style={{ color: getRoasColor(aut.roas) }}>
-                  {formatROAS(aut.roas)}
-                </td>
-                <td className="px-3 py-2 text-right font-mono font-bold">{formatBRL(aut.revMsgRate)}</td>
+                {columns.map((col) => {
+                  const val = col.getValue(aut);
+                  const prev = previousData.get(aut.id);
+                  const prevVal = prev ? prev[col.key] : undefined;
+                  const isName = col.key === "name";
+                  const formatted = isName
+                    ? <>{aut.name}<span className="ml-1.5 text-[10px] text-muted-foreground font-mono">({aut.messages.length})</span></>
+                    : col.key === "profit"
+                      ? <span className={aut.profit >= 0 ? "text-profit" : "text-loss"}>{formatBRL(val)}</span>
+                      : col.key === "roas"
+                        ? <span style={{ color: getRoasColor(val) }}>{formatROAS(val)}</span>
+                        : col.key === "revenue" || col.key === "cost" || col.key === "revMsgRate"
+                          ? formatBRL(val)
+                          : formatNumber(val);
+                  return (
+                    <td
+                      key={col.key}
+                      className={cn(
+                        "px-3 py-2 font-mono font-bold whitespace-nowrap",
+                        isName ? "text-foreground font-medium font-sans" : "text-right"
+                      )}
+                    >
+                      <div className="flex flex-col items-end">
+                        <span>{formatted}</span>
+                        {popEnabled && !isName && typeof val === "number" && prevVal != null && (
+                          <PopBadge current={val} previous={prevVal} invertColor={invertColorKeys.has(col.key)} />
+                        )}
+                      </div>
+                    </td>
+                  );
+                })}
               </tr>
             ))}
           </tbody>
