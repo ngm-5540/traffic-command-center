@@ -6,7 +6,7 @@ import { CalendarIcon, ArrowUp, ArrowDown, Plus, ChevronLeft, ChevronRight, GitC
 import { dashboardProjects as defaultProjects, verticals, type Vertical, type DashboardProject } from "@/data/dashboardData";
 import { formatBRL, formatROAS, getRoasColor } from "@/lib/format";
 import { PopBadge } from "@/components/bi/chatbot/PopBadge";
-import { generatePreviousKpis } from "@/data/popMockData";
+import { generatePreviousKpis, generatePreviousRecord } from "@/data/popMockData";
 import { CreateProjectDialog } from "@/components/CreateProjectDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
