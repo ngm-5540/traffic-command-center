@@ -439,16 +439,16 @@ function Metric({ label, value, className, bold, style }: { label: string; value
 function ProjectName({ name, id }: { name: string; id: string }) {
   const shortId = `#${id.substring(0, 5)}`;
   return (
-    <div className="truncate pr-2 leading-tight" title={`${name} ${shortId}`}>
+    <div className="truncate pr-2" title={`${name} ${shortId}`}>
       <h3
-        className="font-semibold text-foreground truncate leading-snug"
+        className="font-semibold text-foreground truncate leading-none"
         style={{ fontSize: "clamp(11px, 5cqw, 14px)" }}
       >
         {name}
       </h3>
       <span
-        className="font-mono text-muted-foreground leading-none"
-        style={{ fontSize: "clamp(7px, 3.5cqw, 9px)" }}
+        className="font-mono text-muted-foreground leading-none -mt-px block"
+        style={{ fontSize: "clamp(8px, 4cqw, 10px)" }}
       >
         {shortId}
       </span>
