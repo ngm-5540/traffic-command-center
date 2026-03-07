@@ -381,12 +381,11 @@ export default function Dashboard() {
                   )}
                 >
                   {/* Card header */}
-                  <div className="mb-3 flex items-center justify-between">
+                  <div className="mb-2 flex items-start justify-between">
                     <ProjectName name={project.name} id={project.id} />
                     <Badge
                       variant="outline"
-                      className={cn("shrink-0", verticalConfig[project.vertical]?.className)}
-                      style={{ fontSize: "clamp(8px, 4cqw, 10px)" }}
+                      className={cn("shrink-0 px-1.5 py-0 h-4 text-[7px] font-semibold tracking-wider", verticalConfig[project.vertical]?.className)}
                     >
                       {verticalConfig[project.vertical]?.label}
                     </Badge>
