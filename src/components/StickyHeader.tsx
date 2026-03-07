@@ -1,3 +1,4 @@
+import { useRef, useEffect, useCallback } from "react";
 import { DollarSign, TrendingUp, Percent, BarChart3 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
@@ -7,6 +8,46 @@ interface SummaryCardProps {
   trend: number;
   icon: React.ReactNode;
   trendColor?: "profit" | "loss";
+}
+
+function AutoFitText({ children }: { children: React.ReactNode }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLSpanElement>(null);
+
+  const fit = useCallback(() => {
+    const container = containerRef.current;
+    const text = textRef.current;
+    if (!container || !text) return;
+
+    // Reset to max size first
+    text.style.fontSize = "";
+    const maxSize = parseFloat(getComputedStyle(text).fontSize);
+    const minSize = 8;
+
+    let size = maxSize;
+    while (text.scrollWidth > container.clientWidth && size > minSize) {
+      size -= 0.5;
+      text.style.fontSize = `${size}px`;
+    }
+  }, []);
+
+  useEffect(() => {
+    fit();
+    const ro = new ResizeObserver(fit);
+    if (containerRef.current) ro.observe(containerRef.current);
+    return () => ro.disconnect();
+  }, [fit, children]);
+
+  return (
+    <div ref={containerRef} className="min-w-0 flex-1 overflow-hidden">
+      <span
+        ref={textRef}
+        className="whitespace-nowrap font-semibold leading-tight text-foreground text-[10px] sm:text-xs lg:text-sm xl:text-base 2xl:text-lg"
+      >
+        {children}
+      </span>
+    </div>
+  );
 }
 
 function SummaryCard({ title, value, trend, icon, trendColor = "profit" }: SummaryCardProps) {
@@ -20,7 +61,7 @@ function SummaryCard({ title, value, trend, icon, trendColor = "profit" }: Summa
         <div className="min-w-0 flex-1">
           <p className="text-[8px] uppercase tracking-wider text-muted-foreground sm:text-[10px]">{title}</p>
           <div className="flex items-center gap-1 sm:gap-2">
-            <span className="whitespace-nowrap text-[10px] font-semibold leading-tight text-foreground sm:text-xs lg:text-sm xl:text-base 2xl:text-lg">{value}</span>
+            <AutoFitText>{value}</AutoFitText>
             <Badge
               variant="outline"
               className={`hidden shrink-0 border-0 px-1 py-0 text-[8px] xl:inline-flex xl:text-[10px] xl:px-1.5 ${
