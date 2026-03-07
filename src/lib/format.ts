@@ -18,15 +18,15 @@ export function formatROAS(value: number): string {
 export function getRoasColor(roas: number): string {
   const pct = Math.max(-1, Math.min(1, roas));
 
-  if (pct <= 0) {
-    // 0 → pastel red, -1 → vivid red
+  if (pct === 0) return `hsl(0, 0%, 95%)`;
+
+  if (pct < 0) {
     const t = Math.abs(pct); // 0..1
     const s = 30 + t * 42;   // 30%..72%
-    const l = 55 + t * -4;   // 55%..51% (brighter pastel → vivid)
+    const l = 55 + t * -4;   // 55%..51%
     return `hsl(0, ${s.toFixed(0)}%, ${l.toFixed(0)}%)`;
   }
 
-  // 0+ → pastel green, 1 → vivid green
   const t = pct; // 0..1
   const s = 25 + t * 46;   // 25%..71%
   const l = 55 + t * -10;  // 55%..45%
