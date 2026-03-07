@@ -13,11 +13,11 @@ export function GlobalView({ projects }: GlobalViewProps) {
       <h1 className="mb-1 text-base font-semibold text-foreground sm:text-xl">Visão Global</h1>
       <p className="mb-4 text-[11px] text-muted-foreground sm:mb-6 sm:text-sm">Todos os projetos ativos</p>
 
-      <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
+      <div className="grid gap-2.5 grid-cols-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4 xl:grid-cols-5">
         {projects.map((project) => (
           <div
             key={project.id}
-            className="rounded-lg border border-border bg-card p-4 transition-colors hover:border-primary/30 sm:p-5"
+            className="rounded-lg border border-border bg-card p-3 transition-colors hover:border-primary/30 sm:p-4"
           >
             <div className="mb-3 flex items-center justify-between sm:mb-4">
               <h3 className="text-sm font-semibold text-foreground">{project.name}</h3>
