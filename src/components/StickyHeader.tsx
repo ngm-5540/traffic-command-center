@@ -12,14 +12,14 @@ interface SummaryCardProps {
 function SummaryCard({ title, value, trend, icon, trendColor = "profit" }: SummaryCardProps) {
   const isPositive = trend >= 0;
   return (
-    <div className="flex items-center gap-3 rounded-md border border-border bg-card px-4 py-3">
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-secondary">
+    <div className="flex items-center gap-2 rounded-md border border-border bg-card px-3 py-2 sm:gap-3 sm:px-4 sm:py-3">
+      <div className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-md bg-secondary sm:flex">
         {icon}
       </div>
       <div className="min-w-0">
         <p className="text-[10px] uppercase tracking-wider text-muted-foreground">{title}</p>
-        <div className="flex items-center gap-2">
-          <span className="text-lg font-semibold text-foreground">{value}</span>
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <span className="text-sm font-semibold text-foreground sm:text-lg">{value}</span>
           <Badge
             variant="outline"
             className={`text-[10px] px-1.5 py-0 border-0 ${
@@ -56,13 +56,13 @@ export function StickyHeader({ selectedProject, onProjectChange, summary, projec
 
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-      <div className="flex flex-col gap-3 px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
+      <div className="flex flex-col gap-2 px-3 py-2 sm:gap-3 sm:px-4 sm:py-3 lg:flex-row lg:items-center lg:justify-between">
         {/* Project Switcher */}
         <div className="flex items-center gap-3">
           <select
             value={selectedProject}
             onChange={(e) => onProjectChange(e.target.value)}
-            className="h-9 rounded-md border border-border bg-secondary px-3 text-sm text-foreground outline-none focus:ring-1 focus:ring-ring"
+            className="h-9 w-full rounded-md border border-border bg-secondary px-3 text-sm text-foreground outline-none focus:ring-1 focus:ring-ring sm:w-auto"
           >
             <option value="all">Visão Global (Todos)</option>
             {projectOptions.map((p) => (
@@ -72,7 +72,7 @@ export function StickyHeader({ selectedProject, onProjectChange, summary, projec
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-1.5 sm:gap-2 lg:grid-cols-4">
           <SummaryCard
             title="Custo"
             value={fmt(summary.spend)}
