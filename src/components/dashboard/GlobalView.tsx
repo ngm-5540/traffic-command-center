@@ -19,7 +19,7 @@ export function GlobalView({ projects }: GlobalViewProps) {
           >
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-sm font-semibold text-foreground">{project.name}</h3>
-              <span className="font-mono text-[10px] text-muted-foreground">#{project.uuid}</span>
+              <span className="font-mono text-[10px] uppercase text-muted-foreground">#{project.uuid}</span>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
