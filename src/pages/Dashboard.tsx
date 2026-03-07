@@ -404,7 +404,7 @@ export default function Dashboard() {
                   </div>
 
                   {/* Metrics */}
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                  <div className="grid grid-cols-2 gap-x-2 gap-y-2">
                     <Metric label="RECEITA" value={formatBRL(project.revenue)} />
                     <Metric label="CUSTO" value={formatBRL(project.spend)} />
                     <Metric
@@ -435,11 +435,11 @@ export default function Dashboard() {
 
 function Metric({ label, value, className, bold, style }: { label: string; value: string; className?: string; bold?: boolean; style?: React.CSSProperties }) {
   return (
-    <div>
-      <span className="uppercase tracking-wider text-foreground/60 font-medium" style={{ fontSize: "clamp(9px, 4cqw, 11px)" }}>{label}</span>
+    <div className="min-w-0 overflow-hidden">
+      <span className="uppercase tracking-wider text-foreground/60 font-medium block" style={{ fontSize: "clamp(8px, 4cqw, 11px)" }}>{label}</span>
       <p
         className={cn("font-mono whitespace-nowrap font-bold", !style && (className || "text-foreground"))}
-        style={{ fontSize: "clamp(10px, 6cqw, 14px)", ...style }}
+        style={{ fontSize: "clamp(9px, 5cqw, 13px)", ...style }}
       >
         {value}
       </p>
