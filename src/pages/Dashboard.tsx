@@ -100,6 +100,10 @@ export default function Dashboard() {
             ))}
           </nav>
 
+          <Button size="sm" className="h-7 gap-1.5 text-[11px] font-semibold tracking-wider">
+            <Plus className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Novo Projeto</span>
+          </Button>
           
         </div>
       </header>
