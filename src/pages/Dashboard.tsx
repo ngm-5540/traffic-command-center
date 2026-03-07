@@ -462,7 +462,7 @@ export default function Dashboard() {
   );
 }
 
-function Metric({ label, value, className, bold, style }: { label: string; value: string; className?: string; bold?: boolean; style?: React.CSSProperties }) {
+function Metric({ label, value, className, bold, style, pop }: { label: string; value: string; className?: string; bold?: boolean; style?: React.CSSProperties; pop?: { current: number; previous: number; invertColor?: boolean } }) {
   return (
     <div className="min-w-0 cursor-help" title={`${label}: ${value}`}>
       <span className="uppercase tracking-wider text-foreground/60 font-medium block" style={{ fontSize: "clamp(8px, 4cqw, 11px)" }}>{label}</span>
@@ -472,6 +472,7 @@ function Metric({ label, value, className, bold, style }: { label: string; value
       >
         {value}
       </p>
+      {pop && <PopBadge current={pop.current} previous={pop.previous} invertColor={pop.invertColor} />}
     </div>
   );
 }
