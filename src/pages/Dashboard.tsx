@@ -38,6 +38,8 @@ export default function Dashboard() {
   const [sortKey, setSortKey] = useState<SortKey>("profit");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(() => presets[0].getValue());
+  const [tempDateRange, setTempDateRange] = useState<DateRange | undefined>(() => presets[0].getValue());
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
 
   const verticalConfig: Record<string, { label: string; className: string }> = {
     google_ads: { label: "GOOGLE ADS", className: "bg-yellow-500/15 text-yellow-500 border-yellow-500/30" },
@@ -170,7 +172,10 @@ export default function Dashboard() {
         </div>
 
         {/* Date picker */}
-        <Popover>
+        <Popover open={datePickerOpen} onOpenChange={(open) => {
+          setDatePickerOpen(open);
+          if (open) setTempDateRange(dateRange);
+        }}>
           <PopoverTrigger asChild>
             <Button variant="outline" className="h-7 gap-1.5 px-2.5 text-[10px] font-semibold tracking-wider border-border">
               <CalendarIcon className="h-3 w-3" />
@@ -185,21 +190,39 @@ export default function Dashboard() {
                 {presets.map((preset) => (
                   <button
                     key={preset.label}
-                    onClick={() => setDateRange(preset.getValue())}
+                    onClick={() => {
+                      setDateRange(preset.getValue());
+                      setDatePickerOpen(false);
+                    }}
                     className="w-full rounded px-2 py-1.5 text-left text-xs text-foreground hover:bg-accent transition-colors"
                   >
                     {preset.label}
                   </button>
                 ))}
               </div>
-              <Calendar
-                mode="range"
-                selected={dateRange}
-                onSelect={setDateRange}
-                numberOfMonths={2}
-                locale={ptBR}
-                className="p-3 pointer-events-auto"
-              />
+              <div className="flex flex-col">
+                <Calendar
+                  mode="range"
+                  selected={tempDateRange}
+                  onSelect={setTempDateRange}
+                  numberOfMonths={2}
+                  locale={ptBR}
+                  className="p-3 pointer-events-auto"
+                />
+                <div className="flex justify-end p-2 pt-0">
+                  <Button
+                    size="sm"
+                    className="h-7 text-[11px] font-semibold tracking-wider"
+                    disabled={!tempDateRange?.from}
+                    onClick={() => {
+                      setDateRange(tempDateRange);
+                      setDatePickerOpen(false);
+                    }}
+                  >
+                    Aplicar
+                  </Button>
+                </div>
+              </div>
             </div>
           </PopoverContent>
         </Popover>
