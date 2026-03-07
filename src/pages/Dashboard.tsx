@@ -2,9 +2,11 @@ import { useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { format, differenceInCalendarDays, addDays, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarIcon, ArrowUp, ArrowDown, Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import { CalendarIcon, ArrowUp, ArrowDown, Plus, ChevronLeft, ChevronRight, GitCompareArrows } from "lucide-react";
 import { dashboardProjects as defaultProjects, verticals, type Vertical, type DashboardProject } from "@/data/dashboardData";
 import { formatBRL, formatROAS, getRoasColor } from "@/lib/format";
+import { PopBadge } from "@/components/bi/chatbot/PopBadge";
+import { generatePreviousKpis } from "@/data/popMockData";
 import { CreateProjectDialog } from "@/components/CreateProjectDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -97,6 +99,7 @@ export default function Dashboard() {
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [newestProjectId, setNewestProjectId] = useState<string | null>(null);
+  const [popEnabled, setPopEnabled] = useState(false);
 
   const handleCreateProject = useCallback((project: DashboardProject) => {
     setProjects((prev) => {
@@ -148,6 +151,18 @@ export default function Dashboard() {
     const avgCps = totalLeads > 0 ? totalSpend / totalLeads : 0;
     return { totalSpend, totalRevenue, totalProfit, avgRoas, avgRps, avgCps };
   }, [sorted]);
+
+  const previousKpis = useMemo(
+    () => generatePreviousKpis({
+      totalCost: kpis.totalSpend,
+      totalRevenue: kpis.totalRevenue,
+      totalProfit: kpis.totalProfit,
+      avgRoas: kpis.avgRoas,
+      avgRps: kpis.avgRps,
+      avgCostPerLead: kpis.avgCps,
+    }),
+    [kpis]
+  );
 
   const toggleSortDir = () => { setNewestProjectId(null); setSortDir((d) => (d === "asc" ? "desc" : "asc")); };
 
@@ -207,12 +222,12 @@ export default function Dashboard() {
         style={{ gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))" }}
       >
         {[
-          { label: "CUSTO", value: formatBRL(kpis.totalSpend), tooltip: "Investimento total em ads" },
-          { label: "RECEITA", value: formatBRL(kpis.totalRevenue), tooltip: "Receita total gerada" },
-          { label: "LUCRO", value: formatBRL(kpis.totalProfit), isProfit: true, profitValue: kpis.totalProfit, tooltip: "Receita total menos custo total" },
-          { label: "ROAS", value: formatROAS(kpis.avgRoas), isRoas: true, isRoasPositive: kpis.avgRoas >= 1, isRoasCritical: kpis.avgRoas === -1, roasColor: getRoasColor(kpis.avgRoas), tooltip: "Retorno médio sobre investimento" },
-          { label: "RPS", value: formatBRL(kpis.avgRps), tooltip: "Receita por sessão média" },
-          { label: "CPS", value: formatBRL(kpis.avgCps), tooltip: "Custo médio por lead" },
+          { label: "CUSTO", value: formatBRL(kpis.totalSpend), tooltip: "Investimento total em ads", popCurrent: kpis.totalSpend, popPrevious: previousKpis.totalCost, invertColor: true },
+          { label: "RECEITA", value: formatBRL(kpis.totalRevenue), tooltip: "Receita total gerada", popCurrent: kpis.totalRevenue, popPrevious: previousKpis.totalRevenue },
+          { label: "LUCRO", value: formatBRL(kpis.totalProfit), isProfit: true, profitValue: kpis.totalProfit, tooltip: "Receita total menos custo total", popCurrent: kpis.totalProfit, popPrevious: previousKpis.totalProfit },
+          { label: "ROAS", value: formatROAS(kpis.avgRoas), isRoas: true, isRoasPositive: kpis.avgRoas >= 1, isRoasCritical: kpis.avgRoas === -1, roasColor: getRoasColor(kpis.avgRoas), tooltip: "Retorno médio sobre investimento", popCurrent: kpis.avgRoas, popPrevious: previousKpis.avgRoas },
+          { label: "RPS", value: formatBRL(kpis.avgRps), tooltip: "Receita por sessão média", popCurrent: kpis.avgRps, popPrevious: previousKpis.avgRps },
+          { label: "CPS", value: formatBRL(kpis.avgCps), tooltip: "Custo médio por lead", popCurrent: kpis.avgCps, popPrevious: previousKpis.avgCostPerLead, invertColor: true },
         ].map((kpi) => (
             <Tooltip key={kpi.label}>
               <TooltipTrigger asChild>
@@ -249,6 +264,9 @@ export default function Dashboard() {
                     >
                       {kpi.value}
                     </p>
+                    {popEnabled && (
+                      <PopBadge current={kpi.popCurrent} previous={kpi.popPrevious} invertColor={kpi.invertColor} />
+                    )}
                   </div>
                 </div>
               </TooltipTrigger>
@@ -314,6 +332,27 @@ export default function Dashboard() {
                     {preset.label}
                   </button>
                 ))}
+                <div className="border-t border-border mt-2 pt-2 px-2">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={() => setPopEnabled((p) => !p)}
+                        className={cn(
+                          "w-full flex items-center gap-1.5 rounded px-2 py-1.5 text-left text-xs transition-colors",
+                          popEnabled
+                            ? "bg-primary text-primary-foreground font-semibold"
+                            : "text-foreground hover:bg-accent"
+                        )}
+                      >
+                        <GitCompareArrows className="h-3 w-3" />
+                        Comparar
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="right" className="text-xs">
+                      Comparar com o período anterior
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
               </div>
               <div className="flex flex-col">
                 <Calendar
