@@ -215,11 +215,11 @@ export default function Dashboard() {
         ].map((kpi) => (
           <div
             key={kpi.label}
-            style={{ containerType: "inline-size", containerName: "kpi" }}
+            style={{ containerType: "inline-size", containerName: "card" }}
           >
             <div
               className={cn(
-                "kpi-card rounded-lg border min-w-0",
+                "cq-card rounded-lg border min-w-0",
                 kpi.highlight
                   ? kpis.totalProfit >= 0
                     ? "border-profit/30 bg-profit/5"
@@ -228,11 +228,11 @@ export default function Dashboard() {
                     ? "border-loss/30 bg-loss/5"
                     : "border-border bg-card"
               )}
-              style={{ padding: "var(--kpi-padding)" }}
+              style={{ padding: "var(--card-padding)" }}
             >
               <span
                 className="uppercase tracking-wider text-foreground font-semibold block"
-                style={{ fontSize: "var(--kpi-label-size)" }}
+                style={{ fontSize: "var(--card-label-size)" }}
               >
                 {kpi.label}
               </span>
@@ -246,7 +246,7 @@ export default function Dashboard() {
                     : !kpi.roasColor ? "text-foreground" : undefined
                 )}
                 style={{
-                  fontSize: "var(--kpi-font-size)",
+                  fontSize: "var(--card-value-size)",
                   ...(kpi.roasColor ? { color: kpi.roasColor } : {}),
                 }}
               >
@@ -360,68 +360,53 @@ export default function Dashboard() {
 
       {/* Grid */}
       <div className="flex-1 overflow-auto p-4 sm:p-6">
-        <div className="grid gap-4 max-w-[1920px] mx-auto" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))' }}>
+        <div className="grid gap-4 max-w-[1920px] mx-auto" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' }}>
           {sorted.map((project) => {
             const isProfit = project.profit >= 0;
 
             return (
               <div
                 key={project.id}
-                onClick={() => navigate(`/project/${project.id}`)}
-                className={cn(
-                  "rounded-lg border p-4 transition-all cursor-pointer hover:ring-1 hover:ring-primary/30",
-                  project.roas <= -1
-                    ? "border-loss/20 bg-loss/5"
-                    : project.roas >= 1
-                      ? "border-profit/30 bg-profit/10"
-                      : "border-border bg-card"
-                )}
+                style={{ containerType: "inline-size", containerName: "card" }}
               >
-                {/* Card header */}
-                <div className="mb-3 flex items-center justify-between">
-                  <div className="flex items-baseline gap-2 truncate pr-2">
-                    <h3 className="text-sm font-semibold text-foreground truncate" title={project.name}>
-                      {project.name}
-                    </h3>
-                    <span className="text-[10px] font-mono text-muted-foreground shrink-0">
-                      #{project.id.substring(0, 5)}
-                    </span>
-                  </div>
-                  <Badge variant="outline" className={cn("text-[10px] shrink-0", verticalConfig[project.vertical]?.className)}>
-                    {verticalConfig[project.vertical]?.label}
-                  </Badge>
-                </div>
-
-                {/* Desktop: 2x2 grid */}
-                <div className="hidden sm:grid grid-cols-2 gap-x-4 gap-y-2">
-                  <Metric label="RECEITA" value={formatBRL(project.revenue)} />
-                  <Metric label="CUSTO" value={formatBRL(project.spend)} />
-                  <Metric
-                    label="LUCRO"
-                    value={formatBRL(project.profit)}
-                    className={isProfit ? "text-profit" : "text-loss"}
-                    bold
-                  />
-                  <Metric label="ROAS" value={formatROAS(project.roas)} style={{ color: getRoasColor(project.roas) }} />
-                </div>
-
-                {/* Mobile: compact layout */}
-                <div className="sm:hidden space-y-2">
-                  <div className="flex items-baseline justify-between">
-                    <div>
-                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground">LUCRO</span>
-                      <p className={cn("font-mono text-lg font-bold", isProfit ? "text-profit" : "text-loss")}>
-                        {formatBRL(project.profit)}
-                      </p>
+                <div
+                  onClick={() => navigate(`/project/${project.id}`)}
+                  className={cn(
+                    "cq-card rounded-lg border transition-all cursor-pointer hover:ring-1 hover:ring-primary/30",
+                    project.roas <= -1
+                      ? "border-loss/20 bg-loss/5"
+                      : project.roas >= 1
+                        ? "border-profit/30 bg-profit/10"
+                        : "border-border bg-card"
+                  )}
+                  style={{ padding: "var(--card-padding)" }}
+                >
+                  {/* Card header */}
+                  <div className="mb-3 flex items-center justify-between">
+                    <div className="flex items-baseline gap-2 truncate pr-2">
+                      <h3 className="font-semibold text-foreground truncate" style={{ fontSize: "var(--card-title-size)" }} title={project.name}>
+                        {project.name}
+                      </h3>
+                      <span className="font-mono text-muted-foreground shrink-0" style={{ fontSize: "var(--card-badge-size)" }}>
+                        #{project.id.substring(0, 5)}
+                      </span>
                     </div>
-                    <div className="text-right">
-                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground">ROAS</span>
-                      <p className="font-mono text-lg font-bold" style={{ color: getRoasColor(project.roas) }}>{formatROAS(project.roas)}</p>
-                    </div>
+                    <Badge variant="outline" className={cn("shrink-0", verticalConfig[project.vertical]?.className)} style={{ fontSize: "var(--card-badge-size)" }}>
+                      {verticalConfig[project.vertical]?.label}
+                    </Badge>
                   </div>
-                  <div className="flex gap-4 text-muted-foreground">
-                    <span className="font-mono text-xs">R: {formatBRL(project.revenue)}</span>
-                    <span className="font-mono text-xs">C: {formatBRL(project.spend)}</span>
+
+                  {/* Metrics grid — collapses to 1 col via container query at Nível 3 */}
+                  <div className="cq-metrics grid grid-cols-2 gap-x-4 gap-y-2">
+                    <Metric label="RECEITA" value={formatBRL(project.revenue)} />
+                    <Metric label="CUSTO" value={formatBRL(project.spend)} />
+                    <Metric
+                      label="LUCRO"
+                      value={formatBRL(project.profit)}
+                      className={isProfit ? "text-profit" : "text-loss"}
+                      bold
+                    />
+                    <Metric label="ROAS" value={formatROAS(project.roas)} style={{ color: getRoasColor(project.roas) }} />
                   </div>
                 </div>
               </div>
@@ -444,10 +429,10 @@ export default function Dashboard() {
 function Metric({ label, value, className, bold, style }: { label: string; value: string; className?: string; bold?: boolean; style?: React.CSSProperties }) {
   return (
     <div>
-      <span className="text-[11px] uppercase tracking-wider text-foreground/60 font-medium">{label}</span>
+      <span className="uppercase tracking-wider text-foreground/60 font-medium" style={{ fontSize: "var(--card-metric-label-size)" }}>{label}</span>
       <p
-        className={cn("font-mono text-sm whitespace-nowrap font-bold", !style && (className || "text-foreground"))}
-        style={style}
+        className={cn("font-mono whitespace-nowrap font-bold", !style && (className || "text-foreground"))}
+        style={{ fontSize: "var(--card-metric-size)", ...style }}
       >
         {value}
       </p>
