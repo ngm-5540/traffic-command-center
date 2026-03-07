@@ -85,6 +85,7 @@ function saveFilters(filters: { vertical: Vertical; sortKey: SortKey; sortDir: S
 }
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const saved = useMemo(() => loadSavedFilters(), []);
   const [projects, setProjects] = useState<DashboardProject[]>(() => loadSavedProjects() ?? defaultProjects);
   const [activeVertical, setActiveVertical] = useState<Vertical>(saved?.vertical ?? "todos");
