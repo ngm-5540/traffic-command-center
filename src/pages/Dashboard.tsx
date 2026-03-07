@@ -208,7 +208,7 @@ export default function Dashboard() {
         {[
           { label: "CUSTO", value: formatBRL(kpis.totalSpend) },
           { label: "RECEITA", value: formatBRL(kpis.totalRevenue) },
-          { label: "LUCRO", value: formatBRL(kpis.totalProfit), isProfit: true, isProfitPositive: kpis.totalProfit >= 0 },
+          { label: "LUCRO", value: formatBRL(kpis.totalProfit), isProfit: true, profitValue: kpis.totalProfit },
           { label: "ROAS", value: formatROAS(kpis.avgRoas), isRoas: true, isRoasPositive: kpis.avgRoas >= 1, isRoasCritical: kpis.avgRoas === -1, roasColor: getRoasColor(kpis.avgRoas) },
           { label: "RPS", value: formatBRL(kpis.avgRps) },
           { label: "CPS", value: formatBRL(kpis.avgCps) },
@@ -239,7 +239,7 @@ export default function Dashboard() {
                   className={cn(
                     "font-mono font-bold whitespace-nowrap leading-tight tracking-tight",
                     kpi.isProfit
-                      ? kpi.isProfitPositive ? "text-profit" : "text-loss"
+                      ? kpi.profitValue === 0 ? "text-foreground" : kpi.profitValue! > 0 ? "text-profit" : "text-loss"
                       : !kpi.isRoas ? "text-foreground" : undefined
                   )}
                   style={{
