@@ -21,21 +21,20 @@ interface Props {
 
 export function CreateProjectDialog({ open, onOpenChange, onCreateProject, defaultVertical }: Props) {
   const [name, setName] = useState("");
-  const [type, setType] = useState("");
   const [vertical, setVertical] = useState<Exclude<Vertical, "todos">>(
     defaultVertical && defaultVertical !== "todos" ? defaultVertical : "google_ads"
   );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !type.trim()) return;
+    if (!name.trim()) return;
 
     const project: DashboardProject = {
       id: crypto.randomUUID(),
       name: name.trim(),
       vertical,
       status: "ativo",
-      type: type.trim(),
+      type: vertical,
       revenue: 0,
       spend: 0,
       profit: 0,
@@ -44,7 +43,6 @@ export function CreateProjectDialog({ open, onOpenChange, onCreateProject, defau
 
     onCreateProject(project);
     setName("");
-    setType("");
     onOpenChange(false);
   };
 
@@ -66,16 +64,7 @@ export function CreateProjectDialog({ open, onOpenChange, onCreateProject, defau
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="project-type">Tipo</Label>
-            <Input
-              id="project-type"
-              placeholder="Ex: Saúde, Finanças, E-commerce"
-              value={type}
-              onChange={(e) => setType(e.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Vertical</Label>
+            <Label>Tipo</Label>
             <Select value={vertical} onValueChange={(v) => setVertical(v as Exclude<Vertical, "todos">)}>
               <SelectTrigger>
                 <SelectValue />
@@ -93,7 +82,7 @@ export function CreateProjectDialog({ open, onOpenChange, onCreateProject, defau
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={!name.trim() || !type.trim()}>
+            <Button type="submit" disabled={!name.trim()}>
               Criar
             </Button>
           </DialogFooter>
