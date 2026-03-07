@@ -96,7 +96,7 @@ export default function Dashboard() {
 
   const handleCreateProject = useCallback((project: DashboardProject) => {
     setProjects((prev) => {
-      const next = [...prev, project];
+      const next = [project, ...prev];
       saveProjects(next);
       return next;
     });
