@@ -269,10 +269,10 @@ export function ChatbotBi() {
             onToggleFocusMode={() => setFocusMode(f => !f)}
             filtersNode={filtersNode}
             tabsListNode={
-              <TabsList className="w-fit">
-                <TabsTrigger value="resultado" className="text-xs">Resultado Total</TabsTrigger>
-                <TabsTrigger value="automacao" className="text-xs">Automação</TabsTrigger>
-                <TabsTrigger value="broadcast" className="text-xs">Broadcast</TabsTrigger>
+              <TabsList className="w-fit h-auto p-0.5 bg-muted/50 border border-border">
+                <TabsTrigger value="resultado" className="text-[10px] font-semibold px-2.5 py-1 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground">Resultado Total</TabsTrigger>
+                <TabsTrigger value="automacao" className="text-[10px] font-semibold px-2.5 py-1 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground">Automação</TabsTrigger>
+                <TabsTrigger value="broadcast" className="text-[10px] font-semibold px-2.5 py-1 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground">Broadcast</TabsTrigger>
               </TabsList>
             }
           />
