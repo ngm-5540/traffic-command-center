@@ -52,7 +52,7 @@ interface StickyHeaderProps {
 
 export function StickyHeader({ selectedProject, onProjectChange, summary, projectOptions }: StickyHeaderProps) {
   const fmt = (v: number) =>
-    v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 0 });
+    `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
@@ -74,27 +74,27 @@ export function StickyHeader({ selectedProject, onProjectChange, summary, projec
         {/* Summary Cards */}
         <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
           <SummaryCard
-            title="Spend"
+            title="Custo"
             value={fmt(summary.spend)}
             trend={summary.spendTrend}
             icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
             trendColor="loss"
           />
           <SummaryCard
-            title="Revenue"
+            title="Receita"
             value={fmt(summary.revenue)}
             trend={summary.revenueTrend}
             icon={<TrendingUp className="h-4 w-4 text-muted-foreground" />}
           />
           <SummaryCard
-            title="Profit"
+            title="Lucro"
             value={fmt(summary.profit)}
             trend={summary.profitTrend}
             icon={<BarChart3 className="h-4 w-4 text-muted-foreground" />}
           />
           <SummaryCard
             title="ROAS"
-            value={summary.roas.toFixed(2)}
+            value={`${(summary.roas * 100).toFixed(0)}%`}
             trend={summary.roasTrend}
             icon={<Percent className="h-4 w-4 text-muted-foreground" />}
           />
