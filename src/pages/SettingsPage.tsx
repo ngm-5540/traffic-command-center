@@ -207,7 +207,7 @@ export default function SettingsPage() {
                   Upload JSON
                 </button>
                 {creds.gam.serviceAccountJson && (
-                  <span className="inline-flex items-center gap-1 text-xs text-emerald-500">
+                  <span className="inline-flex items-center gap-1 text-xs text-primary">
                     <Check className="h-3.5 w-3.5" /> Carregado
                   </span>
                 )}
@@ -234,7 +234,7 @@ export default function SettingsPage() {
                   Upload JSON
                 </button>
                 {creds.analytics.serviceAccountJson && (
-                  <span className="inline-flex items-center gap-1 text-xs text-emerald-500">
+                  <span className="inline-flex items-center gap-1 text-xs text-primary">
                     <Check className="h-3.5 w-3.5" /> Carregado
                   </span>
                 )}
