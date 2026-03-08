@@ -1,19 +1,111 @@
-import { useState } from "react";
-import { Save } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Save, Eye, EyeOff, Upload, Check, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/hooks/use-toast";
+
+type CredentialState = {
+  meta: { token: string };
+  gam: { networkCode: string; serviceAccountJson: string };
+  analytics: { serviceAccountJson: string };
+};
+
+const EMPTY: CredentialState = {
+  meta: { token: "" },
+  gam: { networkCode: "", serviceAccountJson: "" },
+  analytics: { serviceAccountJson: "" },
+};
 
 export default function SettingsPage() {
+  const [creds, setCreds] = useState<CredentialState>(EMPTY);
   const [safeMargin, setSafeMargin] = useState("15");
-  const [gamNetworkCode, setGamNetworkCode] = useState("");
-  const [gamApiKey, setGamApiKey] = useState("");
-  const [saved, setSaved] = useState(false);
+  const [showMetaToken, setShowMetaToken] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
-  const handleSave = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+  // Load credentials on mount
+  useEffect(() => {
+    (async () => {
+      const { data, error } = await supabase
+        .from("integration_credentials")
+        .select("provider, credentials");
+
+      if (!error && data) {
+        const next = { ...EMPTY };
+        for (const row of data) {
+          const p = row.provider as keyof CredentialState;
+          if (p in next) {
+            next[p] = { ...next[p], ...(row.credentials as any) };
+          }
+        }
+        setCreds(next);
+      }
+      setLoading(false);
+    })();
+  }, []);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const providers: { provider: string; credentials: any }[] = [
+        { provider: "meta", credentials: creds.meta },
+        { provider: "gam", credentials: creds.gam },
+        { provider: "analytics", credentials: creds.analytics },
+      ];
+
+      for (const p of providers) {
+        const { error } = await supabase
+          .from("integration_credentials")
+          .upsert(
+            { provider: p.provider, credentials: p.credentials },
+            { onConflict: "provider" }
+          );
+        if (error) throw error;
+      }
+
+      toast({ title: "Credenciais salvas com sucesso!" });
+    } catch (err: any) {
+      toast({ title: "Erro ao salvar", description: err.message, variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const inputClass =
     "h-9 w-full rounded-md border border-border bg-secondary px-3 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:ring-1 focus:ring-ring";
+
+  const handleFileUpload = (
+    key: "gam" | "analytics",
+    field: "serviceAccountJson"
+  ) => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".json";
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const text = ev.target?.result as string;
+        setCreds((prev) => ({
+          ...prev,
+          [key]: { ...prev[key], [field]: text },
+        }));
+        toast({ title: `Arquivo ${file.name} carregado` });
+      };
+      reader.readAsText(file);
+    };
+    input.click();
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-12">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 lg:p-6 max-w-2xl space-y-6">
@@ -22,61 +114,147 @@ export default function SettingsPage() {
         <p className="text-sm text-muted-foreground">Parâmetros gerais e integrações</p>
       </div>
 
-      <div className="space-y-6">
-        {/* Safe Margin */}
-        <div className="rounded-lg border border-border bg-card p-5 space-y-4">
-          <h3 className="text-sm font-semibold text-foreground">Safe Margin Offset</h3>
-          <p className="text-xs text-muted-foreground">
-            Margem de segurança aplicada sobre o ROAS mínimo para decisões de automação.
-          </p>
-          <label className="space-y-1.5 block max-w-xs">
-            <span className="text-xs font-medium text-muted-foreground">Offset (%)</span>
-            <input
-              type="number"
-              value={safeMargin}
-              onChange={(e) => setSafeMargin(e.target.value)}
-              className={inputClass}
-              placeholder="15"
-            />
-          </label>
-        </div>
+      {/* Safe Margin */}
+      <div className="rounded-lg border border-border bg-card p-5 space-y-4">
+        <h3 className="text-sm font-semibold text-foreground">Safe Margin Offset</h3>
+        <p className="text-xs text-muted-foreground">
+          Margem de segurança aplicada sobre o ROAS mínimo para decisões de automação.
+        </p>
+        <label className="space-y-1.5 block max-w-xs">
+          <span className="text-xs font-medium text-muted-foreground">Offset (%)</span>
+          <input
+            type="number"
+            value={safeMargin}
+            onChange={(e) => setSafeMargin(e.target.value)}
+            className={inputClass}
+            placeholder="15"
+          />
+        </label>
+      </div>
 
-        {/* GAM Keys */}
-        <div className="rounded-lg border border-border bg-card p-5 space-y-4">
-          <h3 className="text-sm font-semibold text-foreground">Chaves de Rede do GAM</h3>
-          <p className="text-xs text-muted-foreground">
-            Credenciais de integração com o Google Ad Manager.
-          </p>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <label className="space-y-1.5">
+      {/* Integration Credentials */}
+      <div className="rounded-lg border border-border bg-card p-5 space-y-4">
+        <h3 className="text-sm font-semibold text-foreground">Credenciais de Integração</h3>
+        <p className="text-xs text-muted-foreground">
+          Tokens e service accounts para conexão com plataformas externas.
+        </p>
+
+        <Tabs defaultValue="meta" className="w-full">
+          <TabsList className="w-full">
+            <TabsTrigger value="meta" className="flex-1">Meta Ads</TabsTrigger>
+            <TabsTrigger value="gam" className="flex-1">GAM</TabsTrigger>
+            <TabsTrigger value="analytics" className="flex-1">Analytics</TabsTrigger>
+          </TabsList>
+
+          {/* Meta Ads */}
+          <TabsContent value="meta" className="space-y-4 pt-2">
+            <p className="text-xs text-muted-foreground">
+              Token de desenvolvedor para acessar a API do Meta Ads.
+            </p>
+            <label className="space-y-1.5 block">
+              <span className="text-xs font-medium text-muted-foreground">Developer Token</span>
+              <div className="relative">
+                <input
+                  type={showMetaToken ? "text" : "password"}
+                  value={creds.meta.token}
+                  onChange={(e) =>
+                    setCreds((p) => ({ ...p, meta: { token: e.target.value } }))
+                  }
+                  className={inputClass + " pr-10"}
+                  placeholder="EAAxxxxxxx..."
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowMetaToken(!showMetaToken)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showMetaToken ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </label>
+          </TabsContent>
+
+          {/* GAM */}
+          <TabsContent value="gam" className="space-y-4 pt-2">
+            <p className="text-xs text-muted-foreground">
+              Credenciais do Google Ad Manager via Service Account.
+            </p>
+            <label className="space-y-1.5 block max-w-xs">
               <span className="text-xs font-medium text-muted-foreground">Network Code</span>
               <input
-                value={gamNetworkCode}
-                onChange={(e) => setGamNetworkCode(e.target.value)}
+                value={creds.gam.networkCode}
+                onChange={(e) =>
+                  setCreds((p) => ({
+                    ...p,
+                    gam: { ...p.gam, networkCode: e.target.value },
+                  }))
+                }
                 className={inputClass}
                 placeholder="123456789"
               />
             </label>
-            <label className="space-y-1.5">
-              <span className="text-xs font-medium text-muted-foreground">API Key</span>
-              <input
-                type="password"
-                value={gamApiKey}
-                onChange={(e) => setGamApiKey(e.target.value)}
-                className={inputClass}
-                placeholder="••••••••"
-              />
-            </label>
-          </div>
-        </div>
+            <div className="space-y-1.5">
+              <span className="text-xs font-medium text-muted-foreground block">
+                Service Account JSON
+              </span>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => handleFileUpload("gam", "serviceAccountJson")}
+                  className="inline-flex items-center gap-2 rounded-md border border-border bg-secondary px-3 py-2 text-xs font-medium text-foreground hover:bg-accent transition-colors"
+                >
+                  <Upload className="h-3.5 w-3.5" />
+                  Upload JSON
+                </button>
+                {creds.gam.serviceAccountJson && (
+                  <span className="inline-flex items-center gap-1 text-xs text-primary">
+                    <Check className="h-3.5 w-3.5" /> Carregado
+                  </span>
+                )}
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* Analytics */}
+          <TabsContent value="analytics" className="space-y-4 pt-2">
+            <p className="text-xs text-muted-foreground">
+              Service Account para acessar a API do Google Analytics.
+            </p>
+            <div className="space-y-1.5">
+              <span className="text-xs font-medium text-muted-foreground block">
+                Service Account JSON
+              </span>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => handleFileUpload("analytics", "serviceAccountJson")}
+                  className="inline-flex items-center gap-2 rounded-md border border-border bg-secondary px-3 py-2 text-xs font-medium text-foreground hover:bg-accent transition-colors"
+                >
+                  <Upload className="h-3.5 w-3.5" />
+                  Upload JSON
+                </button>
+                {creds.analytics.serviceAccountJson && (
+                  <span className="inline-flex items-center gap-1 text-xs text-primary">
+                    <Check className="h-3.5 w-3.5" /> Carregado
+                  </span>
+                )}
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
 
       <button
         onClick={handleSave}
-        className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+        disabled={saving}
+        className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
       >
-        <Save className="h-4 w-4" />
-        {saved ? "Salvo!" : "Salvar Configurações"}
+        {saving ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <Save className="h-4 w-4" />
+        )}
+        {saving ? "Salvando..." : "Salvar Configurações"}
       </button>
     </div>
   );
