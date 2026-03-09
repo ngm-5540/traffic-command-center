@@ -400,10 +400,9 @@ export function useRealDashboardData(dateRange?: DateRange) {
 
 // ── Project Detail: campaign-level data for a specific project ──
 
-export function useProjectCampaigns(projectId: string | undefined, dateRange?: DateRange) {
+export function useProjectCampaigns(projectId: string | undefined, dateRange?: DateRange, projectRevenue?: number) {
   const config = getStoredConfig();
   const bmTaxRates = config.bm_tax_rates || {};
-  const usdBrlRate = parseFloat(config.usd_brl_rate || "5.1") || 5.1;
 
   const since = dateRange?.from ? formatDate(dateRange.from) : undefined;
   const until = dateRange?.to ? formatDate(dateRange.to) : since;
