@@ -6,6 +6,17 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// ── Safe JSON parse for external API responses ──
+
+async function safeJson(res: Response, label: string): Promise<any> {
+  const text = await res.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error(`${label} returned non-JSON (status ${res.status}): ${text.slice(0, 300)}`);
+  }
+}
+
 // ── Google Service Account JWT Auth ──
 
 async function getGoogleAccessToken(
