@@ -669,14 +669,31 @@ export function useProjectCampaigns(projectId: string | undefined, dateRange?: D
     return result;
   }, [metaQuery.data, gamAdRevenueMap, projectMetaAccounts, adAccountToBm, bmTaxRates]);
 
+  const refetchAll = useCallback(() => {
+    dbQuery.refetch();
+    metaQuery.refetch();
+    gamQuery.refetch();
+  }, [dbQuery, metaQuery, gamQuery]);
+
+  // Synchronized refetch for project detail
+  const includesTodayProject = useMemo(() => {
+    if (!until) return true;
+    return until >= format(new Date(), "yyyy-MM-dd");
+  }, [until]);
+
+  useEffect(() => {
+    if (!includesTodayProject) return;
+    const interval = setInterval(() => {
+      console.log("[sync-refetch] Project detail: refreshing all sources simultaneously...");
+      refetchAll();
+    }, 1000 * 60 * 15);
+    return () => clearInterval(interval);
+  }, [includesTodayProject, refetchAll]);
+
   return {
     campaigns,
     isLoading: dbQuery.isLoading || metaQuery.isLoading || gamQuery.isLoading,
     errors: [dbQuery.error?.message, metaQuery.error?.message, gamQuery.error?.message].filter(Boolean),
-    refetch: () => {
-      dbQuery.refetch();
-      metaQuery.refetch();
-      gamQuery.refetch();
-    },
+    refetch: refetchAll,
   };
 }
