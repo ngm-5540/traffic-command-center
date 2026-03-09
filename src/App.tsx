@@ -45,7 +45,7 @@ function AppLayout() {
               </Button>
             </div>
           </div>
-          <main className="flex-1 overflow-auto">
+          <main className="flex-1 overflow-hidden min-h-0">
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/project/:id" element={<ProjectDetail />} />
