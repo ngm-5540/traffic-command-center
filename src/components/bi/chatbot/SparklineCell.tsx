@@ -8,6 +8,7 @@ interface SparklineCellProps {
 }
 
 export function SparklineCell({ data, color = "hsl(var(--primary))", width = 80, height = 25 }: SparklineCellProps) {
+  if (!data || data.length === 0) return null;
   const chartData = data.map((value) => ({ value }));
 
   return (
