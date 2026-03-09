@@ -28,6 +28,7 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const metaAccounts = useMetaAdAccounts();
+  const metaBusinesses = useMetaBusinesses();
   const ga4Properties = useGA4Properties();
   const { toast } = useToast();
 
