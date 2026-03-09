@@ -597,10 +597,10 @@ export function ResultadoTotalTab({ campaigns, popEnabled = false, focusMode = f
             )}
           </tbody>
           {/* Totals - sticky at bottom of scroll area */}
-          <tfoot className="sticky bottom-0 z-30 border-t-2 border-primary/30 bg-background shadow-[0_-4px_8px_-2px_rgba(0,0,0,0.15)]">
+          <tfoot className="sticky bottom-0 z-30 border-t-2 border-primary/30 bg-background shadow-[0_-6px_12px_-2px_rgba(0,0,0,0.2)]">
             <tr>
               <td
-                className="sticky left-0 z-40 bg-background px-3 py-2 font-bold text-foreground text-xs border-r border-border shadow-[2px_0_4px_-2px_rgba(0,0,0,0.3)]"
+                className="sticky left-0 z-40 bg-background px-3 py-3 font-black text-foreground text-sm border-r border-border shadow-[2px_0_4px_-2px_rgba(0,0,0,0.3)] tracking-wide"
                 colSpan={parentColCount}
               >
                 TOTAL ({rows.length})
@@ -611,7 +611,7 @@ export function ResultadoTotalTab({ campaigns, popEnabled = false, focusMode = f
                 const isTrend = col.key.endsWith("Trend");
                 const value = isTrend ? [] : isAvg && rows.length > 0 ? total / rows.length : total;
                 return (
-                  <td key={col.key} className="px-2 py-2 text-right font-mono font-bold text-xs whitespace-nowrap">
+                  <td key={col.key} className="px-2 py-3 text-right font-mono font-black text-sm whitespace-nowrap">
                     {isTrend ? "—" : col.format(value)}
                   </td>
                 );
