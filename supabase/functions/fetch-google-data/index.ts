@@ -255,14 +255,14 @@ Deno.serve(async (req) => {
             metrics: [
               "AD_SERVER_IMPRESSIONS",
               "AD_SERVER_CLICKS",
-              "AD_SERVER_CPM_AND_CPC_REVENUE",
+              "AD_SERVER_WITHOUT_CPD_AVERAGE_ECPM",
             ],
-            dateRange: {
-              startDate: { year: parseInt(startDate.slice(0, 4)), month: parseInt(startDate.slice(5, 7)), day: parseInt(startDate.slice(8, 10)) },
-              endDate: { year: parseInt(endDate.slice(0, 4)), month: parseInt(endDate.slice(5, 7)), day: parseInt(endDate.slice(8, 10)) },
+            date_range: {
+              start_date: { year: parseInt(startDate.slice(0, 4)), month: parseInt(startDate.slice(5, 7)), day: parseInt(startDate.slice(8, 10)) },
+              end_date: { year: parseInt(endDate.slice(0, 4)), month: parseInt(endDate.slice(5, 7)), day: parseInt(endDate.slice(8, 10)) },
             },
           },
-          displayName: `Lovable Report ${startDate}`,
+          display_name: `Lovable Report ${startDate}`,
           visibility: "HIDDEN",
         }),
       });
