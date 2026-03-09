@@ -73,7 +73,6 @@ export async function fetchGA4Data(params: {
 export async function fetchGAMRevenue(params: {
   startDate?: string;
   endDate?: string;
-  keyValuesFilter?: string[];
   countryIds?: string[];
 }) {
   const { data, error } = await supabase.functions.invoke("fetch-google-data", {
@@ -81,7 +80,6 @@ export async function fetchGAMRevenue(params: {
       action: "fetch_gam_revenue",
       start_date: params.startDate,
       end_date: params.endDate,
-      key_values_filter: params.keyValuesFilter,
       country_ids: params.countryIds,
     },
   });
