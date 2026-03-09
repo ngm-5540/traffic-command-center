@@ -566,8 +566,28 @@ export function useProjectCampaigns(projectId: string | undefined, dateRange?: D
       campaign.adsetMap.get(ad.adsetId)!.ads.push(ad);
     }
 
-    // If no ad_insights, fall back to campaign_insights
+    // If no ad_insights, fall back to campaign_insights with proportional GAM revenue
     if (allAds.length === 0) {
+      // Calculate total GAM revenue from utm_source=fb_vc for share-of-spend distribution
+      let gamFbVcRevenue = 0;
+      const revSharePct = gamQuery.data?.revSharePct || 0;
+      if (gamQuery.data?.rows) {
+        for (const row of gamQuery.data.rows) {
+          const kvName = row.dimensionValues?.[0]?.stringValue || "";
+          if (!kvName.includes("utm_source=fb_vc")) continue;
+          const primaryValues = row.metricValueGroups?.[0]?.primaryValues;
+          if (primaryValues) {
+            let rev = parseFloat(primaryValues[4]?.doubleValue || primaryValues[4]?.intValue || "0");
+            if (revSharePct > 0) rev = rev * (1 - revSharePct / 100);
+            gamFbVcRevenue += rev * usdBrlRate;
+          }
+        }
+      }
+
+      // Collect all campaign spends first to calculate proportional shares
+      const campaignEntries: { id: string; name: string; spend: number; impressions: number; clicks: number; accountId: string }[] = [];
+      let totalFallbackSpend = 0;
+
       for (const accountId of projectMetaAccounts) {
         const accountData = metaData[accountId];
         if (!accountData?.campaign_insights) continue;
@@ -579,30 +599,37 @@ export function useProjectCampaigns(projectId: string | undefined, dateRange?: D
           const spend = rawSpend * (1 + taxPct / 100);
           const impressions = parseInt(ci.impressions || "0");
           const clicks = parseInt(ci.clicks || "0");
-
-          if (!campaignMap.has(ci.campaign_id)) {
-            campaignMap.set(ci.campaign_id, { name: ci.campaign_name || ci.campaign_id, adsetMap: new Map() });
-          }
-
-          // Create a synthetic adset with campaign-level metrics so aggregation works
-          const syntheticAdsetId = `${ci.campaign_id}_all`;
-          const campaign = campaignMap.get(ci.campaign_id)!;
-          if (!campaign.adsetMap.has(syntheticAdsetId)) {
-            campaign.adsetMap.set(syntheticAdsetId, { name: "Todos os conjuntos", ads: [] });
-          }
-          campaign.adsetMap.get(syntheticAdsetId)!.ads.push({
-            adId: `${ci.campaign_id}_summary`,
-            adName: "Resumo da campanha",
-            adsetId: syntheticAdsetId,
-            adsetName: "Todos os conjuntos",
-            campaignId: ci.campaign_id,
-            campaignName: ci.campaign_name || ci.campaign_id,
-            spend,
-            impressions,
-            clicks,
-            revenue: 0,
-          });
+          campaignEntries.push({ id: ci.campaign_id, name: ci.campaign_name || ci.campaign_id, spend, impressions, clicks, accountId });
+          totalFallbackSpend += spend;
         }
+      }
+
+      // Now create entries with proportional revenue
+      for (const cs of campaignEntries) {
+        if (!campaignMap.has(cs.id)) {
+          campaignMap.set(cs.id, { name: cs.name, adsetMap: new Map() });
+        }
+
+        const share = totalFallbackSpend > 0 ? cs.spend / totalFallbackSpend : 1 / campaignEntries.length;
+        const campaignRevenue = gamFbVcRevenue * share;
+
+        const syntheticAdsetId = `${cs.id}_all`;
+        const campaign = campaignMap.get(cs.id)!;
+        if (!campaign.adsetMap.has(syntheticAdsetId)) {
+          campaign.adsetMap.set(syntheticAdsetId, { name: "Todos os conjuntos", ads: [] });
+        }
+        campaign.adsetMap.get(syntheticAdsetId)!.ads.push({
+          adId: `${cs.id}_summary`,
+          adName: "Resumo da campanha",
+          adsetId: syntheticAdsetId,
+          adsetName: "Todos os conjuntos",
+          campaignId: cs.id,
+          campaignName: cs.name,
+          spend: cs.spend,
+          impressions: cs.impressions,
+          clicks: cs.clicks,
+          revenue: campaignRevenue,
+        });
       }
     }
 
