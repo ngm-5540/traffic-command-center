@@ -456,7 +456,7 @@ export default function Dashboard() {
                       <ProjectName name={project.name} id={project.id} />
                       <Badge
                         variant="outline"
-                        className={cn("shrink-0 px-1 py-0 h-3.5 text-[6px] font-semibold tracking-wider mt-0.5", verticalConfig[project.vertical]?.className)}
+                        className={cn("shrink-0 px-1 py-0 h-3.5 text-[6px] font-semibold tracking-wider", verticalConfig[project.vertical]?.className)}
                       >
                         {verticalConfig[project.vertical]?.label}
                       </Badge>
