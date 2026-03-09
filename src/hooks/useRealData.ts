@@ -453,7 +453,6 @@ export function useProjectCampaigns(projectId: string | undefined, dateRange?: D
     enabled: !!since,
     retry: 1,
     staleTime: 1000 * 60 * 14,
-    placeholderData: (prev: any) => prev,
   });
 
   // Build adAccount → BM map
