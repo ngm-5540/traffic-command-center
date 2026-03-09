@@ -225,34 +225,6 @@ export function useRealDashboardData(dateRange?: DateRange) {
   });
 
   // Build project-level aggregation
-  // Build GAM ad_id → revenue map from utm_content rows
-  const gamAdRevenueMap: Record<string, number> = useMemo(() => {
-    const map: Record<string, number> = {};
-    const revSharePct = gamQuery.data?.revSharePct || 0;
-    const usdBrlRate = parseFloat(config.usd_brl_rate || "5.1") || 5.1;
-
-    if (!gamQuery.data?.rows) return map;
-
-    for (const row of gamQuery.data.rows) {
-      const kvName = row.dimensionValues?.[0]?.stringValue || "";
-      if (!kvName.startsWith("utm_content=")) continue;
-
-      // Extract ad_id from pattern: utm_content=X_aut_ADID_vc_Y
-      const match = kvName.match(/_aut_(\d+)_vc_/);
-      if (!match) continue;
-
-      const adId = match[1];
-      const primaryValues = row.metricValueGroups?.[0]?.primaryValues;
-      if (!primaryValues) continue;
-
-      let rev = parseFloat(primaryValues[4]?.doubleValue || primaryValues[4]?.intValue || "0");
-      if (revSharePct > 0) rev = rev * (1 - revSharePct / 100);
-      rev = rev * usdBrlRate;
-
-      map[adId] = (map[adId] || 0) + rev;
-    }
-    return map;
-  }, [gamQuery.data, config.usd_brl_rate]);
 
   const projects: DashboardProject[] = useMemo(() => {
     if (!dbProjects.length) return [];
