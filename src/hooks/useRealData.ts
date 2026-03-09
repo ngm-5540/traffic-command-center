@@ -241,6 +241,8 @@ export function useRealDashboardData(dateRange?: DateRange) {
     }
 
     const result: DashboardProject[] = [];
+
+    for (const proj of dbProjects) {
       // Find ad accounts mapped to this project
       const projectMappings = dbMappings.filter((m) => m.project_id === proj.id);
       const projectMetaAccounts = projectMappings
