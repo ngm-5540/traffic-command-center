@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { listMetaAdAccounts, fetchMetaInsights, listGA4Properties, fetchGA4Data, fetchGAMRevenue } from "@/lib/api";
+import { cachedFetch } from "@/lib/apiCache";
 import type { DashboardProject } from "@/data/dashboardData";
 import type { DateRange } from "react-day-picker";
 
@@ -130,7 +131,13 @@ export function useRealDashboardData(dateRange?: DateRange) {
       await Promise.all(
         metaAdAccountIds.map(async (accountId) => {
           try {
-            const data = await fetchMetaInsights({ adAccountId: accountId, since, until });
+            const data = await cachedFetch(
+              "meta",
+              accountId,
+              since,
+              until,
+              () => fetchMetaInsights({ adAccountId: accountId, since, until })
+            );
             results[accountId] = data;
           } catch (err) {
             console.error(`Meta insights error for ${accountId}:`, err);
@@ -150,7 +157,6 @@ export function useRealDashboardData(dateRange?: DateRange) {
     queryKey: ["gam-revenue", since, until],
     queryFn: async () => {
       try {
-        // Fetch GAM rev share from credentials
         const { data: gamCred } = await supabase
           .from("integration_credentials")
           .select("credentials")
@@ -158,7 +164,13 @@ export function useRealDashboardData(dateRange?: DateRange) {
           .single();
         const revSharePct = parseFloat((gamCred?.credentials as any)?.revShare || "0");
 
-        const report = await fetchGAMRevenue({ startDate: since, endDate: until });
+        const report = await cachedFetch(
+          "gam",
+          "default",
+          since,
+          until,
+          () => fetchGAMRevenue({ startDate: since, endDate: until })
+        );
         return { ...report, revSharePct };
       } catch (err) {
         console.warn("GAM revenue fetch failed (non-blocking):", err);
@@ -174,11 +186,17 @@ export function useRealDashboardData(dateRange?: DateRange) {
   const ga4Query = useQuery({
     queryKey: ["ga4-data", ga4PropertyId, since, until],
     queryFn: () =>
-      fetchGA4Data({
-        propertyId: ga4PropertyId!,
-        startDate: since,
-        endDate: until,
-      }),
+      cachedFetch(
+        "ga4",
+        ga4PropertyId!,
+        since,
+        until,
+        () => fetchGA4Data({
+          propertyId: ga4PropertyId!,
+          startDate: since,
+          endDate: until,
+        })
+      ),
     enabled: !!ga4PropertyId && !!since,
     retry: 1,
     staleTime: 1000 * 60 * 5,

@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      api_data_cache: {
+        Row: {
+          cache_key: string
+          data: Json
+          date_range: string
+          fetched_at: string
+          id: string
+          provider: string
+        }
+        Insert: {
+          cache_key?: string
+          data?: Json
+          date_range: string
+          fetched_at?: string
+          id?: string
+          provider: string
+        }
+        Update: {
+          cache_key?: string
+          data?: Json
+          date_range?: string
+          fetched_at?: string
+          id?: string
+          provider?: string
+        }
+        Relationships: []
+      }
       integration_credentials: {
         Row: {
           created_at: string
