@@ -234,7 +234,7 @@ export function ChatbotBi({ project, campaigns, isLoading, dateRange, onDateRang
     <div className={cn("flex flex-col min-h-0", focusMode ? "fixed inset-0 z-[100] bg-background h-screen overflow-auto" : "h-full")}>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-3 gap-3 px-4 pt-4 sm:grid-cols-6 sm:px-6">
+      <div className="shrink-0 grid grid-cols-3 gap-3 px-4 pt-4 sm:grid-cols-6 sm:px-6">
         {isLoading ? (
           Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="rounded-lg border border-border bg-card p-3 space-y-2">
