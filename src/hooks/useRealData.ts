@@ -203,18 +203,20 @@ export function useRealDashboardData(dateRange?: DateRange) {
   // GA4 Sessions
   const ga4Query = useQuery({
     queryKey: ["ga4-data", ga4PropertyId, since, until],
-    queryFn: () =>
-      cachedFetch(
+    queryFn: () => {
+      if (!ga4PropertyId) return Promise.resolve(null);
+      return cachedFetch(
         "ga4",
-        ga4PropertyId!,
+        ga4PropertyId,
         since,
         until,
         () => fetchGA4Data({
-          propertyId: ga4PropertyId!,
+          propertyId: ga4PropertyId,
           startDate: since,
           endDate: until,
         })
-      ),
+      );
+    },
     enabled: !!ga4PropertyId && !!since,
     retry: 1,
     staleTime: 1000 * 60 * 14,
