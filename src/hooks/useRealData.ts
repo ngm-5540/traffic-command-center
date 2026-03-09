@@ -196,7 +196,6 @@ export function useRealDashboardData(dateRange?: DateRange) {
     enabled: !!since,
     retry: 1,
     staleTime: 1000 * 60 * 14,
-    placeholderData: (prev: any) => prev,
   });
 
   // GA4 Sessions
