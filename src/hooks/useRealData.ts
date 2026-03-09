@@ -326,6 +326,11 @@ export function useRealDashboardData(dateRange?: DateRange) {
     } else {
       console.log("[GAM] No rows available", { data: gamQuery.data, status: gamQuery.status, error: gamQuery.error?.message });
     }
+    // Convert GAM revenue from USD to BRL
+    const usdBrlRate = parseFloat(config.usd_brl_rate || "5.1") || 5.1;
+    gamTotalRevenue = gamTotalRevenue * usdBrlRate;
+    console.log(`[GAM] Total revenue in BRL (rate=${usdBrlRate}): ${gamTotalRevenue}`);
+
     if (gamTotalRevenue > 0) {
       const allSpend = result.reduce((s, p) => s + p.spend, 0);
       for (const p of result) {
