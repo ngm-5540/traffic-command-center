@@ -13,22 +13,30 @@ export function includestoday(until?: string): boolean {
 
 /**
  * Try to read cached data for a given provider + key + date range.
- * Returns null if no cache exists.
+ * Returns null if no cache exists, or if maxAgeMs is set and cache is too old.
  */
 export async function readCache(
   provider: string,
   cacheKey: string,
-  dateRange: string
+  dateRange: string,
+  maxAgeMs?: number
 ): Promise<any | null> {
   const { data, error } = await supabase
     .from("api_data_cache")
-    .select("data")
+    .select("data, fetched_at")
     .eq("provider", provider)
     .eq("cache_key", cacheKey)
     .eq("date_range", dateRange)
     .maybeSingle();
 
   if (error || !data) return null;
+
+  // Check staleness if maxAgeMs is provided
+  if (maxAgeMs !== undefined) {
+    const age = Date.now() - new Date(data.fetched_at).getTime();
+    if (age > maxAgeMs) return null;
+  }
+
   return data.data;
 }
 
