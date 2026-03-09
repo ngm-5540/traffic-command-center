@@ -302,7 +302,7 @@ export function ChatbotBi({ project, campaigns, isLoading, dateRange, onDateRang
             tabsListNode={tabsListNode}
           />
         </TabsContent>
-        <TabsContent value="broadcast" className="flex-1">
+        <TabsContent value="broadcast" className="flex-1 min-h-0 flex flex-col">
           <BroadcastTab
             broadcasts={chatbotBroadcasts}
             popEnabled={popEnabled}
