@@ -273,11 +273,20 @@ export function ResultadoTotalTab({ campaigns, popEnabled = false, focusMode = f
     return groups;
   }, [visibleColumns]);
 
-  // Expanded rows (only for campaign dimension)
+  // Expanded rows (campaign and adset level)
   const [expandedCampaigns, setExpandedCampaigns] = useState<Set<string>>(new Set());
+  const [expandedAdsets, setExpandedAdsets] = useState<Set<string>>(new Set());
 
   const toggleExpand = useCallback((id: string) => {
     setExpandedCampaigns((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const toggleExpandAdset = useCallback((id: string) => {
+    setExpandedAdsets((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id); else next.add(id);
       return next;
