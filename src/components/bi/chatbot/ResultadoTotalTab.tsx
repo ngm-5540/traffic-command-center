@@ -392,7 +392,7 @@ export function ResultadoTotalTab({ campaigns, popEnabled = false, focusMode = f
 
       {/* Table */}
       <div className="flex-1 overflow-auto relative min-h-0">
-        <table className="w-full text-xs border-collapse">
+        <table className="w-full text-xs border-collapse min-h-full">
           <thead className="sticky top-0 z-30 bg-background">
             {/* Super-header row */}
             <tr className="border-b border-border">
