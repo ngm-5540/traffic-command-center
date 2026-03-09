@@ -21,6 +21,7 @@ const EMPTY: CredentialState = {
 export default function SettingsPage() {
   const [creds, setCreds] = useState<CredentialState>(EMPTY);
   const [safeMargin, setSafeMargin] = useState("15");
+  const [usdBrlRate, setUsdBrlRate] = useState(config.usd_brl_rate || "5.1");
   const [showMetaToken, setShowMetaToken] = useState(false);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
