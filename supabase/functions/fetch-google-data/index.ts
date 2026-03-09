@@ -243,6 +243,13 @@ Deno.serve(async (req) => {
       const gamBase = `https://admanager.googleapis.com/v1/networks/${networkCode}`;
 
       // Step 1: Create a report
+      const sy = parseInt(startDate.slice(0, 4));
+      const sm = parseInt(startDate.slice(5, 7));
+      const sd = parseInt(startDate.slice(8, 10));
+      const ey = parseInt(endDate.slice(0, 4));
+      const em = parseInt(endDate.slice(5, 7));
+      const ed = parseInt(endDate.slice(8, 10));
+
       const createRes = await fetch(`${gamBase}/reports`, {
         method: "POST",
         headers: {
@@ -252,13 +259,14 @@ Deno.serve(async (req) => {
         body: JSON.stringify({
           reportDefinition: {
             dimensions: ["DATE"],
-            metrics: [
-              "AD_SERVER_IMPRESSIONS",
-              "AD_SERVER_CLICKS",
-              "AD_SERVER_REVENUE",
-            ],
+            metrics: ["AD_SERVER_IMPRESSIONS", "AD_SERVER_CLICKS", "AD_SERVER_REVENUE"],
             reportType: "HISTORICAL",
-            dateRange: {},
+            dateRange: {
+              fixedDateRange: {
+                startDate: { year: sy, month: sm, day: sd },
+                endDate: { year: ey, month: em, day: ed },
+              },
+            },
           },
           displayName: `Lovable Report ${startDate}`,
           visibility: "HIDDEN",
@@ -268,28 +276,27 @@ Deno.serve(async (req) => {
       const report = await safeJson(createRes, "GAM Create Report");
       if (report.error) {
         return new Response(
-          JSON.stringify({ error: `GAM API (create): ${report.error.message}` }),
+          JSON.stringify({ error: `GAM API: ${report.error.message || JSON.stringify(report.error)}` }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
-      const reportName = report.name; // e.g. "networks/123/reports/456"
+      const reportName = report.name;
 
       // Step 2: Run the report
-      const runRes = await fetch(`${gamBase.replace(`/networks/${networkCode}`, '')}/${reportName}:run`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-
+      const runRes = await fetch(
+        `https://admanager.googleapis.com/v1/${reportName}:run`,
+        { method: "POST", headers: { Authorization: `Bearer ${accessToken}` } }
+      );
       const operation = await safeJson(runRes, "GAM Run Report");
       if (operation.error) {
         return new Response(
-          JSON.stringify({ error: `GAM API (run): ${operation.error.message}` }),
+          JSON.stringify({ error: `GAM API (run): ${operation.error.message || JSON.stringify(operation.error)}` }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
-      // Step 3: Poll operation until done (max 30s)
+      // Step 3: Poll until done (max 30s)
       let result = operation;
       const opName = operation.name;
       if (opName && !result.done) {
@@ -299,25 +306,23 @@ Deno.serve(async (req) => {
             `https://admanager.googleapis.com/v1/${opName}`,
             { headers: { Authorization: `Bearer ${accessToken}` } }
           );
-          result = await safeJson(pollRes, "GAM Poll Operation");
+          result = await safeJson(pollRes, "GAM Poll");
           if (result.done) break;
         }
       }
 
       if (!result.done) {
         return new Response(
-          JSON.stringify({ error: "GAM report timed out. Try a shorter date range." }),
+          JSON.stringify({ error: "GAM report timed out." }),
           { status: 408, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
-      // Step 4: Fetch report result rows
       const reportResult = result.response?.reportResult;
       if (!reportResult) {
-        return new Response(
-          JSON.stringify({ report: { rows: [] } }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+        return new Response(JSON.stringify({ report: { rows: [] } }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
 
       const fetchRowsRes = await fetch(
@@ -326,7 +331,7 @@ Deno.serve(async (req) => {
       );
       const rowsData = await safeJson(fetchRowsRes, "GAM Fetch Rows");
 
-      // Clean up: delete the temp report
+      // Clean up temp report
       fetch(`https://admanager.googleapis.com/v1/${reportName}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${accessToken}` },
