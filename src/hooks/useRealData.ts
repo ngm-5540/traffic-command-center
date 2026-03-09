@@ -229,9 +229,18 @@ export function useRealDashboardData(dateRange?: DateRange) {
     if (!dbProjects.length) return [];
 
     const metaData = metaQueries.data || {};
-    const result: DashboardProject[] = [];
 
-    for (const proj of dbProjects) {
+    // Build adAccountId → bmId reverse map for tax
+    const adAccountToBm: Record<string, string> = {};
+    if (bmQuery.data) {
+      for (const bm of bmQuery.data) {
+        for (const acc of bm.ad_accounts) {
+          adAccountToBm[acc.id] = bm.id;
+        }
+      }
+    }
+
+    const result: DashboardProject[] = [];
       // Find ad accounts mapped to this project
       const projectMappings = dbMappings.filter((m) => m.project_id === proj.id);
       const projectMetaAccounts = projectMappings
