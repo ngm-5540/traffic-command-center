@@ -189,14 +189,24 @@ export default function Dashboard() {
         className="grid gap-2 px-4 pt-4 sm:gap-3 sm:px-6 max-w-[1920px] mx-auto w-full"
         style={{ gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))" }}
       >
-        {[
-          { label: "CUSTO", value: formatBRL(kpis.totalSpend), fullValue: formatBRLFull(kpis.totalSpend), tooltip: "Investimento total em ads", popCurrent: kpis.totalSpend, popPrevious: previousKpis.totalCost, invertColor: true },
-          { label: "RECEITA", value: formatBRL(kpis.totalRevenue), fullValue: formatBRLFull(kpis.totalRevenue), tooltip: "Receita total gerada", popCurrent: kpis.totalRevenue, popPrevious: previousKpis.totalRevenue },
-          { label: "LUCRO", value: formatBRL(kpis.totalProfit), fullValue: formatBRLFull(kpis.totalProfit), isProfit: true, profitValue: kpis.totalProfit, isLossCard: kpis.avgRoas <= -1, tooltip: "Receita total menos custo total", popCurrent: kpis.totalProfit, popPrevious: previousKpis.totalProfit },
-          { label: "ROAS", value: formatROAS(kpis.avgRoas), isRoas: true, isRoasPositive: kpis.avgRoas >= 1, isRoasCritical: kpis.avgRoas <= -1, roasColor: getRoasColor(kpis.avgRoas), tooltip: "Retorno médio sobre investimento", popCurrent: kpis.avgRoas, popPrevious: previousKpis.avgRoas },
-          { label: "RPS", value: formatBRL(kpis.avgRps), fullValue: formatBRLFull(kpis.avgRps), tooltip: "Receita por sessão média", popCurrent: kpis.avgRps, popPrevious: previousKpis.avgRps },
-          { label: "CPS", value: formatBRL(kpis.avgCps), fullValue: formatBRLFull(kpis.avgCps), tooltip: "Custo por sessão média", popCurrent: kpis.avgCps, popPrevious: previousKpis.avgCostPerLead, invertColor: true },
-        ].map((kpi) => (
+        {realData.isLoading ? (
+          <>
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="rounded-lg border border-border bg-card p-2.5 sm:p-3 md:p-4 space-y-2">
+                <Skeleton className="h-3 w-14" />
+                <Skeleton className="h-5 w-20" />
+              </div>
+            ))}
+          </>
+        ) : (
+          [{
+            label: "CUSTO", value: formatBRL(kpis.totalSpend), fullValue: formatBRLFull(kpis.totalSpend), tooltip: "Investimento total em ads", popCurrent: kpis.totalSpend, popPrevious: previousKpis.totalCost, invertColor: true },
+            { label: "RECEITA", value: formatBRL(kpis.totalRevenue), fullValue: formatBRLFull(kpis.totalRevenue), tooltip: "Receita total gerada", popCurrent: kpis.totalRevenue, popPrevious: previousKpis.totalRevenue },
+            { label: "LUCRO", value: formatBRL(kpis.totalProfit), fullValue: formatBRLFull(kpis.totalProfit), isProfit: true, profitValue: kpis.totalProfit, isLossCard: kpis.avgRoas <= -1, tooltip: "Receita total menos custo total", popCurrent: kpis.totalProfit, popPrevious: previousKpis.totalProfit },
+            { label: "ROAS", value: formatROAS(kpis.avgRoas), isRoas: true, isRoasPositive: kpis.avgRoas >= 1, isRoasCritical: kpis.avgRoas <= -1, roasColor: getRoasColor(kpis.avgRoas), tooltip: "Retorno médio sobre investimento", popCurrent: kpis.avgRoas, popPrevious: previousKpis.avgRoas },
+            { label: "RPS", value: formatBRL(kpis.avgRps), fullValue: formatBRLFull(kpis.avgRps), tooltip: "Receita por sessão média", popCurrent: kpis.avgRps, popPrevious: previousKpis.avgRps },
+            { label: "CPS", value: formatBRL(kpis.avgCps), fullValue: formatBRLFull(kpis.avgCps), tooltip: "Custo por sessão média", popCurrent: kpis.avgCps, popPrevious: previousKpis.avgCostPerLead, invertColor: true },
+          ].map((kpi) => (
             <Tooltip key={kpi.label}>
               <TooltipTrigger asChild>
                 <div style={{ containerType: "inline-size" }}>
@@ -242,7 +252,8 @@ export default function Dashboard() {
               </TooltipTrigger>
               <TooltipContent side="bottom" className="text-xs">{kpi.fullValue ? `${kpi.fullValue} — ${kpi.tooltip}` : kpi.tooltip}</TooltipContent>
             </Tooltip>
-          ))}
+          ))
+        )}
       </div>
 
       {/* Filters bar */}
