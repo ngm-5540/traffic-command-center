@@ -68,7 +68,13 @@ async function getGoogleAccessToken(
     body: `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${jwt}`,
   });
 
-  const tokenData = await tokenRes.json();
+  const tokenText = await tokenRes.text();
+  let tokenData: any;
+  try {
+    tokenData = JSON.parse(tokenText);
+  } catch {
+    throw new Error(`Google OAuth returned non-JSON (status ${tokenRes.status}): ${tokenText.slice(0, 200)}`);
+  }
   if (tokenData.error) {
     throw new Error(`Google OAuth error: ${tokenData.error_description || tokenData.error}`);
   }
