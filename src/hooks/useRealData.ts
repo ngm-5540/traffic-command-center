@@ -449,27 +449,8 @@ export function useProjectCampaigns(projectId: string | undefined, dateRange?: D
     placeholderData: (prev: any) => prev,
   });
 
-  // GAM revenue for this project
-  const gamQuery = useQuery({
-    queryKey: ["gam-revenue", since, until],
-    queryFn: async () => {
-      const { data: gamCred } = await supabase
-        .from("integration_credentials")
-        .select("credentials")
-        .eq("provider", "gam")
-        .single();
-      const revSharePct = parseFloat((gamCred?.credentials as any)?.revShare || "0");
-      const report = await cachedFetch(
-        "gam", "default", since, until,
-        () => fetchGAMRevenue({ startDate: since, endDate: until })
-      );
-      return { ...report, revSharePct };
-    },
-    enabled: !!since,
-    retry: 1,
-    staleTime: 1000 * 60 * 14,
-    placeholderData: (prev: any) => prev,
-  });
+
+
 
   // Build adAccount → BM map
   const adAccountToBm: Record<string, string> = useMemo(() => {
