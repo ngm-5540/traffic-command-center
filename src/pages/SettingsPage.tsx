@@ -315,31 +315,29 @@ export default function SettingsPage() {
               {metaBusinesses.data.map((bm) => (
                 <AccordionItem key={bm.id} value={bm.id} className="border-border">
                   <AccordionTrigger className="text-xs font-medium py-2 hover:no-underline">
-                    <span className="flex items-center gap-2">
+                    <span className="flex items-center gap-2 flex-1">
                       <span className="inline-block h-2 w-2 rounded-full bg-primary" />
                       {bm.name}
                       <span className="text-muted-foreground font-normal">({bm.ad_accounts.length} contas)</span>
+                      <span className="ml-auto flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                        <label className="text-[10px] text-muted-foreground whitespace-nowrap">Imposto</label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          max="100"
+                          value={config.bm_tax_rates?.[bm.id] || ""}
+                          onChange={(e) => {
+                            const current = config.bm_tax_rates || {};
+                            updateConfig({ bm_tax_rates: { ...current, [bm.id]: e.target.value } });
+                          }}
+                          className={inputClass + " w-16 h-7 text-[11px]"}
+                          placeholder="0%"
+                        />
+                      </span>
                     </span>
                   </AccordionTrigger>
                   <AccordionContent className="pb-2 space-y-2">
-                    {/* Tax rate for this BM */}
-                    <div className="pl-4 flex items-center gap-2">
-                      <label className="text-xs text-muted-foreground whitespace-nowrap">Imposto (%)</label>
-                      <input
-                        type="number"
-                        step="0.1"
-                        min="0"
-                        max="100"
-                        value={config.bm_tax_rates?.[bm.id] || ""}
-                        onChange={(e) => {
-                          const current = config.bm_tax_rates || {};
-                          updateConfig({ bm_tax_rates: { ...current, [bm.id]: e.target.value } });
-                        }}
-                        className={inputClass + " w-24"}
-                        placeholder="0"
-                      />
-                      <span className="text-[10px] text-muted-foreground">Somado ao custo das contas desta BM</span>
-                    </div>
                     {bm.ad_accounts.length === 0 ? (
                       <p className="text-xs text-muted-foreground pl-4">Nenhuma conta encontrada nesta BM.</p>
                     ) : (
