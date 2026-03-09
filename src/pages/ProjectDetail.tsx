@@ -3,10 +3,10 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { dashboardProjects } from "@/data/dashboardData";
 import { ChatbotBi } from "@/components/bi/ChatbotBi";
 import { GoogleAdsBi } from "@/components/bi/GoogleAdsBi";
 import { MetaAdsBi } from "@/components/bi/MetaAdsBi";
+import { useRealDashboardData } from "@/hooks/useRealData";
 
 const verticalConfig: Record<string, { label: string; className: string }> = {
   google_ads: { label: "GOOGLE ADS", className: "bg-yellow-500/15 text-yellow-500 border-yellow-500/30" },

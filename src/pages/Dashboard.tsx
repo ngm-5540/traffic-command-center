@@ -2,13 +2,12 @@ import { useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { format, differenceInCalendarDays, addDays, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarIcon, ArrowUp, ArrowDown, Plus, ChevronLeft, ChevronRight, GitCompareArrows, Loader2, AlertCircle } from "lucide-react";
-import { dashboardProjects as defaultProjects, verticals, type Vertical, type DashboardProject } from "@/data/dashboardData";
+import { CalendarIcon, ArrowUp, ArrowDown, Plus, ChevronLeft, ChevronRight, GitCompareArrows, Loader2, AlertCircle, Settings } from "lucide-react";
+import { verticals, type Vertical, type DashboardProject } from "@/data/dashboardData";
 import { formatBRL, formatBRLFull, formatROAS, getRoasColor } from "@/lib/format";
 import { PopBadge } from "@/components/bi/chatbot/PopBadge";
 import { generatePreviousKpis, generatePreviousRecord } from "@/data/popMockData";
 import { useRealDashboardData } from "@/hooks/useRealData";
-import { CreateProjectDialog } from "@/components/CreateProjectDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -38,20 +37,6 @@ const presets: { label: string; getValue: () => DateRange }[] = [
   { label: "Este mês", getValue: () => { const now = new Date(); return { from: new Date(now.getFullYear(), now.getMonth(), 1), to: now }; } },
   { label: "Mês passado", getValue: () => { const now = new Date(); return { from: new Date(now.getFullYear(), now.getMonth() - 1, 1), to: new Date(now.getFullYear(), now.getMonth(), 0) }; } },
 ];
-
-function loadSavedProjects(): DashboardProject[] | null {
-  try {
-    const raw = localStorage.getItem("dashboard_projects");
-    if (!raw) return null;
-    return JSON.parse(raw);
-  } catch {
-    return null;
-  }
-}
-
-function saveProjects(projects: DashboardProject[]) {
-  localStorage.setItem("dashboard_projects", JSON.stringify(projects));
-}
 
 function loadSavedFilters() {
   try {
@@ -91,31 +76,17 @@ function saveFilters(filters: { vertical: Vertical; sortKey: SortKey; sortDir: S
 export default function Dashboard() {
   const navigate = useNavigate();
   const saved = useMemo(() => loadSavedFilters(), []);
-  const [localProjects, setLocalProjects] = useState<DashboardProject[]>(() => loadSavedProjects() ?? defaultProjects);
   const [activeVertical, setActiveVertical] = useState<Vertical>(saved?.vertical ?? "todos");
   const [sortKey, setSortKey] = useState<SortKey>(saved?.sortKey ?? "profit");
   const [sortDir, setSortDir] = useState<SortDir>(saved?.sortDir ?? "desc");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(saved?.dateRange ?? presets[0].getValue());
   const [tempDateRange, setTempDateRange] = useState<DateRange | undefined>(saved?.dateRange ?? presets[0].getValue());
   const [datePickerOpen, setDatePickerOpen] = useState(false);
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [newestProjectId, setNewestProjectId] = useState<string | null>(null);
 
   // Real data from APIs
   const realData = useRealDashboardData(dateRange);
-
-  // Use real data if configured, otherwise fall back to mock
-  const projects = realData.isConfigured ? realData.projects : localProjects;
+  const projects = realData.projects;
   const [popEnabled, setPopEnabled] = useState(false);
-
-  const handleCreateProject = useCallback((project: DashboardProject) => {
-    setLocalProjects((prev) => {
-      const next = [project, ...prev];
-      saveProjects(next);
-      return next;
-    });
-    setNewestProjectId(project.id);
-  }, []);
 
   // Persist filters on change
   useMemo(() => {
@@ -134,18 +105,13 @@ export default function Dashboard() {
       : projects.filter((p) => p.vertical === activeVertical);
 
     base.sort((a, b) => {
-      // Keep newest project at the top
-      if (newestProjectId) {
-        if (a.id === newestProjectId) return -1;
-        if (b.id === newestProjectId) return 1;
-      }
-      const mul = sortDir === "asc" ? 1 : -1;
-      if (sortKey === "name") return mul * a.name.localeCompare(b.name, "pt-BR");
-      return mul * (a[sortKey] - b[sortKey]);
+      const mul = sortDir === "desc" ? -1 : 1;
+      if (sortKey === "name") return mul * a.name.localeCompare(b.name);
+      return mul * ((a[sortKey] as number) - (b[sortKey] as number));
     });
 
     return base;
-  }, [activeVertical, sortKey, sortDir, projects, newestProjectId]);
+  }, [activeVertical, sortKey, sortDir, projects]);
 
   const kpis = useMemo(() => {
     const totalSpend = sorted.reduce((s, p) => s + p.spend, 0);
@@ -171,7 +137,7 @@ export default function Dashboard() {
     [kpis]
   );
 
-  const toggleSortDir = () => { setNewestProjectId(null); setSortDir((d) => (d === "asc" ? "desc" : "asc")); };
+  const toggleSortDir = () => setSortDir((d) => (d === "asc" ? "desc" : "asc"));
 
   const shiftDateRange = useCallback((direction: 1 | -1) => {
     if (!dateRange?.from) return;
@@ -214,12 +180,6 @@ export default function Dashboard() {
               </button>
             ))}
           </nav>
-
-          <Button variant="outline" size="sm" className="absolute right-4 sm:right-6 h-8 gap-1.5 text-xs font-semibold tracking-wider border-border text-foreground hover:bg-accent" onClick={() => setCreateDialogOpen(true)}>
-            <Plus className="h-4 w-4" />
-            <span className="hidden sm:inline">Projeto</span>
-          </Button>
-          
         </div>
       </header>
 
@@ -288,7 +248,7 @@ export default function Dashboard() {
       <div className="flex items-center justify-end gap-2 px-4 pt-4 sm:px-6 max-w-[1920px] mx-auto w-full">
         {/* Sort */}
         <div className="flex items-center gap-1">
-          <Select value={sortKey} onValueChange={(v) => { setNewestProjectId(null); setSortKey(v as SortKey); }}>
+          <Select value={sortKey} onValueChange={(v) => setSortKey(v as SortKey)}>
             <SelectTrigger className="h-7 w-[100px] text-[10px] border-border">
               <SelectValue />
             </SelectTrigger>
@@ -407,10 +367,10 @@ export default function Dashboard() {
       </div>
 
       {/* Loading / Error indicators */}
-      {realData.isConfigured && realData.isLoading && (
+      {realData.isLoading && (
         <div className="flex items-center gap-2 px-4 sm:px-6 pt-2">
           <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
-          <span className="text-xs text-muted-foreground">Carregando dados reais...</span>
+          <span className="text-xs text-muted-foreground">Carregando dados...</span>
         </div>
       )}
       {realData.errors.length > 0 && (
@@ -422,66 +382,75 @@ export default function Dashboard() {
 
       {/* Grid */}
       <div className="flex-1 overflow-auto p-4 sm:p-6">
-        <div className="grid gap-4 max-w-[1920px] mx-auto" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' }}>
-          {sorted.map((project) => {
-            const isProfit = project.profit >= 0;
-            const prev = popEnabled ? generatePreviousRecord(project, project.id.charCodeAt(0)) : null;
+        {!realData.isConfigured && !realData.isLoading ? (
+          <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
+            <Settings className="h-10 w-10 text-muted-foreground/50" />
+            <div>
+              <p className="text-sm font-semibold text-foreground">Nenhuma integração configurada</p>
+              <p className="text-xs text-muted-foreground mt-1">Acesse as Configurações para conectar suas contas de Meta Ads, GA4 e GAM.</p>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => navigate("/settings")}>
+              Ir para Configurações
+            </Button>
+          </div>
+        ) : sorted.length === 0 && !realData.isLoading ? (
+          <div className="flex flex-col items-center justify-center h-full gap-3 text-center">
+            <p className="text-sm text-muted-foreground">Nenhum dado encontrado para o período selecionado.</p>
+          </div>
+        ) : (
+          <div className="grid gap-4 max-w-[1920px] mx-auto" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' }}>
+            {sorted.map((project) => {
+              const isProfit = project.profit >= 0;
+              const prev = popEnabled ? generatePreviousRecord(project, project.id.charCodeAt(0)) : null;
 
-            return (
-              <div
-                key={project.id}
-                style={{ containerType: "inline-size" }}
-              >
+              return (
                 <div
-                  onClick={() => navigate(`/project/${project.id}`)}
-                  className={cn(
-                    "relative rounded-lg border p-3 sm:p-4 transition-all cursor-pointer hover:ring-1 hover:ring-primary/30",
-                    project.roas >= 1
-                      ? "border-profit/30 bg-profit/5"
-                      : project.roas <= -1
-                        ? "border-loss/20 bg-loss/5"
-                        : "border-border bg-card"
-                  )}
+                  key={project.id}
+                  style={{ containerType: "inline-size" }}
                 >
-                  <Badge
-                    variant="outline"
-                    className={cn("absolute top-2 right-2 px-1 py-0 h-3.5 text-[6px] font-semibold tracking-wider", verticalConfig[project.vertical]?.className)}
+                  <div
+                    onClick={() => navigate(`/project/${project.id}`)}
+                    className={cn(
+                      "relative rounded-lg border p-3 sm:p-4 transition-all cursor-pointer hover:ring-1 hover:ring-primary/30",
+                      project.roas >= 1
+                        ? "border-profit/30 bg-profit/5"
+                        : project.roas <= -1
+                          ? "border-loss/20 bg-loss/5"
+                          : "border-border bg-card"
+                    )}
                   >
-                    {verticalConfig[project.vertical]?.label}
-                  </Badge>
-                  {/* Card header */}
-                  <div className="mb-2 pr-16">
-                    <ProjectName name={project.name} id={project.id} />
-                  </div>
+                    <Badge
+                      variant="outline"
+                      className={cn("absolute top-2 right-2 px-1 py-0 h-3.5 text-[6px] font-semibold tracking-wider", verticalConfig[project.vertical]?.className)}
+                    >
+                      {verticalConfig[project.vertical]?.label}
+                    </Badge>
+                    {/* Card header */}
+                    <div className="mb-2 pr-16">
+                      <ProjectName name={project.name} id={project.id} />
+                    </div>
 
-                  {/* Metrics */}
-                  <div className="grid grid-cols-2 gap-x-2 gap-y-2">
-                    <Metric label="RECEITA" value={formatBRL(project.revenue)} fullValue={formatBRLFull(project.revenue)} pop={prev ? { current: project.revenue, previous: prev.revenue } : undefined} />
-                    <Metric label="CUSTO" value={formatBRL(project.spend)} fullValue={formatBRLFull(project.spend)} pop={prev ? { current: project.spend, previous: prev.spend, invertColor: true } : undefined} />
-                    <Metric
-                      label="LUCRO"
-                      value={formatBRL(project.profit)}
-                      fullValue={formatBRLFull(project.profit)}
-                      className={project.profit === 0 ? "text-foreground" : isProfit ? "text-profit" : "text-loss"}
-                      bold
-                      pop={prev ? { current: project.profit, previous: prev.profit } : undefined}
-                    />
-                    <Metric label="ROAS" value={formatROAS(project.roas)} style={{ color: getRoasColor(project.roas) }} pop={prev ? { current: project.roas, previous: prev.roas } : undefined} />
+                    {/* Metrics */}
+                    <div className="grid grid-cols-2 gap-x-2 gap-y-2">
+                      <Metric label="RECEITA" value={formatBRL(project.revenue)} fullValue={formatBRLFull(project.revenue)} pop={prev ? { current: project.revenue, previous: prev.revenue } : undefined} />
+                      <Metric label="CUSTO" value={formatBRL(project.spend)} fullValue={formatBRLFull(project.spend)} pop={prev ? { current: project.spend, previous: prev.spend, invertColor: true } : undefined} />
+                      <Metric
+                        label="LUCRO"
+                        value={formatBRL(project.profit)}
+                        fullValue={formatBRLFull(project.profit)}
+                        className={project.profit === 0 ? "text-foreground" : isProfit ? "text-profit" : "text-loss"}
+                        bold
+                        pop={prev ? { current: project.profit, previous: prev.profit } : undefined}
+                      />
+                      <Metric label="ROAS" value={formatROAS(project.roas)} style={{ color: getRoasColor(project.roas) }} pop={prev ? { current: project.roas, previous: prev.roas } : undefined} />
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </div>
-
-      <CreateProjectDialog
-        open={createDialogOpen}
-        onOpenChange={setCreateDialogOpen}
-        onCreateProject={handleCreateProject}
-        defaultVertical={activeVertical}
-        existingProjects={projects}
-      />
     </div>
   );
 }
