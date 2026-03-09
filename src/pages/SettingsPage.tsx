@@ -116,7 +116,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="p-4 lg:p-6 max-w-2xl space-y-6">
+    <div className="p-4 lg:p-6 max-w-2xl space-y-6 h-full overflow-y-auto">
       <div>
         <h1 className="mb-1 text-xl font-semibold text-foreground">Configurações</h1>
         <p className="text-sm text-muted-foreground">Parâmetros gerais e integrações</p>
