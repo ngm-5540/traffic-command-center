@@ -225,6 +225,35 @@ export function useRealDashboardData(dateRange?: DateRange) {
   });
 
   // Build project-level aggregation
+  // Build GAM ad_id → revenue map from utm_content rows
+  const gamAdRevenueMap: Record<string, number> = useMemo(() => {
+    const map: Record<string, number> = {};
+    const revSharePct = gamQuery.data?.revSharePct || 0;
+    const usdBrlRate = parseFloat(config.usd_brl_rate || "5.1") || 5.1;
+
+    if (!gamQuery.data?.rows) return map;
+
+    for (const row of gamQuery.data.rows) {
+      const kvName = row.dimensionValues?.[0]?.stringValue || "";
+      if (!kvName.startsWith("utm_content=")) continue;
+
+      // Extract ad_id from pattern: utm_content=X_aut_ADID_vc_Y
+      const match = kvName.match(/_aut_(\d+)_vc_/);
+      if (!match) continue;
+
+      const adId = match[1];
+      const primaryValues = row.metricValueGroups?.[0]?.primaryValues;
+      if (!primaryValues) continue;
+
+      let rev = parseFloat(primaryValues[4]?.doubleValue || primaryValues[4]?.intValue || "0");
+      if (revSharePct > 0) rev = rev * (1 - revSharePct / 100);
+      rev = rev * usdBrlRate;
+
+      map[adId] = (map[adId] || 0) + rev;
+    }
+    return map;
+  }, [gamQuery.data, config.usd_brl_rate]);
+
   const projects: DashboardProject[] = useMemo(() => {
     if (!dbProjects.length) return [];
 
@@ -243,7 +272,6 @@ export function useRealDashboardData(dateRange?: DateRange) {
     const result: DashboardProject[] = [];
 
     for (const proj of dbProjects) {
-      // Find ad accounts mapped to this project
       const projectMappings = dbMappings.filter((m) => m.project_id === proj.id);
       const projectMetaAccounts = projectMappings
         .filter((m) => m.platform === "meta")
@@ -253,42 +281,39 @@ export function useRealDashboardData(dateRange?: DateRange) {
       let totalRevenue = 0;
       let totalLeads = 0;
 
-      // Aggregate all campaigns from all mapped ad accounts
       for (const accountId of projectMetaAccounts) {
         const accountData = metaData[accountId];
-        if (!accountData?.campaign_insights) continue;
+        if (!accountData) continue;
 
-        // Get tax rate for this account's BM
         const bmId = adAccountToBm[accountId];
         const taxPct = bmId ? parseFloat(bmTaxRates[bmId] || "0") : 0;
 
-        for (const ci of accountData.campaign_insights) {
-          const rawSpend = parseFloat(ci.spend || "0");
-          totalSpend += rawSpend * (1 + taxPct / 100);
+        // Use campaign_insights for spend/leads
+        if (accountData.campaign_insights) {
+          for (const ci of accountData.campaign_insights) {
+            const rawSpend = parseFloat(ci.spend || "0");
+            totalSpend += rawSpend * (1 + taxPct / 100);
 
-          // Revenue from purchase actions
-          if (ci.action_values) {
-            for (const av of ci.action_values) {
-              if (
-                av.action_type === "offsite_conversion.fb_pixel_purchase" ||
-                av.action_type === "purchase" ||
-                av.action_type === "omni_purchase"
-              ) {
-                totalRevenue += parseFloat(av.value || "0");
+            if (ci.actions) {
+              for (const a of ci.actions) {
+                if (
+                  a.action_type === "lead" ||
+                  a.action_type === "offsite_conversion.fb_pixel_lead" ||
+                  a.action_type === "onsite_conversion.lead_grouped"
+                ) {
+                  totalLeads += parseInt(a.value || "0");
+                }
               }
             }
           }
+        }
 
-          // Leads
-          if (ci.actions) {
-            for (const a of ci.actions) {
-              if (
-                a.action_type === "lead" ||
-                a.action_type === "offsite_conversion.fb_pixel_lead" ||
-                a.action_type === "onsite_conversion.lead_grouped"
-              ) {
-                totalLeads += parseInt(a.value || "0");
-              }
+        // Use ad_insights to sum GAM revenue by ad_id
+        if (accountData.ad_insights) {
+          for (const ad of accountData.ad_insights) {
+            const adId = ad.ad_id;
+            if (adId && gamAdRevenueMap[adId]) {
+              totalRevenue += gamAdRevenueMap[adId];
             }
           }
         }
@@ -297,7 +322,6 @@ export function useRealDashboardData(dateRange?: DateRange) {
       const totalProfit = totalRevenue - totalSpend;
       const roas = totalSpend > 0 ? (totalRevenue - totalSpend) / totalSpend : 0;
 
-      // Map project type to vertical
       const verticalMap: Record<string, "chatbot" | "meta_ads" | "google_ads"> = {
         chatbot: "chatbot",
         meta_ads: "meta_ads",
@@ -333,47 +357,8 @@ export function useRealDashboardData(dateRange?: DateRange) {
       }
     }
 
-    // GAM revenue: only rows where KEY_VALUES_NAME contains "utm_source=fb_vc"
-    let gamTotalRevenue = 0;
-    const revSharePct = gamQuery.data?.revSharePct || 0;
-    if (gamQuery.data?.rows) {
-      console.log(`[GAM] Processing ${gamQuery.data.rows.length} rows, revSharePct=${revSharePct}`);
-      for (const row of gamQuery.data.rows) {
-        const kvName = row.dimensionValues?.[0]?.stringValue || "";
-        if (!kvName.includes("utm_source=fb_vc")) continue;
-
-        // AD_EXCHANGE_REVENUE is the 5th metric (index 4)
-        const primaryValues = row.metricValueGroups?.[0]?.primaryValues;
-        if (primaryValues) {
-          const rev = parseFloat(primaryValues[4]?.doubleValue || primaryValues[4]?.intValue || "0");
-          gamTotalRevenue += rev;
-          console.log(`[GAM] Found utm_source=fb_vc row, revenue=${rev}`);
-        }
-      }
-      if (revSharePct > 0) {
-        gamTotalRevenue = gamTotalRevenue * (1 - revSharePct / 100);
-      }
-      console.log(`[GAM] Total revenue after revShare: ${gamTotalRevenue}`);
-    } else {
-      console.log("[GAM] No rows available", { data: gamQuery.data, status: gamQuery.status, error: gamQuery.error?.message });
-    }
-    // Convert GAM revenue from USD to BRL
-    const usdBrlRate = parseFloat(config.usd_brl_rate || "5.1") || 5.1;
-    gamTotalRevenue = gamTotalRevenue * usdBrlRate;
-    console.log(`[GAM] Total revenue in BRL (rate=${usdBrlRate}): ${gamTotalRevenue}`);
-
-    if (gamTotalRevenue > 0) {
-      const allSpend = result.reduce((s, p) => s + p.spend, 0);
-      for (const p of result) {
-        const share = allSpend > 0 ? p.spend / allSpend : 1 / result.length;
-        p.revenue = gamTotalRevenue * share;
-        p.profit = p.revenue - p.spend;
-        p.roas = p.spend > 0 ? (p.revenue - p.spend) / p.spend : 0;
-      }
-    }
-
     return result;
-  }, [dbProjects, dbMappings, metaQueries.data, ga4Query.data, gamQuery.data, bmQuery.data, bmTaxRates]);
+  }, [dbProjects, dbMappings, metaQueries.data, ga4Query.data, gamAdRevenueMap, bmQuery.data, bmTaxRates]);
 
   const isConfigured = dbProjects.length > 0;
   const isLoading = dbQuery.isLoading || metaQueries.isLoading || gamQuery.isLoading || ga4Query.isLoading;
@@ -400,9 +385,10 @@ export function useRealDashboardData(dateRange?: DateRange) {
 
 // ── Project Detail: campaign-level data for a specific project ──
 
-export function useProjectCampaigns(projectId: string | undefined, dateRange?: DateRange, projectRevenue?: number) {
+export function useProjectCampaigns(projectId: string | undefined, dateRange?: DateRange) {
   const config = getStoredConfig();
   const bmTaxRates = config.bm_tax_rates || {};
+  const usdBrlRate = parseFloat(config.usd_brl_rate || "5.1") || 5.1;
 
   const since = dateRange?.from ? formatDate(dateRange.from) : undefined;
   const until = dateRange?.to ? formatDate(dateRange.to) : since;
@@ -411,7 +397,6 @@ export function useProjectCampaigns(projectId: string | undefined, dateRange?: D
   const dbMappings = dbQuery.data?.mappings || [];
   const bmQuery = useMetaBusinesses();
 
-  // Get ad accounts for this project
   const projectMetaAccounts = useMemo(() => {
     if (!projectId) return [];
     return dbMappings
@@ -437,7 +422,7 @@ export function useProjectCampaigns(projectId: string | undefined, dateRange?: D
             results[accountId] = data;
           } catch (err) {
             console.error(`Meta insights error for ${accountId}:`, err);
-            results[accountId] = { campaign_insights: [] };
+            results[accountId] = { campaign_insights: [], adset_insights: [], ad_insights: [] };
           }
         })
       );
@@ -449,8 +434,32 @@ export function useProjectCampaigns(projectId: string | undefined, dateRange?: D
     placeholderData: (prev: any) => prev,
   });
 
-
-
+  // GAM revenue for ad-level matching
+  const gamQuery = useQuery({
+    queryKey: ["gam-revenue", since, until],
+    queryFn: async () => {
+      try {
+        const { data: gamCred } = await supabase
+          .from("integration_credentials")
+          .select("credentials")
+          .eq("provider", "gam")
+          .single();
+        const revSharePct = parseFloat((gamCred?.credentials as any)?.revShare || "0");
+        const report = await cachedFetch(
+          "gam", "default", since, until,
+          () => fetchGAMRevenue({ startDate: since, endDate: until })
+        );
+        return { ...report, revSharePct };
+      } catch (err) {
+        console.warn("GAM revenue fetch failed (non-blocking):", err);
+        throw err;
+      }
+    },
+    enabled: !!since,
+    retry: 1,
+    staleTime: 1000 * 60 * 14,
+    placeholderData: (prev: any) => prev,
+  });
 
   // Build adAccount → BM map
   const adAccountToBm: Record<string, string> = useMemo(() => {
@@ -465,72 +474,212 @@ export function useProjectCampaigns(projectId: string | undefined, dateRange?: D
     return map;
   }, [bmQuery.data]);
 
-  // Transform campaign insights into structured data
+  // Build GAM ad_id → revenue map
+  const gamAdRevenueMap: Record<string, number> = useMemo(() => {
+    const map: Record<string, number> = {};
+    const revSharePct = gamQuery.data?.revSharePct || 0;
+    if (!gamQuery.data?.rows) return map;
+
+    for (const row of gamQuery.data.rows) {
+      const kvName = row.dimensionValues?.[0]?.stringValue || "";
+      if (!kvName.startsWith("utm_content=")) continue;
+      const match = kvName.match(/_aut_(\d+)_vc_/);
+      if (!match) continue;
+
+      const adId = match[1];
+      const primaryValues = row.metricValueGroups?.[0]?.primaryValues;
+      if (!primaryValues) continue;
+
+      let rev = parseFloat(primaryValues[4]?.doubleValue || primaryValues[4]?.intValue || "0");
+      if (revSharePct > 0) rev = rev * (1 - revSharePct / 100);
+      rev = rev * usdBrlRate;
+
+      map[adId] = (map[adId] || 0) + rev;
+    }
+    return map;
+  }, [gamQuery.data, usdBrlRate]);
+
+  // Build full hierarchy: campaign → adset → ad with GAM revenue per ad
   const campaigns = useMemo(() => {
     const metaData = metaQuery.data || {};
-    const allCampaigns: any[] = [];
+
+    // Collect all ads with their hierarchy info
+    interface AdEntry {
+      adId: string;
+      adName: string;
+      adsetId: string;
+      adsetName: string;
+      campaignId: string;
+      campaignName: string;
+      spend: number;
+      impressions: number;
+      clicks: number;
+      revenue: number;
+    }
+
+    const allAds: AdEntry[] = [];
 
     for (const accountId of projectMetaAccounts) {
       const accountData = metaData[accountId];
-      if (!accountData?.campaign_insights) continue;
+      if (!accountData?.ad_insights) continue;
 
       const bmId = adAccountToBm[accountId];
       const taxPct = bmId ? parseFloat(bmTaxRates[bmId] || "0") : 0;
 
-      for (const ci of accountData.campaign_insights) {
-        const rawSpend = parseFloat(ci.spend || "0");
+      for (const ad of accountData.ad_insights) {
+        const rawSpend = parseFloat(ad.spend || "0");
         const spend = rawSpend * (1 + taxPct / 100);
-        const impressions = parseInt(ci.impressions || "0");
-        const clicks = parseInt(ci.clicks || "0");
-        const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0;
-        const cpc = clicks > 0 ? spend / clicks : 0;
-        const cpm = impressions > 0 ? (spend / impressions) * 1000 : 0;
+        const revenue = gamAdRevenueMap[ad.ad_id] || 0;
 
-        allCampaigns.push({
-          id: ci.campaign_id,
-          name: ci.campaign_name || ci.campaign_id,
-          cost: spend,
-          revenue: 0, // Will be distributed from GAM
-          profit: -spend,
-          roas: 0,
-          impressions,
-          linkClicks: clicks,
-          ctr,
-          cpc,
-          cpm,
-          sessions: 0,
-          rps: 0,
-          cps: 0,
-          leads: 0,
-          rpsTrend: [],
-          costTrend: [],
-          adsets: [],
+        allAds.push({
+          adId: ad.ad_id,
+          adName: ad.ad_name || ad.ad_id,
+          adsetId: ad.adset_id,
+          adsetName: ad.adset_name || ad.adset_id,
+          campaignId: ad.campaign_id,
+          campaignName: ad.campaign_name || ad.campaign_id,
+          spend,
+          impressions: parseInt(ad.impressions || "0"),
+          clicks: parseInt(ad.clicks || "0"),
+          revenue,
         });
       }
     }
 
-    // Distribute the project's revenue (already correctly calculated) across campaigns by spend share
-    const revToDistribute = projectRevenue ?? 0;
-    if (revToDistribute > 0) {
-      const totalSpend = allCampaigns.reduce((s, c) => s + c.cost, 0);
-      for (const c of allCampaigns) {
-        const share = totalSpend > 0 ? c.cost / totalSpend : 1 / allCampaigns.length;
-        c.revenue = revToDistribute * share;
-        c.profit = c.revenue - c.cost;
-        c.roas = c.cost > 0 ? (c.revenue - c.cost) / c.cost : 0;
+    // Also use campaign_insights for campaigns that might not have ad-level data
+    // Group ads by campaign
+    const campaignMap = new Map<string, {
+      name: string;
+      adsetMap: Map<string, {
+        name: string;
+        ads: AdEntry[];
+      }>;
+    }>();
+
+    for (const ad of allAds) {
+      if (!campaignMap.has(ad.campaignId)) {
+        campaignMap.set(ad.campaignId, { name: ad.campaignName, adsetMap: new Map() });
+      }
+      const campaign = campaignMap.get(ad.campaignId)!;
+      if (!campaign.adsetMap.has(ad.adsetId)) {
+        campaign.adsetMap.set(ad.adsetId, { name: ad.adsetName, ads: [] });
+      }
+      campaign.adsetMap.get(ad.adsetId)!.ads.push(ad);
+    }
+
+    // If no ad_insights, fall back to campaign_insights
+    if (allAds.length === 0) {
+      for (const accountId of projectMetaAccounts) {
+        const accountData = metaData[accountId];
+        if (!accountData?.campaign_insights) continue;
+        const bmId = adAccountToBm[accountId];
+        const taxPct = bmId ? parseFloat(bmTaxRates[bmId] || "0") : 0;
+
+        for (const ci of accountData.campaign_insights) {
+          const rawSpend = parseFloat(ci.spend || "0");
+          const spend = rawSpend * (1 + taxPct / 100);
+          if (!campaignMap.has(ci.campaign_id)) {
+            campaignMap.set(ci.campaign_id, { name: ci.campaign_name || ci.campaign_id, adsetMap: new Map() });
+          }
+        }
       }
     }
 
-    return allCampaigns;
-  }, [metaQuery.data, projectMetaAccounts, adAccountToBm, bmTaxRates, projectRevenue]);
+    // Build final campaign array
+    const result: any[] = [];
+
+    for (const [campaignId, campaignData] of campaignMap) {
+      const adsets: any[] = [];
+      let campaignCost = 0;
+      let campaignRevenue = 0;
+      let campaignImpressions = 0;
+      let campaignClicks = 0;
+
+      for (const [adsetId, adsetData] of campaignData.adsetMap) {
+        const ads: any[] = [];
+        let adsetCost = 0;
+        let adsetRevenue = 0;
+        let adsetImpressions = 0;
+        let adsetClicks = 0;
+
+        for (const ad of adsetData.ads) {
+          adsetCost += ad.spend;
+          adsetRevenue += ad.revenue;
+          adsetImpressions += ad.impressions;
+          adsetClicks += ad.clicks;
+
+          const adProfit = ad.revenue - ad.spend;
+          ads.push({
+            id: ad.adId,
+            name: ad.adName,
+            cost: ad.spend,
+            revenue: ad.revenue,
+            profit: adProfit,
+            roas: ad.spend > 0 ? adProfit / ad.spend : 0,
+            impressions: ad.impressions,
+            linkClicks: ad.clicks,
+            ctr: ad.impressions > 0 ? (ad.clicks / ad.impressions) * 100 : 0,
+            cpc: ad.clicks > 0 ? ad.spend / ad.clicks : 0,
+            cpm: ad.impressions > 0 ? (ad.spend / ad.impressions) * 1000 : 0,
+          });
+        }
+
+        const adsetProfit = adsetRevenue - adsetCost;
+        adsets.push({
+          id: adsetId,
+          name: adsetData.name,
+          cost: adsetCost,
+          revenue: adsetRevenue,
+          profit: adsetProfit,
+          roas: adsetCost > 0 ? adsetProfit / adsetCost : 0,
+          impressions: adsetImpressions,
+          linkClicks: adsetClicks,
+          ctr: adsetImpressions > 0 ? (adsetClicks / adsetImpressions) * 100 : 0,
+          cpc: adsetClicks > 0 ? adsetCost / adsetClicks : 0,
+          cpm: adsetImpressions > 0 ? (adsetCost / adsetImpressions) * 1000 : 0,
+          ads,
+        });
+
+        campaignCost += adsetCost;
+        campaignRevenue += adsetRevenue;
+        campaignImpressions += adsetImpressions;
+        campaignClicks += adsetClicks;
+      }
+
+      const campaignProfit = campaignRevenue - campaignCost;
+      result.push({
+        id: campaignId,
+        name: campaignData.name,
+        cost: campaignCost,
+        revenue: campaignRevenue,
+        profit: campaignProfit,
+        roas: campaignCost > 0 ? campaignProfit / campaignCost : 0,
+        impressions: campaignImpressions,
+        linkClicks: campaignClicks,
+        ctr: campaignImpressions > 0 ? (campaignClicks / campaignImpressions) * 100 : 0,
+        cpc: campaignClicks > 0 ? campaignCost / campaignClicks : 0,
+        cpm: campaignImpressions > 0 ? (campaignCost / campaignImpressions) * 1000 : 0,
+        sessions: 0,
+        rps: 0,
+        cps: 0,
+        leads: 0,
+        rpsTrend: [],
+        costTrend: [],
+        adsets,
+      });
+    }
+
+    return result;
+  }, [metaQuery.data, gamAdRevenueMap, projectMetaAccounts, adAccountToBm, bmTaxRates]);
 
   return {
     campaigns,
-    isLoading: dbQuery.isLoading || metaQuery.isLoading,
-    errors: [dbQuery.error?.message, metaQuery.error?.message].filter(Boolean),
+    isLoading: dbQuery.isLoading || metaQuery.isLoading || gamQuery.isLoading,
+    errors: [dbQuery.error?.message, metaQuery.error?.message, gamQuery.error?.message].filter(Boolean),
     refetch: () => {
       dbQuery.refetch();
       metaQuery.refetch();
+      gamQuery.refetch();
     },
   };
 }
