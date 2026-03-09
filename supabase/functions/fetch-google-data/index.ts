@@ -257,18 +257,18 @@ Deno.serve(async (req) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          reportDefinition: {
+          report_definition: {
             dimensions: ["DATE"],
             metrics: ["AD_SERVER_IMPRESSIONS", "AD_SERVER_CLICKS", "AD_SERVER_REVENUE"],
-            reportType: "HISTORICAL",
-            dateRange: {
-              fixedDateRange: {
-                startDate: { year: sy, month: sm, day: sd },
-                endDate: { year: ey, month: em, day: ed },
+            report_type: "HISTORICAL",
+            date_range: {
+              fixed_date_range: {
+                start_date: { year: sy, month: sm, day: sd },
+                end_date: { year: ey, month: em, day: ed },
               },
             },
           },
-          displayName: `Lovable Report ${startDate}`,
+          display_name: `Lovable Report ${startDate}`,
           visibility: "HIDDEN",
         }),
       });
