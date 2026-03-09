@@ -231,7 +231,7 @@ export function ChatbotBi({ project, campaigns, isLoading, dateRange, onDateRang
   );
 
   return (
-    <div className={cn("flex flex-col", focusMode ? "fixed inset-0 z-[100] bg-background h-screen overflow-auto" : "h-full")}>
+    <div className={cn("flex flex-col min-h-0", focusMode ? "fixed inset-0 z-[100] bg-background h-screen overflow-auto" : "h-full")}>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-3 gap-3 px-4 pt-4 sm:grid-cols-6 sm:px-6">
