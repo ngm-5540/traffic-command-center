@@ -373,7 +373,7 @@ export function useRealDashboardData(dateRange?: DateRange) {
     }
 
     return result;
-  }, [dbProjects, dbMappings, metaQueries.data, ga4Query.data, gamQuery.data]);
+  }, [dbProjects, dbMappings, metaQueries.data, ga4Query.data, gamQuery.data, bmQuery.data, bmTaxRates]);
 
   const isConfigured = dbProjects.length > 0;
   const isLoading = dbQuery.isLoading || metaQueries.isLoading || gamQuery.isLoading || ga4Query.isLoading;
