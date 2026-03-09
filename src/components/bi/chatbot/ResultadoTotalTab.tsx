@@ -600,7 +600,7 @@ export function ResultadoTotalTab({ campaigns, popEnabled = false, focusMode = f
       </div>
 
       {/* Totals - fixed at bottom, outside scroll area */}
-      <div className="shrink-0 mt-auto overflow-x-auto border-t-2 border-primary/30 bg-background shadow-[0_-4px_8px_-2px_rgba(0,0,0,0.15)]">
+      <div className="shrink-0 overflow-x-auto border-t-2 border-primary/30 bg-background shadow-[0_-4px_8px_-2px_rgba(0,0,0,0.15)]">
         <table className="w-full text-xs border-collapse">
           <tbody>
             <tr>
