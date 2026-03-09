@@ -66,7 +66,7 @@ export default function ProjectDetail() {
   const vc = project ? verticalConfig[project.vertical] : null;
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full min-h-0">
       {/* Header */}
       <header className="sticky top-0 z-10 border-b border-border bg-background px-4 py-3 sm:px-6">
         <div className="flex items-center gap-3">
@@ -83,7 +83,7 @@ export default function ProjectDetail() {
       </header>
 
       {/* BI Content */}
-      <div className="flex-1">
+      <div className="flex-1 overflow-hidden min-h-0">
         {(!project || project.vertical === "chatbot") && (
           <ChatbotBi
             project={project}
