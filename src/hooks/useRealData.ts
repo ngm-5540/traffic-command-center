@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
@@ -166,7 +166,6 @@ export function useRealDashboardData(dateRange?: DateRange) {
     enabled: metaAdAccountIds.length > 0 && !!since,
     retry: 1,
     staleTime: 1000 * 60 * 14,
-    refetchInterval: 1000 * 60 * 15,
     placeholderData: (prev: any) => prev,
   });
 
@@ -198,7 +197,6 @@ export function useRealDashboardData(dateRange?: DateRange) {
     enabled: !!since,
     retry: 1,
     staleTime: 1000 * 60 * 14,
-    refetchInterval: 1000 * 60 * 15,
     placeholderData: (prev: any) => prev,
   });
 
@@ -220,7 +218,6 @@ export function useRealDashboardData(dateRange?: DateRange) {
     enabled: !!ga4PropertyId && !!since,
     retry: 1,
     staleTime: 1000 * 60 * 14,
-    refetchInterval: 1000 * 60 * 15,
     placeholderData: (prev: any) => prev,
   });
 
@@ -352,17 +349,34 @@ export function useRealDashboardData(dateRange?: DateRange) {
     ga4Query.error?.message,
   ].filter(Boolean);
 
+  const refetchAll = useCallback(() => {
+    dbQuery.refetch();
+    metaQueries.refetch();
+    gamQuery.refetch();
+    ga4Query.refetch();
+  }, [dbQuery, metaQueries, gamQuery, ga4Query]);
+
+  // Synchronized refetch: all 3 sources refresh together every 15 min when date range includes today
+  const includestoday = useMemo(() => {
+    if (!until) return true;
+    return until >= format(new Date(), "yyyy-MM-dd");
+  }, [until]);
+
+  useEffect(() => {
+    if (!includestoday) return;
+    const interval = setInterval(() => {
+      console.log("[sync-refetch] Refreshing all sources simultaneously...");
+      refetchAll();
+    }, 1000 * 60 * 15);
+    return () => clearInterval(interval);
+  }, [includestoday, refetchAll]);
+
   return {
     projects,
     isConfigured,
     isLoading,
     errors,
-    refetch: () => {
-      dbQuery.refetch();
-      metaQueries.refetch();
-      gamQuery.refetch();
-      ga4Query.refetch();
-    },
+    refetch: refetchAll,
   };
 }
 
@@ -655,14 +669,31 @@ export function useProjectCampaigns(projectId: string | undefined, dateRange?: D
     return result;
   }, [metaQuery.data, gamAdRevenueMap, projectMetaAccounts, adAccountToBm, bmTaxRates]);
 
+  const refetchAll = useCallback(() => {
+    dbQuery.refetch();
+    metaQuery.refetch();
+    gamQuery.refetch();
+  }, [dbQuery, metaQuery, gamQuery]);
+
+  // Synchronized refetch for project detail
+  const includesTodayProject = useMemo(() => {
+    if (!until) return true;
+    return until >= format(new Date(), "yyyy-MM-dd");
+  }, [until]);
+
+  useEffect(() => {
+    if (!includesTodayProject) return;
+    const interval = setInterval(() => {
+      console.log("[sync-refetch] Project detail: refreshing all sources simultaneously...");
+      refetchAll();
+    }, 1000 * 60 * 15);
+    return () => clearInterval(interval);
+  }, [includesTodayProject, refetchAll]);
+
   return {
     campaigns,
     isLoading: dbQuery.isLoading || metaQuery.isLoading || gamQuery.isLoading,
     errors: [dbQuery.error?.message, metaQuery.error?.message, gamQuery.error?.message].filter(Boolean),
-    refetch: () => {
-      dbQuery.refetch();
-      metaQuery.refetch();
-      gamQuery.refetch();
-    },
+    refetch: refetchAll,
   };
 }
