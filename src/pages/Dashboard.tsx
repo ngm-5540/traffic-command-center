@@ -452,7 +452,7 @@ export default function Dashboard() {
                     )}
                   >
                     {/* Card header */}
-                    <div className="mb-2 flex items-start justify-between gap-2">
+                    <div className="mb-2 flex items-center justify-between gap-2">
                       <ProjectName name={project.name} id={project.id} />
                       <Badge
                         variant="outline"
