@@ -528,29 +528,13 @@ export function useProjectCampaigns(projectId: string | undefined, dateRange?: D
       }
     }
 
-    // Distribute GAM revenue across campaigns by spend share
-    let gamTotalRevenue = 0;
-    const revSharePct = gamQuery.data?.revSharePct || 0;
-    if (gamQuery.data?.rows) {
-      for (const row of gamQuery.data.rows) {
-        const kvName = row.dimensionValues?.[0]?.stringValue || "";
-        if (!kvName.includes("utm_source=fb_vc")) continue;
-        const primaryValues = row.metricValueGroups?.[0]?.primaryValues;
-        if (primaryValues) {
-          gamTotalRevenue += parseFloat(primaryValues[4]?.doubleValue || "0");
-        }
-      }
-      if (revSharePct > 0) {
-        gamTotalRevenue = gamTotalRevenue * (1 - revSharePct / 100);
-      }
-      gamTotalRevenue = gamTotalRevenue * usdBrlRate;
-    }
-
-    if (gamTotalRevenue > 0) {
+    // Distribute the project's revenue (already correctly calculated) across campaigns by spend share
+    const revToDistribute = projectRevenue ?? 0;
+    if (revToDistribute > 0) {
       const totalSpend = allCampaigns.reduce((s, c) => s + c.cost, 0);
       for (const c of allCampaigns) {
         const share = totalSpend > 0 ? c.cost / totalSpend : 1 / allCampaigns.length;
-        c.revenue = gamTotalRevenue * share;
+        c.revenue = revToDistribute * share;
         c.profit = c.revenue - c.cost;
         c.roas = c.cost > 0 ? (c.revenue - c.cost) / c.cost : 0;
       }
