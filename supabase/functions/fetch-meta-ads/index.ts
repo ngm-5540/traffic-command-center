@@ -145,11 +145,25 @@ Deno.serve(async (req) => {
       );
       const campaignInsightsData = await campaignInsightsRes.json();
 
+      // Fetch adset-level insights
+      const adsetInsightsRes = await fetch(
+        `${META_API}/${adAccountId}/insights?fields=campaign_id,campaign_name,adset_id,adset_name,spend,impressions,clicks,actions,action_values&level=adset${timeRange}&limit=500&access_token=${token}`
+      );
+      const adsetInsightsData = await adsetInsightsRes.json();
+
+      // Fetch ad-level insights
+      const adInsightsRes = await fetch(
+        `${META_API}/${adAccountId}/insights?fields=campaign_id,campaign_name,adset_id,adset_name,ad_id,ad_name,spend,impressions,clicks,actions,action_values&level=ad${timeRange}&limit=500&access_token=${token}`
+      );
+      const adInsightsData = await adInsightsRes.json();
+
       return new Response(
         JSON.stringify({
           campaigns: campaignsData.data || [],
           account_insights: insightsData.data?.[0] || null,
           campaign_insights: campaignInsightsData.data || [],
+          adset_insights: adsetInsightsData.data || [],
+          ad_insights: adInsightsData.data || [],
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
