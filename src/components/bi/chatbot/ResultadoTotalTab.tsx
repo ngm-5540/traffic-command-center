@@ -620,6 +620,7 @@ export function ResultadoTotalTab({ campaigns, popEnabled = false, focusMode = f
           </tfoot>
         </table>
       </div>
+      <div className="shrink-0 h-2" />
     </div>
   );
 }
