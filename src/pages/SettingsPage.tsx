@@ -8,13 +8,13 @@ import { useMetaAdAccounts, useGA4Properties, useIntegrationConfig } from "@/hoo
 
 type CredentialState = {
   meta: { token: string };
-  gam: { networkCode: string; serviceAccountJson: string };
+  gam: { networkCode: string; revShare: string; serviceAccountJson: string };
   analytics: { serviceAccountJson: string };
 };
 
 const EMPTY: CredentialState = {
   meta: { token: "" },
-  gam: { networkCode: "", serviceAccountJson: "" },
+  gam: { networkCode: "", revShare: "", serviceAccountJson: "" },
   analytics: { serviceAccountJson: "" },
 };
 
