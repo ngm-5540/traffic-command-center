@@ -63,8 +63,12 @@ export async function writeCache(
     );
 }
 
+const TODAY_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
 /**
- * Wrapper: returns cached data if range is fully in the past, otherwise fetches fresh and caches.
+ * Wrapper: 
+ * - Past dates: use cache indefinitely (never re-fetch)
+ * - Today: use cache if < 5 min old, otherwise fetch fresh and update cache
  */
 export async function cachedFetch<T>(
   provider: string,
@@ -76,20 +80,24 @@ export async function cachedFetch<T>(
   const dateRange = `${since || ""}_${until || ""}`;
   const isToday = includestoday(until);
 
-  // For past date ranges, try cache first
-  if (!isToday) {
-    const cached = await readCache(provider, cacheKey, dateRange);
-    if (cached !== null) {
-      console.log(`[cache] HIT ${provider}/${cacheKey} ${dateRange}`);
-      return cached as T;
-    }
+  // Always try cache first
+  const cached = await readCache(
+    provider,
+    cacheKey,
+    dateRange,
+    isToday ? TODAY_CACHE_TTL_MS : undefined // past dates: no expiry
+  );
+
+  if (cached !== null) {
+    console.log(`[cache] HIT ${provider}/${cacheKey} ${dateRange}${isToday ? " (today, <5min)" : ""}`);
+    return cached as T;
   }
 
   // Fetch fresh
   console.log(`[cache] MISS ${provider}/${cacheKey} ${dateRange} — fetching...`);
   const result = await fetchFn();
 
-  // Always cache the result (for today it will be overwritten next time)
+  // Save to cache
   writeCache(provider, cacheKey, dateRange, result).catch(() => {});
 
   return result;
