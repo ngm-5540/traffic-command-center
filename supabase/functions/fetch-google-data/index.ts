@@ -262,7 +262,7 @@ Deno.serve(async (req) => {
             metrics: ["AD_SERVER_IMPRESSIONS", "AD_SERVER_CLICKS", "AD_SERVER_REVENUE"],
             report_type: "HISTORICAL",
             date_range: {
-              fixed_date_range: {
+              fixed: {
                 start_date: { year: sy, month: sm, day: sd },
                 end_date: { year: ey, month: em, day: ed },
               },
