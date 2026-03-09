@@ -255,11 +255,11 @@ Deno.serve(async (req) => {
             metrics: [
               "AD_SERVER_IMPRESSIONS",
               "AD_SERVER_CLICKS",
-              "TOTAL_LINE_ITEM_LEVEL_CPM_AND_CPC_REVENUE",
+              "AD_SERVER_REVENUE",
             ],
             reportType: "HISTORICAL",
             dateRange: {
-              relative_date_range: "YESTERDAY",
+              relativeDateRange: "YESTERDAY",
             },
           },
           displayName: `Lovable Report ${startDate}`,
