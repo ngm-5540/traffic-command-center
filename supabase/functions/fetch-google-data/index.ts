@@ -235,21 +235,89 @@ Deno.serve(async (req) => {
         "https://www.googleapis.com/auth/dfp",
       ]);
 
-      // GAM REST API - run a report
-      const startDate = body.start_date || new Date().toISOString().slice(0, 10);
-      const endDate = body.end_date || startDate;
-
-      // Use GAM API v202408 to create and run a report
       const gamBase = `https://admanager.googleapis.com/v1/networks/${networkCode}`;
 
-      // Step 1: Create a report
-      const sy = parseInt(startDate.slice(0, 4));
-      const sm = parseInt(startDate.slice(5, 7));
-      const sd = parseInt(startDate.slice(8, 10));
-      const ey = parseInt(endDate.slice(0, 4));
-      const em = parseInt(endDate.slice(5, 7));
-      const ed = parseInt(endDate.slice(8, 10));
+      // Build date range — use fixed dates if provided, otherwise THIS_MONTH
+      const startDate = body.start_date;
+      const endDate = body.end_date;
 
+      let dateRange: any;
+      if (startDate && endDate) {
+        const sy = parseInt(startDate.slice(0, 4));
+        const sm = parseInt(startDate.slice(5, 7));
+        const sd = parseInt(startDate.slice(8, 10));
+        const ey = parseInt(endDate.slice(0, 4));
+        const em = parseInt(endDate.slice(5, 7));
+        const ed = parseInt(endDate.slice(8, 10));
+        dateRange = {
+          fixed: {
+            startDate: { year: sy, month: sm, day: sd },
+            endDate: { year: ey, month: em, day: ed },
+          },
+        };
+      } else {
+        dateRange = { relative: "THIS_MONTH" };
+      }
+
+      // Build filters:
+      // 1) KEY_VALUES_NAME CONTAINS "utm_content" OR "utm_medium=b" OR "utm_source=fb_vc"
+      // 2) COUNTRY_ID IN [2840 (US), 2124 (CA)]
+      const keyValuesFilter = body.key_values_filter || [
+        "utm_content", "utm_medium=b", "utm_source=fb_vc"
+      ];
+      const countryIds = body.country_ids || ["2840", "2124"];
+
+      const filters: any[] = [];
+
+      // KEY_VALUES_NAME filter — OR of CONTAINS
+      if (keyValuesFilter.length > 0) {
+        filters.push({
+          filterList: {
+            type: "OR",
+            filters: keyValuesFilter.map((kv: string) => ({
+              fieldFilter: {
+                field: { dimension: "KEY_VALUES_NAME" },
+                operation: "CONTAINS",
+                values: [{ stringValue: kv }],
+              },
+            })),
+          },
+        });
+      }
+
+      // COUNTRY_ID filter — IN
+      if (countryIds.length > 0) {
+        filters.push({
+          fieldFilter: {
+            field: { dimension: "COUNTRY_ID" },
+            operation: "IN",
+            values: countryIds.map((id: string) => ({ intValue: id })),
+          },
+        });
+      }
+
+      // Dimensions & Metrics matching user's GAM UI configuration
+      const dimensions = body.dimensions || [
+        "KEY_VALUES_NAME",
+        "DATE",
+      ];
+
+      const metrics = body.metrics || [
+        "UNFILLED_IMPRESSIONS",
+        "AD_EXCHANGE_IMPRESSIONS",
+        "AD_EXCHANGE_CLICKS",
+        "AD_EXCHANGE_CTR",
+        "AD_EXCHANGE_REVENUE",
+        "AD_EXCHANGE_AVERAGE_ECPM",
+        "AD_EXCHANGE_ACTIVE_VIEW_MEASURABLE_IMPRESSIONS",
+        "AD_EXCHANGE_ACTIVE_VIEW_VIEWABLE_IMPRESSIONS",
+        "PROGRAMMATIC_RESPONSES_SERVED",
+        "PROGRAMMATIC_ELIGIBLE_AD_REQUESTS",
+      ];
+
+      console.log("GAM report config:", JSON.stringify({ dimensions, metrics, filters, dateRange }, null, 2));
+
+      // Step 1: Create report
       const createRes = await fetch(`${gamBase}/reports`, {
         method: "POST",
         headers: {
@@ -257,18 +325,15 @@ Deno.serve(async (req) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          report_definition: {
-            dimensions: ["DATE"],
-            metrics: ["AD_SERVER_IMPRESSIONS", "AD_SERVER_CLICKS", "AD_SERVER_REVENUE"],
-            report_type: "HISTORICAL",
-            date_range: {
-              fixed: {
-                start_date: { year: sy, month: sm, day: sd },
-                end_date: { year: ey, month: em, day: ed },
-              },
-            },
+          reportDefinition: {
+            dimensions,
+            metrics,
+            filters,
+            dateRange,
+            reportType: "HISTORICAL",
+            currencyCode: "USD",
           },
-          display_name: `Lovable Report ${startDate}`,
+          displayName: `Lovable GAM Report ${new Date().toISOString()}`,
           visibility: "HIDDEN",
         }),
       });
@@ -282,6 +347,7 @@ Deno.serve(async (req) => {
       }
 
       const reportName = report.name;
+      console.log("GAM report created:", reportName);
 
       // Step 2: Run the report
       const runRes = await fetch(
@@ -296,28 +362,39 @@ Deno.serve(async (req) => {
         );
       }
 
-      // Step 3: Poll until done (max 30s)
+      // Step 3: Poll until done (max ~50s — 10 polls × 5s)
       let result = operation;
       const opName = operation.name;
       if (opName && !result.done) {
-        for (let i = 0; i < 6; i++) {
+        for (let i = 0; i < 10; i++) {
           await new Promise((r) => setTimeout(r, 5000));
+          console.log(`GAM poll attempt ${i + 1}/10...`);
           const pollRes = await fetch(
             `https://admanager.googleapis.com/v1/${opName}`,
             { headers: { Authorization: `Bearer ${accessToken}` } }
           );
           result = await safeJson(pollRes, "GAM Poll");
-          if (result.done) break;
+          if (result.done) {
+            console.log("GAM report completed!");
+            break;
+          }
         }
       }
 
       if (!result.done) {
+        // Clean up temp report even on timeout
+        fetch(`https://admanager.googleapis.com/v1/${reportName}`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }).catch(() => {});
+
         return new Response(
-          JSON.stringify({ error: "GAM report timed out." }),
+          JSON.stringify({ error: "GAM report timed out after 50s. Try a shorter date range." }),
           { status: 408, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
+      // Step 4: Fetch result rows (paginated)
       const reportResult = result.response?.reportResult;
       if (!reportResult) {
         return new Response(JSON.stringify({ report: { rows: [] } }), {
@@ -325,11 +402,37 @@ Deno.serve(async (req) => {
         });
       }
 
-      const fetchRowsRes = await fetch(
-        `https://admanager.googleapis.com/v1/${reportResult}:fetchRows`,
-        { headers: { Authorization: `Bearer ${accessToken}` } }
-      );
-      const rowsData = await safeJson(fetchRowsRes, "GAM Fetch Rows");
+      // Fetch all pages of results
+      let allRows: any[] = [];
+      let nextPageToken: string | undefined;
+      do {
+        const pageUrl = nextPageToken
+          ? `https://admanager.googleapis.com/v1/${reportResult}:fetchRows?pageToken=${nextPageToken}`
+          : `https://admanager.googleapis.com/v1/${reportResult}:fetchRows`;
+
+        const fetchRowsRes = await fetch(pageUrl, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        const rowsData = await safeJson(fetchRowsRes, "GAM Fetch Rows");
+
+        if (rowsData.rows) {
+          allRows = allRows.concat(rowsData.rows);
+        }
+        nextPageToken = rowsData.nextPageToken;
+
+        // Also capture header info on first page
+        if (allRows.length === (rowsData.rows?.length || 0)) {
+          // Store dimension/metric columns for client parsing
+          if (rowsData.dimensionColumns) {
+            (allRows as any).dimensionColumns = rowsData.dimensionColumns;
+          }
+          if (rowsData.metricColumns) {
+            (allRows as any).metricColumns = rowsData.metricColumns;
+          }
+        }
+      } while (nextPageToken);
+
+      console.log(`GAM report fetched ${allRows.length} rows`);
 
       // Clean up temp report
       fetch(`https://admanager.googleapis.com/v1/${reportName}`, {
@@ -337,7 +440,7 @@ Deno.serve(async (req) => {
         headers: { Authorization: `Bearer ${accessToken}` },
       }).catch(() => {});
 
-      return new Response(JSON.stringify({ report: rowsData }), {
+      return new Response(JSON.stringify({ report: { rows: allRows, totalRows: allRows.length } }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
