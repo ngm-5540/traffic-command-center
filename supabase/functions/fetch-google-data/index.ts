@@ -240,44 +240,103 @@ Deno.serve(async (req) => {
       const endDate = body.end_date || startDate;
 
       // Use GAM API v202408 to create and run a report
-      const reportUrl = `https://admanager.googleapis.com/v1/networks/${networkCode}/reports:run`;
+      const gamBase = `https://admanager.googleapis.com/v1/networks/${networkCode}`;
 
-      const reportBody = {
-        reportQuery: {
-          dimensions: ["DATE", "AD_UNIT_NAME"],
-          metrics: [
-            "AD_SERVER_IMPRESSIONS",
-            "AD_SERVER_CLICKS",
-            "AD_SERVER_CPM_AND_CPC_REVENUE",
-          ],
-          dateRange: {
-            startDate: { year: parseInt(startDate.slice(0, 4)), month: parseInt(startDate.slice(5, 7)), day: parseInt(startDate.slice(8, 10)) },
-            endDate: { year: parseInt(endDate.slice(0, 4)), month: parseInt(endDate.slice(5, 7)), day: parseInt(endDate.slice(8, 10)) },
-          },
-        },
-      };
-
-      const reportRes = await fetch(reportUrl, {
+      // Step 1: Create a report
+      const createRes = await fetch(`${gamBase}/reports`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(reportBody),
+        body: JSON.stringify({
+          reportDefinition: {
+            dimensions: ["DATE", "AD_UNIT_NAME"],
+            metrics: [
+              "AD_SERVER_IMPRESSIONS",
+              "AD_SERVER_CLICKS",
+              "AD_SERVER_CPM_AND_CPC_REVENUE",
+            ],
+            dateRange: {
+              startDate: { year: parseInt(startDate.slice(0, 4)), month: parseInt(startDate.slice(5, 7)), day: parseInt(startDate.slice(8, 10)) },
+              endDate: { year: parseInt(endDate.slice(0, 4)), month: parseInt(endDate.slice(5, 7)), day: parseInt(endDate.slice(8, 10)) },
+            },
+          },
+          displayName: `Lovable Report ${startDate}`,
+          visibility: "HIDDEN",
+        }),
       });
 
-      const reportData = await safeJson(reportRes, "GAM API");
-      if (reportData.error) {
+      const report = await safeJson(createRes, "GAM Create Report");
+      if (report.error) {
         return new Response(
-          JSON.stringify({ error: `GAM API: ${reportData.error.message}` }),
+          JSON.stringify({ error: `GAM API (create): ${report.error.message}` }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
-      return new Response(JSON.stringify({ report: reportData }), {
+      const reportName = report.name; // e.g. "networks/123/reports/456"
+
+      // Step 2: Run the report
+      const runRes = await fetch(`${gamBase.replace(`/networks/${networkCode}`, '')}/${reportName}:run`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+
+      const operation = await safeJson(runRes, "GAM Run Report");
+      if (operation.error) {
+        return new Response(
+          JSON.stringify({ error: `GAM API (run): ${operation.error.message}` }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Step 3: Poll operation until done (max 30s)
+      let result = operation;
+      const opName = operation.name;
+      if (opName && !result.done) {
+        for (let i = 0; i < 6; i++) {
+          await new Promise((r) => setTimeout(r, 5000));
+          const pollRes = await fetch(
+            `https://admanager.googleapis.com/v1/${opName}`,
+            { headers: { Authorization: `Bearer ${accessToken}` } }
+          );
+          result = await safeJson(pollRes, "GAM Poll Operation");
+          if (result.done) break;
+        }
+      }
+
+      if (!result.done) {
+        return new Response(
+          JSON.stringify({ error: "GAM report timed out. Try a shorter date range." }),
+          { status: 408, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Step 4: Fetch report result rows
+      const reportResult = result.response?.reportResult;
+      if (!reportResult) {
+        return new Response(
+          JSON.stringify({ report: { rows: [] } }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const fetchRowsRes = await fetch(
+        `https://admanager.googleapis.com/v1/${reportResult}:fetchReportResultRows`,
+        { headers: { Authorization: `Bearer ${accessToken}` } }
+      );
+      const rowsData = await safeJson(fetchRowsRes, "GAM Fetch Rows");
+
+      // Clean up: delete the temp report
+      fetch(`https://admanager.googleapis.com/v1/${reportName}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }).catch(() => {});
+
+      return new Response(JSON.stringify({ report: rowsData }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
-    }
 
     return new Response(
       JSON.stringify({ error: `Unknown action: ${action}` }),
