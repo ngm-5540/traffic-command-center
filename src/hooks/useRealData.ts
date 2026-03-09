@@ -397,3 +397,177 @@ export function useRealDashboardData(dateRange?: DateRange) {
     },
   };
 }
+
+// ── Project Detail: campaign-level data for a specific project ──
+
+export function useProjectCampaigns(projectId: string | undefined, dateRange?: DateRange) {
+  const config = getStoredConfig();
+  const bmTaxRates = config.bm_tax_rates || {};
+  const usdBrlRate = parseFloat(config.usd_brl_rate || "5.1") || 5.1;
+
+  const since = dateRange?.from ? formatDate(dateRange.from) : undefined;
+  const until = dateRange?.to ? formatDate(dateRange.to) : since;
+
+  const dbQuery = useDbProjects();
+  const dbMappings = dbQuery.data?.mappings || [];
+  const bmQuery = useMetaBusinesses();
+
+  // Get ad accounts for this project
+  const projectMetaAccounts = useMemo(() => {
+    if (!projectId) return [];
+    return dbMappings
+      .filter((m) => m.project_id === projectId && m.platform === "meta")
+      .map((m) => m.ad_account_id);
+  }, [projectId, dbMappings]);
+
+  // Fetch insights for project's ad accounts
+  const metaQuery = useQuery({
+    queryKey: ["project-meta-insights", projectMetaAccounts, since, until],
+    queryFn: async () => {
+      const results: Record<string, any> = {};
+      await Promise.all(
+        projectMetaAccounts.map(async (accountId) => {
+          try {
+            const data = await cachedFetch(
+              "meta",
+              accountId,
+              since,
+              until,
+              () => fetchMetaInsights({ adAccountId: accountId, since, until })
+            );
+            results[accountId] = data;
+          } catch (err) {
+            console.error(`Meta insights error for ${accountId}:`, err);
+            results[accountId] = { campaign_insights: [] };
+          }
+        })
+      );
+      return results;
+    },
+    enabled: projectMetaAccounts.length > 0 && !!since,
+    retry: 1,
+    staleTime: 1000 * 60 * 14,
+    placeholderData: (prev: any) => prev,
+  });
+
+  // GAM revenue for this project
+  const gamQuery = useQuery({
+    queryKey: ["gam-revenue", since, until],
+    queryFn: async () => {
+      const { data: gamCred } = await supabase
+        .from("integration_credentials")
+        .select("credentials")
+        .eq("provider", "gam")
+        .single();
+      const revSharePct = parseFloat((gamCred?.credentials as any)?.revShare || "0");
+      const report = await cachedFetch(
+        "gam", "default", since, until,
+        () => fetchGAMRevenue({ startDate: since, endDate: until })
+      );
+      return { ...report, revSharePct };
+    },
+    enabled: !!since,
+    retry: 1,
+    staleTime: 1000 * 60 * 14,
+    placeholderData: (prev: any) => prev,
+  });
+
+  // Build adAccount → BM map
+  const adAccountToBm: Record<string, string> = useMemo(() => {
+    const map: Record<string, string> = {};
+    if (bmQuery.data) {
+      for (const bm of bmQuery.data) {
+        for (const acc of bm.ad_accounts) {
+          map[acc.id] = bm.id;
+        }
+      }
+    }
+    return map;
+  }, [bmQuery.data]);
+
+  // Transform campaign insights into structured data
+  const campaigns = useMemo(() => {
+    const metaData = metaQuery.data || {};
+    const allCampaigns: any[] = [];
+
+    for (const accountId of projectMetaAccounts) {
+      const accountData = metaData[accountId];
+      if (!accountData?.campaign_insights) continue;
+
+      const bmId = adAccountToBm[accountId];
+      const taxPct = bmId ? parseFloat(bmTaxRates[bmId] || "0") : 0;
+
+      for (const ci of accountData.campaign_insights) {
+        const rawSpend = parseFloat(ci.spend || "0");
+        const spend = rawSpend * (1 + taxPct / 100);
+        const impressions = parseInt(ci.impressions || "0");
+        const clicks = parseInt(ci.clicks || "0");
+        const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0;
+        const cpc = clicks > 0 ? spend / clicks : 0;
+        const cpm = impressions > 0 ? (spend / impressions) * 1000 : 0;
+
+        allCampaigns.push({
+          id: ci.campaign_id,
+          name: ci.campaign_name || ci.campaign_id,
+          cost: spend,
+          revenue: 0, // Will be distributed from GAM
+          profit: -spend,
+          roas: 0,
+          impressions,
+          linkClicks: clicks,
+          ctr,
+          cpc,
+          cpm,
+          sessions: 0,
+          rps: 0,
+          cps: 0,
+          leads: 0,
+          rpsTrend: [],
+          costTrend: [],
+          adsets: [],
+        });
+      }
+    }
+
+    // Distribute GAM revenue across campaigns by spend share
+    let gamTotalRevenue = 0;
+    const revSharePct = gamQuery.data?.revSharePct || 0;
+    if (gamQuery.data?.rows) {
+      for (const row of gamQuery.data.rows) {
+        const kvName = row.dimensionValues?.[0]?.stringValue || "";
+        if (!kvName.includes("utm_source=fb_vc")) continue;
+        const primaryValues = row.metricValueGroups?.[0]?.primaryValues;
+        if (primaryValues) {
+          gamTotalRevenue += parseFloat(primaryValues[4]?.doubleValue || "0");
+        }
+      }
+      if (revSharePct > 0) {
+        gamTotalRevenue = gamTotalRevenue * (1 - revSharePct / 100);
+      }
+      gamTotalRevenue = gamTotalRevenue * usdBrlRate;
+    }
+
+    if (gamTotalRevenue > 0) {
+      const totalSpend = allCampaigns.reduce((s, c) => s + c.cost, 0);
+      for (const c of allCampaigns) {
+        const share = totalSpend > 0 ? c.cost / totalSpend : 1 / allCampaigns.length;
+        c.revenue = gamTotalRevenue * share;
+        c.profit = c.revenue - c.cost;
+        c.roas = c.cost > 0 ? (c.revenue - c.cost) / c.cost : 0;
+      }
+    }
+
+    return allCampaigns;
+  }, [metaQuery.data, gamQuery.data, projectMetaAccounts, adAccountToBm, bmTaxRates, usdBrlRate]);
+
+  return {
+    campaigns,
+    isLoading: dbQuery.isLoading || metaQuery.isLoading || gamQuery.isLoading,
+    errors: [dbQuery.error?.message, metaQuery.error?.message, gamQuery.error?.message].filter(Boolean),
+    refetch: () => {
+      dbQuery.refetch();
+      metaQuery.refetch();
+      gamQuery.refetch();
+    },
+  };
+}

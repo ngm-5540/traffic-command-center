@@ -1,3 +1,4 @@
+import { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,7 +7,8 @@ import { cn } from "@/lib/utils";
 import { ChatbotBi } from "@/components/bi/ChatbotBi";
 import { GoogleAdsBi } from "@/components/bi/GoogleAdsBi";
 import { MetaAdsBi } from "@/components/bi/MetaAdsBi";
-import { useRealDashboardData } from "@/hooks/useRealData";
+import { useRealDashboardData, useProjectCampaigns } from "@/hooks/useRealData";
+import type { DateRange } from "react-day-picker";
 
 const verticalConfig: Record<string, { label: string; className: string }> = {
   google_ads: { label: "GOOGLE ADS", className: "bg-yellow-500/15 text-yellow-500 border-yellow-500/30" },
@@ -14,14 +16,45 @@ const verticalConfig: Record<string, { label: string; className: string }> = {
   chatbot: { label: "CHATBOT", className: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" },
 };
 
+const presets: { label: string; getValue: () => DateRange }[] = [
+  { label: "Hoje", getValue: () => { const d = new Date(); return { from: d, to: d }; } },
+  { label: "Ontem", getValue: () => { const d = new Date(); d.setDate(d.getDate() - 1); return { from: d, to: d }; } },
+  { label: "Últimos 7 dias", getValue: () => { const to = new Date(); const from = new Date(); from.setDate(to.getDate() - 6); return { from, to }; } },
+  { label: "Últimos 14 dias", getValue: () => { const to = new Date(); const from = new Date(); from.setDate(to.getDate() - 13); return { from, to }; } },
+  { label: "Últimos 30 dias", getValue: () => { const to = new Date(); const from = new Date(); from.setDate(to.getDate() - 29); return { from, to }; } },
+  { label: "Este mês", getValue: () => { const now = new Date(); return { from: new Date(now.getFullYear(), now.getMonth(), 1), to: now }; } },
+  { label: "Mês passado", getValue: () => { const now = new Date(); return { from: new Date(now.getFullYear(), now.getMonth() - 1, 1), to: new Date(now.getFullYear(), now.getMonth(), 0) }; } },
+];
+
+function loadSavedDateRange(): DateRange | undefined {
+  try {
+    const raw = localStorage.getItem("dashboard_filters");
+    if (!raw) return undefined;
+    const parsed = JSON.parse(raw);
+    if (parsed.dateRange) {
+      return {
+        from: new Date(parsed.dateRange.from),
+        to: parsed.dateRange.to ? new Date(parsed.dateRange.to) : undefined,
+      };
+    }
+  } catch {}
+  return undefined;
+}
+
 export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const realData = useRealDashboardData();
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(
+    loadSavedDateRange() ?? presets[0].getValue()
+  );
+
+  const realData = useRealDashboardData(dateRange);
   const project = realData.projects.find((p) => p.id === id);
 
-  if (!project) {
+  const campaignData = useProjectCampaigns(id, dateRange);
+
+  if (!project && !realData.isLoading) {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-4">
         <p className="text-muted-foreground">Projeto não encontrado</p>
@@ -30,7 +63,7 @@ export default function ProjectDetail() {
     );
   }
 
-  const vc = verticalConfig[project.vertical];
+  const vc = project ? verticalConfig[project.vertical] : null;
 
   return (
     <div className="flex flex-col h-full">
@@ -40,7 +73,7 @@ export default function ProjectDetail() {
           <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => navigate("/")}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <h1 className="text-sm font-semibold text-foreground truncate">{project.name}</h1>
+          <h1 className="text-sm font-semibold text-foreground truncate">{project?.name || "..."}</h1>
           {vc && (
             <Badge variant="outline" className={cn("text-[10px] shrink-0", vc.className)}>
               {vc.label}
@@ -51,9 +84,17 @@ export default function ProjectDetail() {
 
       {/* BI Content */}
       <div className="flex-1 overflow-auto">
-        {project.vertical === "chatbot" && <ChatbotBi />}
-        {project.vertical === "google_ads" && <GoogleAdsBi />}
-        {project.vertical === "meta_ads" && <MetaAdsBi />}
+        {(!project || project.vertical === "chatbot") && (
+          <ChatbotBi
+            project={project}
+            campaigns={campaignData.campaigns}
+            isLoading={campaignData.isLoading || realData.isLoading}
+            dateRange={dateRange}
+            onDateRangeChange={setDateRange}
+          />
+        )}
+        {project?.vertical === "google_ads" && <GoogleAdsBi />}
+        {project?.vertical === "meta_ads" && <MetaAdsBi />}
       </div>
     </div>
   );

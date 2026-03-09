@@ -8,14 +8,14 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { formatBRL, formatROAS, getRoasColor } from "@/lib/format";
+import { formatBRL, formatBRLFull, formatROAS, getRoasColor } from "@/lib/format";
 import { ResultadoTotalTab } from "./chatbot/ResultadoTotalTab";
 import { AutomacaoTab } from "./chatbot/AutomacaoTab";
 import { BroadcastTab } from "./chatbot/BroadcastTab";
 import { PopBadge } from "./chatbot/PopBadge";
 import {
-  chatbotCampaigns,
   chatbotAutomations,
   chatbotBroadcasts,
   fanpageOptions,
@@ -23,6 +23,7 @@ import {
 } from "@/data/chatbotMockData";
 import { generatePreviousKpis } from "@/data/popMockData";
 import type { DateRange } from "react-day-picker";
+import type { DashboardProject } from "@/data/dashboardData";
 
 const presets: { label: string; getValue: () => DateRange }[] = [
   { label: "Hoje", getValue: () => { const d = new Date(); return { from: d, to: d }; } },
@@ -34,15 +35,19 @@ const presets: { label: string; getValue: () => DateRange }[] = [
   { label: "Mês passado", getValue: () => { const now = new Date(); return { from: new Date(now.getFullYear(), now.getMonth() - 1, 1), to: new Date(now.getFullYear(), now.getMonth(), 0) }; } },
 ];
 
-export function ChatbotBi() {
+interface Props {
+  project?: DashboardProject;
+  campaigns: any[];
+  isLoading: boolean;
+  dateRange?: DateRange;
+  onDateRangeChange: (range: DateRange | undefined) => void;
+}
+
+export function ChatbotBi({ project, campaigns, isLoading, dateRange, onDateRangeChange }: Props) {
   const [fanpage, setFanpage] = useState("all");
   const [country, setCountry] = useState("all");
   const [focusMode, setFocusMode] = useState(false);
   const [popEnabled, setPopEnabled] = useState(false);
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-    to: new Date(),
-  });
   const [tempDateRange, setTempDateRange] = useState<DateRange | undefined>(dateRange);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
 
@@ -51,22 +56,20 @@ export function ChatbotBi() {
     const to = dateRange.to ?? dateRange.from;
     const span = differenceInCalendarDays(to, dateRange.from) + 1;
     const shiftDays = span * direction;
-    setDateRange({
+    onDateRangeChange({
       from: direction === 1 ? addDays(dateRange.from, shiftDays) : subDays(dateRange.from, Math.abs(shiftDays)),
       to: direction === 1 ? addDays(to, shiftDays) : subDays(to, Math.abs(shiftDays)),
     });
-  }, [dateRange]);
+  }, [dateRange, onDateRangeChange]);
 
-  // Aggregate KPIs from campaigns
-  const totalCost = chatbotCampaigns.reduce((s, c) => s + c.cost, 0);
-  const totalRevenue = chatbotCampaigns.reduce((s, c) => s + c.revenue, 0);
-  const totalProfit = totalRevenue - totalCost;
-  const avgRoas = chatbotCampaigns.length > 0
-    ? chatbotCampaigns.reduce((s, c) => s + c.roas, 0) / chatbotCampaigns.length
-    : 0;
-  const totalSessions = chatbotCampaigns.reduce((s, c) => s + c.sessions, 0);
+  // Use real project data for KPIs
+  const totalCost = project?.spend || 0;
+  const totalRevenue = project?.revenue || 0;
+  const totalProfit = project?.profit || 0;
+  const avgRoas = project?.roas || 0;
+  const totalSessions = project?.sessions || 0;
   const avgRps = totalSessions > 0 ? totalRevenue / totalSessions : 0;
-  const totalLeads = chatbotCampaigns.reduce((s, c) => s + c.leads, 0);
+  const totalLeads = project?.leads || 0;
   const avgCostPerLead = totalLeads > 0 ? totalCost / totalLeads : 0;
 
   const previousKpis = useMemo(
@@ -84,11 +87,11 @@ export function ChatbotBi() {
 
   const kpis = [
     { label: "ROAS", value: formatROAS(avgRoas), color: getRoasColor(avgRoas), tooltip: "Retorno médio sobre investimento", current: avgRoas, previous: previousKpis.avgRoas },
-    { label: "LUCRO", value: formatBRL(totalProfit), className: totalProfit >= 0 ? "text-profit" : "text-loss", tooltip: "Receita total menos custo total", current: totalProfit, previous: previousKpis.totalProfit },
-    { label: "CUSTO", value: formatBRL(totalCost), tooltip: "Investimento total em ads", current: totalCost, previous: previousKpis.totalCost, invertColor: true },
-    { label: "RECEITA", value: formatBRL(totalRevenue), tooltip: "Receita total gerada", current: totalRevenue, previous: previousKpis.totalRevenue },
-    { label: "RPS", value: formatBRL(avgRps), tooltip: "Receita por sessão média", current: avgRps, previous: previousKpis.avgRps },
-    { label: "C. LEAD", value: formatBRL(avgCostPerLead), tooltip: "Custo médio por lead", current: avgCostPerLead, previous: previousKpis.avgCostPerLead, invertColor: true },
+    { label: "LUCRO", value: formatBRL(totalProfit), fullValue: formatBRLFull(totalProfit), className: totalProfit >= 0 ? "text-profit" : "text-loss", tooltip: "Receita total menos custo total", current: totalProfit, previous: previousKpis.totalProfit },
+    { label: "CUSTO", value: formatBRL(totalCost), fullValue: formatBRLFull(totalCost), tooltip: "Investimento total em ads", current: totalCost, previous: previousKpis.totalCost, invertColor: true },
+    { label: "RECEITA", value: formatBRL(totalRevenue), fullValue: formatBRLFull(totalRevenue), tooltip: "Receita total gerada", current: totalRevenue, previous: previousKpis.totalRevenue },
+    { label: "RPS", value: formatBRL(avgRps), fullValue: formatBRLFull(avgRps), tooltip: "Receita por sessão média", current: avgRps, previous: previousKpis.avgRps },
+    { label: "C. LEAD", value: formatBRL(avgCostPerLead), fullValue: formatBRLFull(avgCostPerLead), tooltip: "Custo médio por lead", current: avgCostPerLead, previous: previousKpis.avgCostPerLead, invertColor: true },
   ];
 
   // ── Shared date picker popover content ──
@@ -112,7 +115,7 @@ export function ChatbotBi() {
               <button
                 key={preset.label}
                 onClick={() => {
-                  setDateRange(preset.getValue());
+                  onDateRangeChange(preset.getValue());
                   setDatePickerOpen(false);
                 }}
                 className="w-full rounded px-2 py-1.5 text-left text-xs text-foreground hover:bg-accent transition-colors"
@@ -147,7 +150,7 @@ export function ChatbotBi() {
               mode="range"
               selected={tempDateRange}
               onSelect={setTempDateRange}
-              numberOfMonths={2}
+              numberOfMonths={1}
               locale={ptBR}
               disabled={(date) => date > new Date()}
               className="p-3 pointer-events-auto"
@@ -161,7 +164,7 @@ export function ChatbotBi() {
                   size="sm"
                   className="h-7 text-[11px] font-semibold tracking-wider"
                   onClick={() => {
-                    setDateRange(tempDateRange);
+                    onDateRangeChange(tempDateRange);
                     setDatePickerOpen(false);
                   }}
                 >
@@ -219,62 +222,74 @@ export function ChatbotBi() {
     </>
   );
 
+  const tabsListNode = (
+    <TabsList className="w-fit h-auto p-0.5 bg-muted/50 border border-border">
+      <TabsTrigger value="resultado" className="text-[10px] font-semibold px-2.5 py-1 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground">Resultado Total</TabsTrigger>
+      <TabsTrigger value="automacao" className="text-[10px] font-semibold px-2.5 py-1 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground">Automação</TabsTrigger>
+      <TabsTrigger value="broadcast" className="text-[10px] font-semibold px-2.5 py-1 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground">Broadcast</TabsTrigger>
+    </TabsList>
+  );
+
   return (
     <div className={cn("flex flex-col", focusMode ? "fixed inset-0 z-[100] bg-background h-screen overflow-auto" : "h-full")}>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-3 gap-3 px-4 pt-4 sm:grid-cols-6 sm:px-6">
-        {kpis.map((kpi) => (
-          <Tooltip key={kpi.label}>
-            <TooltipTrigger asChild>
-              <div className={cn(
-                "rounded-lg border p-3 cursor-help",
-                kpi.label === "LUCRO"
-                  ? totalProfit >= 0
-                    ? "border-profit/30 bg-profit/5"
-                    : "border-loss/30 bg-loss/5"
-                  : "border-border bg-card"
-              )}>
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] uppercase tracking-wider text-foreground font-semibold">{kpi.label}</span>
+        {isLoading ? (
+          Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="rounded-lg border border-border bg-card p-3 space-y-2">
+              <Skeleton className="h-3 w-14" />
+              <Skeleton className="h-5 w-20" />
+            </div>
+          ))
+        ) : (
+          kpis.map((kpi) => (
+            <Tooltip key={kpi.label}>
+              <TooltipTrigger asChild>
+                <div className={cn(
+                  "rounded-lg border p-3 cursor-help",
+                  kpi.label === "LUCRO"
+                    ? totalProfit >= 0
+                      ? "border-profit/30 bg-profit/5"
+                      : "border-loss/30 bg-loss/5"
+                    : "border-border bg-card"
+                )}>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] uppercase tracking-wider text-foreground font-semibold">{kpi.label}</span>
+                    {popEnabled && (
+                      <PopBadge current={kpi.current} previous={kpi.previous} invertColor={kpi.invertColor} />
+                    )}
+                  </div>
+                  <p
+                    className={cn("font-mono text-lg font-bold", kpi.className || (!kpi.color ? "text-foreground" : undefined))}
+                    style={kpi.color ? { color: kpi.color } : undefined}
+                    title={kpi.fullValue}
+                  >
+                    {kpi.value}
+                  </p>
                   {popEnabled && (
-                    <PopBadge current={kpi.current} previous={kpi.previous} invertColor={kpi.invertColor} />
+                    <p className="text-[9px] text-muted-foreground font-mono mt-0.5">
+                      ant: {kpi.label === "ROAS" ? formatROAS(kpi.previous) : formatBRL(kpi.previous)}
+                    </p>
                   )}
                 </div>
-                <p
-                  className={cn("font-mono text-lg font-bold", kpi.className || (!kpi.color ? "text-foreground" : undefined))}
-                  style={kpi.color ? { color: kpi.color } : undefined}
-                >
-                  {kpi.value}
-                </p>
-                {popEnabled && (
-                  <p className="text-[9px] text-muted-foreground font-mono mt-0.5">
-                    ant: {kpi.label === "ROAS" ? formatROAS(kpi.previous) : formatBRL(kpi.previous)}
-                  </p>
-                )}
-              </div>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" className="text-xs">{kpi.tooltip}</TooltipContent>
-          </Tooltip>
-        ))}
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="text-xs">{kpi.fullValue ? `${kpi.fullValue} — ${kpi.tooltip}` : kpi.tooltip}</TooltipContent>
+            </Tooltip>
+          ))
+        )}
       </div>
 
       {/* Tabs */}
       <Tabs defaultValue="resultado" className={cn("flex-1 flex flex-col px-4 sm:px-6", focusMode ? "pt-2" : "pt-4")}>
         <TabsContent value="resultado" className="flex-1">
           <ResultadoTotalTab
-            campaigns={chatbotCampaigns}
+            campaigns={campaigns}
             popEnabled={popEnabled}
             focusMode={focusMode}
             onToggleFocusMode={() => setFocusMode(f => !f)}
             filtersNode={filtersNode}
-            tabsListNode={
-              <TabsList className="w-fit h-auto p-0.5 bg-muted/50 border border-border">
-                <TabsTrigger value="resultado" className="text-[10px] font-semibold px-2.5 py-1 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground">Resultado Total</TabsTrigger>
-                <TabsTrigger value="automacao" className="text-[10px] font-semibold px-2.5 py-1 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground">Automação</TabsTrigger>
-                <TabsTrigger value="broadcast" className="text-[10px] font-semibold px-2.5 py-1 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground">Broadcast</TabsTrigger>
-              </TabsList>
-            }
+            tabsListNode={tabsListNode}
           />
         </TabsContent>
         <TabsContent value="automacao" className="flex-1">
@@ -284,13 +299,7 @@ export function ChatbotBi() {
             focusMode={focusMode}
             onToggleFocusMode={() => setFocusMode(f => !f)}
             filtersNode={filtersNode}
-            tabsListNode={
-              <TabsList className="w-fit h-auto p-0.5 bg-muted/50 border border-border">
-                <TabsTrigger value="resultado" className="text-[10px] font-semibold px-2.5 py-1 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground">Resultado Total</TabsTrigger>
-                <TabsTrigger value="automacao" className="text-[10px] font-semibold px-2.5 py-1 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground">Automação</TabsTrigger>
-                <TabsTrigger value="broadcast" className="text-[10px] font-semibold px-2.5 py-1 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground">Broadcast</TabsTrigger>
-              </TabsList>
-            }
+            tabsListNode={tabsListNode}
           />
         </TabsContent>
         <TabsContent value="broadcast" className="flex-1">
@@ -300,13 +309,7 @@ export function ChatbotBi() {
             focusMode={focusMode}
             onToggleFocusMode={() => setFocusMode(f => !f)}
             filtersNode={filtersNode}
-            tabsListNode={
-              <TabsList className="w-fit h-auto p-0.5 bg-muted/50 border border-border">
-                <TabsTrigger value="resultado" className="text-[10px] font-semibold px-2.5 py-1 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground">Resultado Total</TabsTrigger>
-                <TabsTrigger value="automacao" className="text-[10px] font-semibold px-2.5 py-1 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground">Automação</TabsTrigger>
-                <TabsTrigger value="broadcast" className="text-[10px] font-semibold px-2.5 py-1 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground">Broadcast</TabsTrigger>
-              </TabsList>
-            }
+            tabsListNode={tabsListNode}
           />
         </TabsContent>
       </Tabs>
