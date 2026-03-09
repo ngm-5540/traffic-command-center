@@ -4,7 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { useMetaAdAccounts, useGA4Properties, useIntegrationConfig } from "@/hooks/useRealData";
+import { useMetaAdAccounts, useMetaBusinesses, useGA4Properties, useIntegrationConfig } from "@/hooks/useRealData";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 type CredentialState = {
   meta: { token: string };
