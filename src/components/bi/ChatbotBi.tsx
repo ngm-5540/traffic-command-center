@@ -282,7 +282,7 @@ export function ChatbotBi({ project, campaigns, isLoading, dateRange, onDateRang
 
       {/* Tabs */}
       <Tabs defaultValue="resultado" className={cn("flex-1 flex flex-col min-h-0 px-4 sm:px-6", focusMode ? "pt-2" : "pt-4")}>
-        <TabsContent value="resultado" className="flex-1">
+        <TabsContent value="resultado" className="flex-1 min-h-0 flex flex-col">
           <ResultadoTotalTab
             campaigns={campaigns}
             popEnabled={popEnabled}
