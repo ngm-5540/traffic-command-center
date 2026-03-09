@@ -166,7 +166,6 @@ export function useRealDashboardData(dateRange?: DateRange) {
     enabled: metaAdAccountIds.length > 0 && !!since,
     retry: 1,
     staleTime: 1000 * 60 * 14,
-    refetchInterval: 1000 * 60 * 15,
     placeholderData: (prev: any) => prev,
   });
 
