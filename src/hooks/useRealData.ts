@@ -10,6 +10,7 @@ import type { DateRange } from "react-day-picker";
 interface IntegrationConfig {
   meta_ad_account_id?: string;
   ga4_property_id?: string;
+  usd_brl_rate?: string;
 }
 
 function getStoredConfig(): IntegrationConfig {
