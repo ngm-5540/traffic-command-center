@@ -70,30 +70,11 @@ export async function fetchGA4Data(params: {
 
 // ── Google Ad Manager (GAM) ──
 
-export async function fetchGAMRevenue(params: {
+export async function fetchGAMRevenue(_params: {
   startDate?: string;
   endDate?: string;
 }) {
-  // Check if GAM credentials exist before calling
-  const { data: credRow } = await supabase
-    .from("integration_credentials")
-    .select("id")
-    .eq("provider", "gam")
-    .maybeSingle();
-
-  if (!credRow) {
-    // No GAM credentials configured — skip silently
-    return { rows: [] };
-  }
-
-  const { data, error } = await supabase.functions.invoke("fetch-google-data", {
-    body: {
-      action: "fetch_gam_revenue",
-      start_date: params.startDate,
-      end_date: params.endDate,
-    },
-  });
-  if (error) throw new Error(error.message);
-  if (data?.error) throw new Error(data.error);
-  return data.report;
+  // GAM API is currently timing out — disabled to prevent dashboard errors
+  // TODO: Re-enable when GAM report polling is fixed
+  return { rows: [] };
 }
