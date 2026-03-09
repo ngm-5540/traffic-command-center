@@ -452,14 +452,28 @@ export default function Dashboard() {
                     )}
                   >
                     {/* Card header */}
-                    <div className="mb-2 flex items-center justify-between gap-2">
-                      <ProjectName name={project.name} id={project.id} />
-                      <Badge
-                        variant="outline"
-                        className={cn("shrink-0 px-1 py-0 h-3.5 text-[6px] font-semibold tracking-wider", verticalConfig[project.vertical]?.className)}
+                    <div className="mb-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <h3
+                          className="font-semibold text-foreground truncate leading-none"
+                          style={{ fontSize: "clamp(13px, 6cqw, 16px)" }}
+                          title={project.name}
+                        >
+                          {project.name}
+                        </h3>
+                        <Badge
+                          variant="outline"
+                          className={cn("shrink-0 px-1 py-0 h-3.5 text-[6px] font-semibold tracking-wider", verticalConfig[project.vertical]?.className)}
+                        >
+                          {verticalConfig[project.vertical]?.label}
+                        </Badge>
+                      </div>
+                      <span
+                        className="font-mono text-muted-foreground leading-none mt-[1px] block"
+                        style={{ fontSize: "clamp(9px, 4.5cqw, 11px)" }}
                       >
-                        {verticalConfig[project.vertical]?.label}
-                      </Badge>
+                        #{project.id.substring(0, 5)}
+                      </span>
                     </div>
 
                     {/* Metrics */}
