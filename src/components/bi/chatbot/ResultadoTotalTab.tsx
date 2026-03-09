@@ -303,7 +303,7 @@ export function ResultadoTotalTab({ campaigns, popEnabled = false, focusMode = f
   return (
     <div className={containerClass}>
       {/* Toolbar */}
-      <div className="flex items-center justify-between gap-2 px-1 py-2">
+      <div className="shrink-0 flex items-center justify-between gap-2 px-1 py-2">
         <div className="flex items-center gap-2 flex-wrap">
           {/* Dimension switcher */}
           <div className="flex items-center rounded-md border border-border bg-muted/50 p-0.5">
@@ -392,7 +392,7 @@ export function ResultadoTotalTab({ campaigns, popEnabled = false, focusMode = f
 
       {/* Table */}
       <div className="flex-1 overflow-auto relative min-h-0">
-        <table className="w-full text-xs border-collapse">
+        <table className="w-full text-xs border-collapse min-h-full">
           <thead className="sticky top-0 z-30 bg-background">
             {/* Super-header row */}
             <tr className="border-b border-border">
@@ -596,13 +596,8 @@ export function ResultadoTotalTab({ campaigns, popEnabled = false, focusMode = f
               ))
             )}
           </tbody>
-        </table>
-      </div>
-
-      {/* Totals - fixed at bottom, outside scroll area */}
-      <div className="shrink-0 overflow-x-auto border-t-2 border-primary/30 bg-background shadow-[0_-4px_8px_-2px_rgba(0,0,0,0.15)]">
-        <table className="w-full text-xs border-collapse">
-          <tbody>
+          {/* Totals - sticky at bottom of scroll area */}
+          <tfoot className="sticky bottom-0 z-30 border-t-2 border-primary/30 bg-background shadow-[0_-4px_8px_-2px_rgba(0,0,0,0.15)]">
             <tr>
               <td
                 className="sticky left-0 z-40 bg-background px-3 py-2 font-bold text-foreground text-xs border-r border-border shadow-[2px_0_4px_-2px_rgba(0,0,0,0.3)]"
@@ -622,7 +617,7 @@ export function ResultadoTotalTab({ campaigns, popEnabled = false, focusMode = f
                 );
               })}
             </tr>
-          </tbody>
+          </tfoot>
         </table>
       </div>
     </div>
