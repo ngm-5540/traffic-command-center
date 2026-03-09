@@ -6,6 +6,17 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// ── Safe JSON parse for external API responses ──
+
+async function safeJson(res: Response, label: string): Promise<any> {
+  const text = await res.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error(`${label} returned non-JSON (status ${res.status}): ${text.slice(0, 300)}`);
+  }
+}
+
 // ── Google Service Account JWT Auth ──
 
 async function getGoogleAccessToken(
@@ -68,7 +79,13 @@ async function getGoogleAccessToken(
     body: `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${jwt}`,
   });
 
-  const tokenData = await tokenRes.json();
+  const tokenText = await tokenRes.text();
+  let tokenData: any;
+  try {
+    tokenData = JSON.parse(tokenText);
+  } catch {
+    throw new Error(`Google OAuth returned non-JSON (status ${tokenRes.status}): ${tokenText.slice(0, 200)}`);
+  }
   if (tokenData.error) {
     throw new Error(`Google OAuth error: ${tokenData.error_description || tokenData.error}`);
   }
@@ -123,7 +140,7 @@ Deno.serve(async (req) => {
           "https://analyticsadmin.googleapis.com/v1beta/accountSummaries",
           { headers: { Authorization: `Bearer ${accessToken}` } }
         );
-        const accountsData = await accountsRes.json();
+        const accountsData = await safeJson(accountsRes, "GA4 Admin API");
 
         if (accountsData.error) {
           return new Response(
@@ -174,7 +191,7 @@ Deno.serve(async (req) => {
           }
         );
 
-        const reportData = await reportRes.json();
+        const reportData = await safeJson(reportRes, "GA4 Data API");
         if (reportData.error) {
           return new Response(
             JSON.stringify({ error: `GA4 API: ${reportData.error.message}` }),
@@ -223,41 +240,104 @@ Deno.serve(async (req) => {
       const endDate = body.end_date || startDate;
 
       // Use GAM API v202408 to create and run a report
-      const reportUrl = `https://admanager.googleapis.com/v1/networks/${networkCode}/reports:run`;
+      const gamBase = `https://admanager.googleapis.com/v1/networks/${networkCode}`;
 
-      const reportBody = {
-        reportQuery: {
-          dimensions: ["DATE", "AD_UNIT_NAME"],
-          metrics: [
-            "AD_SERVER_IMPRESSIONS",
-            "AD_SERVER_CLICKS",
-            "AD_SERVER_CPM_AND_CPC_REVENUE",
-          ],
-          dateRange: {
-            startDate: { year: parseInt(startDate.slice(0, 4)), month: parseInt(startDate.slice(5, 7)), day: parseInt(startDate.slice(8, 10)) },
-            endDate: { year: parseInt(endDate.slice(0, 4)), month: parseInt(endDate.slice(5, 7)), day: parseInt(endDate.slice(8, 10)) },
-          },
-        },
-      };
+      // Step 1: Create a report
+      const sy = parseInt(startDate.slice(0, 4));
+      const sm = parseInt(startDate.slice(5, 7));
+      const sd = parseInt(startDate.slice(8, 10));
+      const ey = parseInt(endDate.slice(0, 4));
+      const em = parseInt(endDate.slice(5, 7));
+      const ed = parseInt(endDate.slice(8, 10));
 
-      const reportRes = await fetch(reportUrl, {
+      const createRes = await fetch(`${gamBase}/reports`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(reportBody),
+        body: JSON.stringify({
+          reportDefinition: {
+            dimensions: ["DATE"],
+            metrics: ["AD_SERVER_IMPRESSIONS", "AD_SERVER_CLICKS", "AD_SERVER_REVENUE"],
+            reportType: "HISTORICAL",
+            dateRange: {
+              fixedDateRange: {
+                startDate: { year: sy, month: sm, day: sd },
+                endDate: { year: ey, month: em, day: ed },
+              },
+            },
+          },
+          displayName: `Lovable Report ${startDate}`,
+          visibility: "HIDDEN",
+        }),
       });
 
-      const reportData = await reportRes.json();
-      if (reportData.error) {
+      const report = await safeJson(createRes, "GAM Create Report");
+      if (report.error) {
         return new Response(
-          JSON.stringify({ error: `GAM API: ${reportData.error.message}` }),
+          JSON.stringify({ error: `GAM API: ${report.error.message || JSON.stringify(report.error)}` }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
-      return new Response(JSON.stringify({ report: reportData }), {
+      const reportName = report.name;
+
+      // Step 2: Run the report
+      const runRes = await fetch(
+        `https://admanager.googleapis.com/v1/${reportName}:run`,
+        { method: "POST", headers: { Authorization: `Bearer ${accessToken}` } }
+      );
+      const operation = await safeJson(runRes, "GAM Run Report");
+      if (operation.error) {
+        return new Response(
+          JSON.stringify({ error: `GAM API (run): ${operation.error.message || JSON.stringify(operation.error)}` }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Step 3: Poll until done (max 30s)
+      let result = operation;
+      const opName = operation.name;
+      if (opName && !result.done) {
+        for (let i = 0; i < 6; i++) {
+          await new Promise((r) => setTimeout(r, 5000));
+          const pollRes = await fetch(
+            `https://admanager.googleapis.com/v1/${opName}`,
+            { headers: { Authorization: `Bearer ${accessToken}` } }
+          );
+          result = await safeJson(pollRes, "GAM Poll");
+          if (result.done) break;
+        }
+      }
+
+      if (!result.done) {
+        return new Response(
+          JSON.stringify({ error: "GAM report timed out." }),
+          { status: 408, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const reportResult = result.response?.reportResult;
+      if (!reportResult) {
+        return new Response(JSON.stringify({ report: { rows: [] } }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const fetchRowsRes = await fetch(
+        `https://admanager.googleapis.com/v1/${reportResult}:fetchReportResultRows`,
+        { headers: { Authorization: `Bearer ${accessToken}` } }
+      );
+      const rowsData = await safeJson(fetchRowsRes, "GAM Fetch Rows");
+
+      // Clean up temp report
+      fetch(`https://admanager.googleapis.com/v1/${reportName}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }).catch(() => {});
+
+      return new Response(JSON.stringify({ report: rowsData }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
