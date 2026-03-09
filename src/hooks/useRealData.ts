@@ -522,16 +522,15 @@ export function useProjectCampaigns(projectId: string | undefined, dateRange?: D
     }
 
     return allCampaigns;
-  }, [metaQuery.data, gamQuery.data, projectMetaAccounts, adAccountToBm, bmTaxRates, usdBrlRate]);
+  }, [metaQuery.data, projectMetaAccounts, adAccountToBm, bmTaxRates, projectRevenue]);
 
   return {
     campaigns,
-    isLoading: dbQuery.isLoading || metaQuery.isLoading || gamQuery.isLoading,
-    errors: [dbQuery.error?.message, metaQuery.error?.message, gamQuery.error?.message].filter(Boolean),
+    isLoading: dbQuery.isLoading || metaQuery.isLoading,
+    errors: [dbQuery.error?.message, metaQuery.error?.message].filter(Boolean),
     refetch: () => {
       dbQuery.refetch();
       metaQuery.refetch();
-      gamQuery.refetch();
     },
   };
 }
