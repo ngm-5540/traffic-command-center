@@ -349,17 +349,34 @@ export function useRealDashboardData(dateRange?: DateRange) {
     ga4Query.error?.message,
   ].filter(Boolean);
 
+  const refetchAll = useCallback(() => {
+    dbQuery.refetch();
+    metaQueries.refetch();
+    gamQuery.refetch();
+    ga4Query.refetch();
+  }, [dbQuery, metaQueries, gamQuery, ga4Query]);
+
+  // Synchronized refetch: all 3 sources refresh together every 15 min when date range includes today
+  const includestoday = useMemo(() => {
+    if (!until) return true;
+    return until >= format(new Date(), "yyyy-MM-dd");
+  }, [until]);
+
+  useEffect(() => {
+    if (!includestoday) return;
+    const interval = setInterval(() => {
+      console.log("[sync-refetch] Refreshing all sources simultaneously...");
+      refetchAll();
+    }, 1000 * 60 * 15);
+    return () => clearInterval(interval);
+  }, [includestoday, refetchAll]);
+
   return {
     projects,
     isConfigured,
     isLoading,
     errors,
-    refetch: () => {
-      dbQuery.refetch();
-      metaQueries.refetch();
-      gamQuery.refetch();
-      ga4Query.refetch();
-    },
+    refetch: refetchAll,
   };
 }
 
