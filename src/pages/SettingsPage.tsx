@@ -321,7 +321,25 @@ export default function SettingsPage() {
                       <span className="text-muted-foreground font-normal">({bm.ad_accounts.length} contas)</span>
                     </span>
                   </AccordionTrigger>
-                  <AccordionContent className="pb-2">
+                  <AccordionContent className="pb-2 space-y-2">
+                    {/* Tax rate for this BM */}
+                    <div className="pl-4 flex items-center gap-2">
+                      <label className="text-xs text-muted-foreground whitespace-nowrap">Imposto (%)</label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        max="100"
+                        value={config.bm_tax_rates?.[bm.id] || ""}
+                        onChange={(e) => {
+                          const current = config.bm_tax_rates || {};
+                          updateConfig({ bm_tax_rates: { ...current, [bm.id]: e.target.value } });
+                        }}
+                        className={inputClass + " w-24"}
+                        placeholder="0"
+                      />
+                      <span className="text-[10px] text-muted-foreground">Somado ao custo das contas desta BM</span>
+                    </div>
                     {bm.ad_accounts.length === 0 ? (
                       <p className="text-xs text-muted-foreground pl-4">Nenhuma conta encontrada nesta BM.</p>
                     ) : (

@@ -11,6 +11,7 @@ interface IntegrationConfig {
   meta_ad_account_id?: string;
   ga4_property_id?: string;
   usd_brl_rate?: string;
+  bm_tax_rates?: Record<string, string>; // bmId -> tax %
 }
 
 function getStoredConfig(): IntegrationConfig {
