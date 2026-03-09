@@ -23,7 +23,7 @@ export function formatBRLFull(value: number): string {
 
 export function formatROAS(value: number): string {
   if (value == null || isNaN(value)) return "0%";
-  return `${(value * 100).toFixed(0)}%`;
+  return `${(value * 100).toFixed(2)}%`;
 }
 
 export function formatPercent(value: number): string {
