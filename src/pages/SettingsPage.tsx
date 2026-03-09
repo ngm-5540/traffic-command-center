@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
-import { Save, Eye, EyeOff, Upload, Check, Loader2 } from "lucide-react";
+import { Save, Eye, EyeOff, Upload, Check, Loader2, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { useMetaAdAccounts, useGA4Properties, useIntegrationConfig } from "@/hooks/useRealData";
 
 type CredentialState = {
   meta: { token: string };
@@ -22,6 +24,9 @@ export default function SettingsPage() {
   const [showMetaToken, setShowMetaToken] = useState(false);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const { config, update: updateConfig } = useIntegrationConfig();
+  const metaAccounts = useMetaAdAccounts();
+  const ga4Properties = useGA4Properties();
   const { toast } = useToast();
 
   // Load credentials on mount
@@ -242,6 +247,80 @@ export default function SettingsPage() {
             </div>
           </TabsContent>
         </Tabs>
+      </div>
+
+      {/* Account Selection */}
+      <div className="rounded-lg border border-border bg-card p-5 space-y-4">
+        <h3 className="text-sm font-semibold text-foreground">Contas e Propriedades</h3>
+        <p className="text-xs text-muted-foreground">
+          Selecione as contas que serão usadas para puxar dados reais no Dashboard.
+        </p>
+
+        {/* Meta Ad Account */}
+        <label className="space-y-1.5 block">
+          <span className="text-xs font-medium text-muted-foreground">Conta Meta Ads</span>
+          {metaAccounts.isLoading ? (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Loader2 className="h-3 w-3 animate-spin" /> Carregando contas...
+            </div>
+          ) : metaAccounts.error ? (
+            <div className="flex items-center gap-2">
+              <p className="text-xs text-destructive">{metaAccounts.error.message}</p>
+              <button onClick={() => metaAccounts.refetch()} className="text-xs text-primary hover:underline">
+                <RefreshCw className="h-3 w-3 inline mr-1" />Tentar novamente
+              </button>
+            </div>
+          ) : metaAccounts.data && metaAccounts.data.length > 0 ? (
+            <Select value={config.meta_ad_account_id || ""} onValueChange={(v) => updateConfig({ meta_ad_account_id: v })}>
+              <SelectTrigger className="h-9 text-sm border-border">
+                <SelectValue placeholder="Selecione uma conta" />
+              </SelectTrigger>
+              <SelectContent>
+                {metaAccounts.data.map((acc) => (
+                  <SelectItem key={acc.id} value={acc.id} className="text-xs">
+                    {acc.name} ({acc.id})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <p className="text-xs text-muted-foreground">Salve o token Meta primeiro e recarregue.</p>
+          )}
+        </label>
+
+        {/* GA4 Property */}
+        <label className="space-y-1.5 block">
+          <span className="text-xs font-medium text-muted-foreground">Propriedade GA4</span>
+          {ga4Properties.isLoading ? (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Loader2 className="h-3 w-3 animate-spin" /> Carregando propriedades...
+            </div>
+          ) : ga4Properties.error ? (
+            <div className="flex items-center gap-2">
+              <p className="text-xs text-destructive">{ga4Properties.error.message}</p>
+              <button onClick={() => ga4Properties.refetch()} className="text-xs text-primary hover:underline">
+                <RefreshCw className="h-3 w-3 inline mr-1" />Tentar novamente
+              </button>
+            </div>
+          ) : ga4Properties.data && ga4Properties.data.length > 0 ? (
+            <Select value={config.ga4_property_id || ""} onValueChange={(v) => updateConfig({ ga4_property_id: v })}>
+              <SelectTrigger className="h-9 text-sm border-border">
+                <SelectValue placeholder="Selecione uma propriedade" />
+              </SelectTrigger>
+              <SelectContent>
+                {ga4Properties.data.flatMap((acc) =>
+                  (acc.propertySummaries || []).map((prop) => (
+                    <SelectItem key={prop.property} value={prop.property.replace("properties/", "")} className="text-xs">
+                      {prop.displayName} ({acc.displayName})
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+          ) : (
+            <p className="text-xs text-muted-foreground">Salve o JSON da service account do Analytics primeiro e recarregue.</p>
+          )}
+        </label>
       </div>
 
       <button

@@ -2,11 +2,12 @@ import { useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { format, differenceInCalendarDays, addDays, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarIcon, ArrowUp, ArrowDown, Plus, ChevronLeft, ChevronRight, GitCompareArrows } from "lucide-react";
+import { CalendarIcon, ArrowUp, ArrowDown, Plus, ChevronLeft, ChevronRight, GitCompareArrows, Loader2, AlertCircle } from "lucide-react";
 import { dashboardProjects as defaultProjects, verticals, type Vertical, type DashboardProject } from "@/data/dashboardData";
 import { formatBRL, formatBRLFull, formatROAS, getRoasColor } from "@/lib/format";
 import { PopBadge } from "@/components/bi/chatbot/PopBadge";
 import { generatePreviousKpis, generatePreviousRecord } from "@/data/popMockData";
+import { useRealDashboardData } from "@/hooks/useRealData";
 import { CreateProjectDialog } from "@/components/CreateProjectDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -90,7 +91,7 @@ function saveFilters(filters: { vertical: Vertical; sortKey: SortKey; sortDir: S
 export default function Dashboard() {
   const navigate = useNavigate();
   const saved = useMemo(() => loadSavedFilters(), []);
-  const [projects, setProjects] = useState<DashboardProject[]>(() => loadSavedProjects() ?? defaultProjects);
+  const [localProjects, setLocalProjects] = useState<DashboardProject[]>(() => loadSavedProjects() ?? defaultProjects);
   const [activeVertical, setActiveVertical] = useState<Vertical>(saved?.vertical ?? "todos");
   const [sortKey, setSortKey] = useState<SortKey>(saved?.sortKey ?? "profit");
   const [sortDir, setSortDir] = useState<SortDir>(saved?.sortDir ?? "desc");
@@ -99,10 +100,16 @@ export default function Dashboard() {
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [newestProjectId, setNewestProjectId] = useState<string | null>(null);
+
+  // Real data from APIs
+  const realData = useRealDashboardData(dateRange);
+
+  // Use real data if configured, otherwise fall back to mock
+  const projects = realData.isConfigured ? realData.projects : localProjects;
   const [popEnabled, setPopEnabled] = useState(false);
 
   const handleCreateProject = useCallback((project: DashboardProject) => {
-    setProjects((prev) => {
+    setLocalProjects((prev) => {
       const next = [project, ...prev];
       saveProjects(next);
       return next;
@@ -398,6 +405,20 @@ export default function Dashboard() {
           </Button>
         </div>
       </div>
+
+      {/* Loading / Error indicators */}
+      {realData.isConfigured && realData.isLoading && (
+        <div className="flex items-center gap-2 px-4 sm:px-6 pt-2">
+          <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+          <span className="text-xs text-muted-foreground">Carregando dados reais...</span>
+        </div>
+      )}
+      {realData.errors.length > 0 && (
+        <div className="flex items-center gap-2 px-4 sm:px-6 pt-2">
+          <AlertCircle className="h-3.5 w-3.5 text-loss" />
+          <span className="text-xs text-loss">{realData.errors[0]}</span>
+        </div>
+      )}
 
       {/* Grid */}
       <div className="flex-1 overflow-auto p-4 sm:p-6">
