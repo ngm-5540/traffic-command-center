@@ -109,7 +109,7 @@ export default function Dashboard() {
   const [popEnabled, setPopEnabled] = useState(false);
 
   const handleCreateProject = useCallback((project: DashboardProject) => {
-    setProjects((prev) => {
+    setLocalProjects((prev) => {
       const next = [project, ...prev];
       saveProjects(next);
       return next;
