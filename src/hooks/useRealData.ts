@@ -166,7 +166,6 @@ export function useRealDashboardData(dateRange?: DateRange) {
     enabled: metaAdAccountIds.length > 0 && !!since,
     retry: 1,
     staleTime: 1000 * 60 * 14,
-    placeholderData: (prev: any) => prev,
   });
 
   // GAM Revenue (non-blocking — returns empty on failure)
@@ -197,7 +196,6 @@ export function useRealDashboardData(dateRange?: DateRange) {
     enabled: !!since,
     retry: 1,
     staleTime: 1000 * 60 * 14,
-    placeholderData: (prev: any) => prev,
   });
 
   // GA4 Sessions
@@ -220,7 +218,6 @@ export function useRealDashboardData(dateRange?: DateRange) {
     enabled: !!ga4PropertyId && !!since,
     retry: 1,
     staleTime: 1000 * 60 * 14,
-    placeholderData: (prev: any) => prev,
   });
 
   // Build project-level aggregation
@@ -430,7 +427,6 @@ export function useProjectCampaigns(projectId: string | undefined, dateRange?: D
     enabled: projectMetaAccounts.length > 0 && !!since,
     retry: 1,
     staleTime: 1000 * 60 * 14,
-    placeholderData: (prev: any) => prev,
   });
 
   // GAM revenue for ad-level matching
@@ -457,7 +453,6 @@ export function useProjectCampaigns(projectId: string | undefined, dateRange?: D
     enabled: !!since,
     retry: 1,
     staleTime: 1000 * 60 * 14,
-    placeholderData: (prev: any) => prev,
   });
 
   // Build adAccount → BM map
