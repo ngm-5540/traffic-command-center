@@ -18,14 +18,8 @@ export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  // Try localStorage first, then default
-  let projects = dashboardProjects;
-  try {
-    const raw = localStorage.getItem("dashboard_projects");
-    if (raw) projects = JSON.parse(raw);
-  } catch {}
-
-  const project = projects.find((p) => p.id === id);
+  const realData = useRealDashboardData();
+  const project = realData.projects.find((p) => p.id === id);
 
   if (!project) {
     return (
