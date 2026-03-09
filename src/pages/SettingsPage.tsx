@@ -24,6 +24,9 @@ export default function SettingsPage() {
   const [showMetaToken, setShowMetaToken] = useState(false);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const { config, update: updateConfig } = useIntegrationConfig();
+  const metaAccounts = useMetaAdAccounts();
+  const ga4Properties = useGA4Properties();
   const { toast } = useToast();
 
   // Load credentials on mount
