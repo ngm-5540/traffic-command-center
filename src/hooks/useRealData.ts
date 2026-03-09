@@ -225,34 +225,6 @@ export function useRealDashboardData(dateRange?: DateRange) {
   });
 
   // Build project-level aggregation
-  // Build GAM ad_id → revenue map from utm_content rows
-  const gamAdRevenueMap: Record<string, number> = useMemo(() => {
-    const map: Record<string, number> = {};
-    const revSharePct = gamQuery.data?.revSharePct || 0;
-    const usdBrlRate = parseFloat(config.usd_brl_rate || "5.1") || 5.1;
-
-    if (!gamQuery.data?.rows) return map;
-
-    for (const row of gamQuery.data.rows) {
-      const kvName = row.dimensionValues?.[0]?.stringValue || "";
-      if (!kvName.startsWith("utm_content=")) continue;
-
-      // Extract ad_id from pattern: utm_content=X_aut_ADID_vc_Y
-      const match = kvName.match(/_aut_(\d+)_vc_/);
-      if (!match) continue;
-
-      const adId = match[1];
-      const primaryValues = row.metricValueGroups?.[0]?.primaryValues;
-      if (!primaryValues) continue;
-
-      let rev = parseFloat(primaryValues[4]?.doubleValue || primaryValues[4]?.intValue || "0");
-      if (revSharePct > 0) rev = rev * (1 - revSharePct / 100);
-      rev = rev * usdBrlRate;
-
-      map[adId] = (map[adId] || 0) + rev;
-    }
-    return map;
-  }, [gamQuery.data, config.usd_brl_rate]);
 
   const projects: DashboardProject[] = useMemo(() => {
     if (!dbProjects.length) return [];
@@ -269,6 +241,23 @@ export function useRealDashboardData(dateRange?: DateRange) {
       }
     }
 
+    // GAM total revenue from utm_source=fb_vc rows
+    let gamTotalRevenue = 0;
+    const revSharePct = gamQuery.data?.revSharePct || 0;
+    const usdBrlRate = parseFloat(config.usd_brl_rate || "5.1") || 5.1;
+    if (gamQuery.data?.rows) {
+      for (const row of gamQuery.data.rows) {
+        const kvName = row.dimensionValues?.[0]?.stringValue || "";
+        if (!kvName.includes("utm_source=fb_vc")) continue;
+        const primaryValues = row.metricValueGroups?.[0]?.primaryValues;
+        if (primaryValues) {
+          gamTotalRevenue += parseFloat(primaryValues[4]?.doubleValue || primaryValues[4]?.intValue || "0");
+        }
+      }
+      if (revSharePct > 0) gamTotalRevenue = gamTotalRevenue * (1 - revSharePct / 100);
+      gamTotalRevenue = gamTotalRevenue * usdBrlRate;
+    }
+
     const result: DashboardProject[] = [];
 
     for (const proj of dbProjects) {
@@ -278,49 +267,32 @@ export function useRealDashboardData(dateRange?: DateRange) {
         .map((m) => m.ad_account_id);
 
       let totalSpend = 0;
-      let totalRevenue = 0;
       let totalLeads = 0;
 
       for (const accountId of projectMetaAccounts) {
         const accountData = metaData[accountId];
-        if (!accountData) continue;
+        if (!accountData?.campaign_insights) continue;
 
         const bmId = adAccountToBm[accountId];
         const taxPct = bmId ? parseFloat(bmTaxRates[bmId] || "0") : 0;
 
-        // Use campaign_insights for spend/leads
-        if (accountData.campaign_insights) {
-          for (const ci of accountData.campaign_insights) {
-            const rawSpend = parseFloat(ci.spend || "0");
-            totalSpend += rawSpend * (1 + taxPct / 100);
+        for (const ci of accountData.campaign_insights) {
+          const rawSpend = parseFloat(ci.spend || "0");
+          totalSpend += rawSpend * (1 + taxPct / 100);
 
-            if (ci.actions) {
-              for (const a of ci.actions) {
-                if (
-                  a.action_type === "lead" ||
-                  a.action_type === "offsite_conversion.fb_pixel_lead" ||
-                  a.action_type === "onsite_conversion.lead_grouped"
-                ) {
-                  totalLeads += parseInt(a.value || "0");
-                }
+          if (ci.actions) {
+            for (const a of ci.actions) {
+              if (
+                a.action_type === "lead" ||
+                a.action_type === "offsite_conversion.fb_pixel_lead" ||
+                a.action_type === "onsite_conversion.lead_grouped"
+              ) {
+                totalLeads += parseInt(a.value || "0");
               }
             }
           }
         }
-
-        // Use ad_insights to sum GAM revenue by ad_id
-        if (accountData.ad_insights) {
-          for (const ad of accountData.ad_insights) {
-            const adId = ad.ad_id;
-            if (adId && gamAdRevenueMap[adId]) {
-              totalRevenue += gamAdRevenueMap[adId];
-            }
-          }
-        }
       }
-
-      const totalProfit = totalRevenue - totalSpend;
-      const roas = totalSpend > 0 ? (totalRevenue - totalSpend) / totalSpend : 0;
 
       const verticalMap: Record<string, "chatbot" | "meta_ads" | "google_ads"> = {
         chatbot: "chatbot",
@@ -334,13 +306,24 @@ export function useRealDashboardData(dateRange?: DateRange) {
         vertical: verticalMap[proj.type] || "chatbot",
         status: "ativo",
         type: proj.type,
-        revenue: totalRevenue,
+        revenue: 0,
         spend: totalSpend,
-        profit: totalProfit,
-        roas,
+        profit: 0,
+        roas: 0,
         sessions: 0,
         leads: totalLeads,
       });
+    }
+
+    // Distribute GAM utm_source=fb_vc revenue by spend share
+    if (gamTotalRevenue > 0) {
+      const allSpend = result.reduce((s, p) => s + p.spend, 0);
+      for (const p of result) {
+        const share = allSpend > 0 ? p.spend / allSpend : 1 / result.length;
+        p.revenue = gamTotalRevenue * share;
+        p.profit = p.revenue - p.spend;
+        p.roas = p.spend > 0 ? (p.revenue - p.spend) / p.spend : 0;
+      }
     }
 
     // Distribute GA4 sessions proportionally
@@ -358,7 +341,7 @@ export function useRealDashboardData(dateRange?: DateRange) {
     }
 
     return result;
-  }, [dbProjects, dbMappings, metaQueries.data, ga4Query.data, gamAdRevenueMap, bmQuery.data, bmTaxRates]);
+  }, [dbProjects, dbMappings, metaQueries.data, ga4Query.data, gamQuery.data, bmQuery.data, bmTaxRates, config.usd_brl_rate]);
 
   const isConfigured = dbProjects.length > 0;
   const isLoading = dbQuery.isLoading || metaQueries.isLoading || gamQuery.isLoading || ga4Query.isLoading;
