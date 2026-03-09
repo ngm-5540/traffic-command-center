@@ -273,11 +273,20 @@ export function ResultadoTotalTab({ campaigns, popEnabled = false, focusMode = f
     return groups;
   }, [visibleColumns]);
 
-  // Expanded rows (only for campaign dimension)
+  // Expanded rows (campaign and adset level)
   const [expandedCampaigns, setExpandedCampaigns] = useState<Set<string>>(new Set());
+  const [expandedAdsets, setExpandedAdsets] = useState<Set<string>>(new Set());
 
   const toggleExpand = useCallback((id: string) => {
     setExpandedCampaigns((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const toggleExpandAdset = useCallback((id: string) => {
+    setExpandedAdsets((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id); else next.add(id);
       return next;
@@ -471,28 +480,60 @@ export function ResultadoTotalTab({ campaigns, popEnabled = false, focusMode = f
                     })}
                   </tr>
                   {expandedCampaigns.has(campaign.id) && campaign.adsets.map((adset) => (
-                    <tr key={adset.id} className="border-b border-border/50 bg-card/30 hover:bg-accent/30 transition-colors">
-                      <td className="sticky left-0 z-20 bg-card/30 px-3 py-1.5 pl-8 text-foreground/80 whitespace-nowrap border-r border-border text-[11px] shadow-[2px_0_4px_-2px_rgba(0,0,0,0.3)]">
-                        ↳ {adset.name}
-                        <span className="ml-2 text-[10px] text-muted-foreground font-mono">({adset.ads.length} ads)</span>
-                      </td>
-                      {visibleColumns.map((col) => {
-                        const val = (adset as any)[col.key];
-                        const prev = previousRowData.get(adset.id);
-                        const prevVal = prev?.[col.key];
-                        const isTrend = col.key.endsWith("Trend");
-                        return (
-                          <td key={col.key} className="px-2 py-1.5 text-right font-mono text-[11px] whitespace-nowrap text-foreground/70">
-                            <div className="flex flex-col items-end">
-                              <span>{col.format(val)}</span>
-                              {popEnabled && !isTrend && typeof val === "number" && prevVal != null && (
-                                <PopBadge current={val} previous={prevVal} invertColor={invertColorKeys.has(col.key)} />
-                              )}
-                            </div>
+                    <>
+                      <tr
+                        key={adset.id}
+                        className="border-b border-border/50 bg-card/30 hover:bg-accent/30 cursor-pointer transition-colors"
+                        onClick={(e) => { e.stopPropagation(); toggleExpandAdset(adset.id); }}
+                      >
+                        <td className="sticky left-0 z-20 bg-card/30 px-3 py-1.5 pl-8 text-foreground/80 whitespace-nowrap border-r border-border text-[11px] shadow-[2px_0_4px_-2px_rgba(0,0,0,0.3)]">
+                          <span className="mr-1.5 text-muted-foreground text-[10px]">
+                            {expandedAdsets.has(adset.id) ? "▼" : "▶"}
+                          </span>
+                          ↳ {adset.name}
+                          <span className="ml-2 text-[10px] text-muted-foreground font-mono">({adset.ads.length} ads)</span>
+                        </td>
+                        {visibleColumns.map((col) => {
+                          const val = (adset as any)[col.key];
+                          const prev = previousRowData.get(adset.id);
+                          const prevVal = prev?.[col.key];
+                          const isTrend = col.key.endsWith("Trend");
+                          return (
+                            <td key={col.key} className="px-2 py-1.5 text-right font-mono text-[11px] whitespace-nowrap text-foreground/70">
+                              <div className="flex flex-col items-end">
+                                <span>{col.format(val)}</span>
+                                {popEnabled && !isTrend && typeof val === "number" && prevVal != null && (
+                                  <PopBadge current={val} previous={prevVal} invertColor={invertColorKeys.has(col.key)} />
+                                )}
+                              </div>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                      {expandedAdsets.has(adset.id) && adset.ads.map((ad) => (
+                        <tr key={ad.id} className="border-b border-border/30 bg-card/10 hover:bg-accent/20 transition-colors">
+                          <td className="sticky left-0 z-20 bg-card/10 px-3 py-1.5 pl-14 text-foreground/60 whitespace-nowrap border-r border-border text-[10px] shadow-[2px_0_4px_-2px_rgba(0,0,0,0.3)]">
+                            ↳ {ad.name}
                           </td>
-                        );
-                      })}
-                    </tr>
+                          {visibleColumns.map((col) => {
+                            const val = (ad as any)[col.key];
+                            const prev = previousRowData.get(ad.id);
+                            const prevVal = prev?.[col.key];
+                            const isTrend = col.key.endsWith("Trend");
+                            return (
+                              <td key={col.key} className="px-2 py-1.5 text-right font-mono text-[10px] whitespace-nowrap text-foreground/50">
+                                <div className="flex flex-col items-end">
+                                  <span>{col.format(val)}</span>
+                                  {popEnabled && !isTrend && typeof val === "number" && prevVal != null && (
+                                    <PopBadge current={val} previous={prevVal} invertColor={invertColorKeys.has(col.key)} />
+                                  )}
+                                </div>
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      ))}
+                    </>
                   ))}
                 </>
               ))
