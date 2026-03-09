@@ -19,13 +19,13 @@ const EMPTY: CredentialState = {
 };
 
 export default function SettingsPage() {
+  const { config, update: updateConfig } = useIntegrationConfig();
   const [creds, setCreds] = useState<CredentialState>(EMPTY);
   const [safeMargin, setSafeMargin] = useState("15");
   const [usdBrlRate, setUsdBrlRate] = useState(config.usd_brl_rate || "5.1");
   const [showMetaToken, setShowMetaToken] = useState(false);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
-  const { config, update: updateConfig } = useIntegrationConfig();
   const metaAccounts = useMetaAdAccounts();
   const ga4Properties = useGA4Properties();
   const { toast } = useToast();
