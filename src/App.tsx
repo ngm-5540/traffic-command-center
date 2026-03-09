@@ -27,7 +27,7 @@ function AppLayout() {
 
   return (
     <SidebarProvider defaultOpen={false}>
-      <div className="min-h-screen flex w-full">
+      <div className="h-screen flex w-full overflow-hidden">
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0">
           <div className="flex items-center gap-1 border-b border-border bg-background px-2 py-1.5">
