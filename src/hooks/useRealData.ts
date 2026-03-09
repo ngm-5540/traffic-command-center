@@ -145,12 +145,19 @@ export function useRealDashboardData(dateRange?: DateRange) {
     staleTime: 1000 * 60 * 5,
   });
 
-  // GAM Revenue
+  // GAM Revenue (non-blocking — returns empty on failure)
   const gamQuery = useQuery({
     queryKey: ["gam-revenue", since, until],
-    queryFn: () => fetchGAMRevenue({ startDate: since, endDate: until }),
+    queryFn: async () => {
+      try {
+        return await fetchGAMRevenue({ startDate: since, endDate: until });
+      } catch (err) {
+        console.warn("GAM revenue fetch failed (non-blocking):", err);
+        return { rows: [] };
+      }
+    },
     enabled: !!since,
-    retry: 1,
+    retry: 0,
     staleTime: 1000 * 60 * 5,
   });
 
