@@ -54,6 +54,8 @@ export async function fetchMetaInsights(params: {
     campaigns: any[];
     account_insights: any;
     campaign_insights: any[];
+    adset_insights: any[];
+    ad_insights: any[];
   };
 }
 
