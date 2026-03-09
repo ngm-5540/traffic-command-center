@@ -157,7 +157,6 @@ export function useRealDashboardData(dateRange?: DateRange) {
     queryKey: ["gam-revenue", since, until],
     queryFn: async () => {
       try {
-        // Fetch GAM rev share from credentials
         const { data: gamCred } = await supabase
           .from("integration_credentials")
           .select("credentials")
@@ -165,7 +164,13 @@ export function useRealDashboardData(dateRange?: DateRange) {
           .single();
         const revSharePct = parseFloat((gamCred?.credentials as any)?.revShare || "0");
 
-        const report = await fetchGAMRevenue({ startDate: since, endDate: until });
+        const report = await cachedFetch(
+          "gam",
+          "default",
+          since,
+          until,
+          () => fetchGAMRevenue({ startDate: since, endDate: until })
+        );
         return { ...report, revSharePct };
       } catch (err) {
         console.warn("GAM revenue fetch failed (non-blocking):", err);
