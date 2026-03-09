@@ -40,6 +40,16 @@ export function useIntegrationConfig() {
   return { config, update };
 }
 
+// ── Meta Business Managers Discovery ──
+export function useMetaBusinesses() {
+  return useQuery({
+    queryKey: ["meta-businesses"],
+    queryFn: listMetaBusinesses,
+    retry: 1,
+    staleTime: 1000 * 60 * 30,
+  });
+}
+
 // ── Meta Ad Accounts Discovery ──
 export function useMetaAdAccounts() {
   return useQuery({
