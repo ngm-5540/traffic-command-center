@@ -296,37 +296,55 @@ export default function SettingsPage() {
           Selecione as contas que serão usadas para puxar dados reais no Dashboard.
         </p>
 
-        {/* Meta Ad Account */}
-        <label className="space-y-1.5 block">
-          <span className="text-xs font-medium text-muted-foreground">Conta Meta Ads</span>
-          {metaAccounts.isLoading ? (
+        {/* Meta Business Managers & Ad Accounts */}
+        <div className="space-y-1.5">
+          <span className="text-xs font-medium text-muted-foreground">Business Managers e Contas</span>
+          {metaBusinesses.isLoading ? (
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Loader2 className="h-3 w-3 animate-spin" /> Carregando contas...
+              <Loader2 className="h-3 w-3 animate-spin" /> Carregando BMs...
             </div>
-          ) : metaAccounts.error ? (
+          ) : metaBusinesses.error ? (
             <div className="flex items-center gap-2">
-              <p className="text-xs text-destructive">{metaAccounts.error.message}</p>
-              <button onClick={() => metaAccounts.refetch()} className="text-xs text-primary hover:underline">
+              <p className="text-xs text-destructive">{metaBusinesses.error.message}</p>
+              <button onClick={() => metaBusinesses.refetch()} className="text-xs text-primary hover:underline">
                 <RefreshCw className="h-3 w-3 inline mr-1" />Tentar novamente
               </button>
             </div>
-          ) : metaAccounts.data && metaAccounts.data.length > 0 ? (
-            <Select value={config.meta_ad_account_id || ""} onValueChange={(v) => updateConfig({ meta_ad_account_id: v })}>
-              <SelectTrigger className="h-9 text-sm border-border">
-                <SelectValue placeholder="Selecione uma conta" />
-              </SelectTrigger>
-              <SelectContent>
-                {metaAccounts.data.map((acc) => (
-                  <SelectItem key={acc.id} value={acc.id} className="text-xs">
-                    {acc.name} ({acc.id})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          ) : metaBusinesses.data && metaBusinesses.data.length > 0 ? (
+            <Accordion type="multiple" className="w-full">
+              {metaBusinesses.data.map((bm) => (
+                <AccordionItem key={bm.id} value={bm.id} className="border-border">
+                  <AccordionTrigger className="text-xs font-medium py-2 hover:no-underline">
+                    <span className="flex items-center gap-2">
+                      <span className="inline-block h-2 w-2 rounded-full bg-primary" />
+                      {bm.name}
+                      <span className="text-muted-foreground font-normal">({bm.ad_accounts.length} contas)</span>
+                    </span>
+                  </AccordionTrigger>
+                  <AccordionContent className="pb-2">
+                    {bm.ad_accounts.length === 0 ? (
+                      <p className="text-xs text-muted-foreground pl-4">Nenhuma conta encontrada nesta BM.</p>
+                    ) : (
+                      <div className="space-y-1 pl-4">
+                        {bm.ad_accounts.map((acc) => (
+                          <div key={acc.id} className="flex items-center justify-between rounded-md border border-border bg-secondary/50 px-3 py-1.5">
+                            <span className="text-xs text-foreground">{acc.name}</span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] text-muted-foreground font-mono">{acc.id}</span>
+                              <span className={`inline-block h-1.5 w-1.5 rounded-full ${acc.account_status === 1 ? "bg-green-500" : "bg-red-500"}`} />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
           ) : (
             <p className="text-xs text-muted-foreground">Salve o token Meta primeiro e recarregue.</p>
           )}
-        </label>
+        </div>
 
         {/* GA4 Property */}
         <label className="space-y-1.5 block">
