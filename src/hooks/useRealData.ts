@@ -577,9 +577,31 @@ export function useProjectCampaigns(projectId: string | undefined, dateRange?: D
         for (const ci of accountData.campaign_insights) {
           const rawSpend = parseFloat(ci.spend || "0");
           const spend = rawSpend * (1 + taxPct / 100);
+          const impressions = parseInt(ci.impressions || "0");
+          const clicks = parseInt(ci.clicks || "0");
+
           if (!campaignMap.has(ci.campaign_id)) {
             campaignMap.set(ci.campaign_id, { name: ci.campaign_name || ci.campaign_id, adsetMap: new Map() });
           }
+
+          // Create a synthetic adset with campaign-level metrics so aggregation works
+          const syntheticAdsetId = `${ci.campaign_id}_all`;
+          const campaign = campaignMap.get(ci.campaign_id)!;
+          if (!campaign.adsetMap.has(syntheticAdsetId)) {
+            campaign.adsetMap.set(syntheticAdsetId, { name: "Todos os conjuntos", ads: [] });
+          }
+          campaign.adsetMap.get(syntheticAdsetId)!.ads.push({
+            adId: `${ci.campaign_id}_summary`,
+            adName: "Resumo da campanha",
+            adsetId: syntheticAdsetId,
+            adsetName: "Todos os conjuntos",
+            campaignId: ci.campaign_id,
+            campaignName: ci.campaign_name || ci.campaign_id,
+            spend,
+            impressions,
+            clicks,
+            revenue: 0,
+          });
         }
       }
     }
