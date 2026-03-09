@@ -367,13 +367,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Loading / Error indicators */}
-      {realData.isLoading && (
-        <div className="flex items-center gap-2 px-4 sm:px-6 pt-2">
-          <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
-          <span className="text-xs text-muted-foreground">Carregando dados...</span>
-        </div>
-      )}
       {realData.errors.length > 0 && (
         <div className="flex items-center gap-2 px-4 sm:px-6 pt-2">
           <AlertCircle className="h-3.5 w-3.5 text-loss" />
@@ -391,7 +384,37 @@ export default function Dashboard() {
               <p className="text-xs text-muted-foreground mt-1">Crie um projeto e vincule contas de anúncios para ver os dados agregados.</p>
             </div>
           </div>
-        ) : sorted.length === 0 && !realData.isLoading ? (
+        ) : realData.isLoading ? (
+          <>
+            {/* Skeleton KPI cards */}
+            <div className="grid gap-4 max-w-[1920px] mx-auto" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' }}>
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="rounded-lg border border-border bg-card p-3 sm:p-4 space-y-3">
+                  <Skeleton className="h-3 w-20" />
+                  <Skeleton className="h-4 w-28" />
+                  <div className="grid grid-cols-2 gap-x-2 gap-y-2 mt-2">
+                    <div className="space-y-1">
+                      <Skeleton className="h-2.5 w-12" />
+                      <Skeleton className="h-3.5 w-16" />
+                    </div>
+                    <div className="space-y-1">
+                      <Skeleton className="h-2.5 w-12" />
+                      <Skeleton className="h-3.5 w-16" />
+                    </div>
+                    <div className="space-y-1">
+                      <Skeleton className="h-2.5 w-12" />
+                      <Skeleton className="h-3.5 w-16" />
+                    </div>
+                    <div className="space-y-1">
+                      <Skeleton className="h-2.5 w-12" />
+                      <Skeleton className="h-3.5 w-16" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        ) : sorted.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-3 text-center">
             <p className="text-sm text-muted-foreground">Nenhum dado encontrado para o período selecionado.</p>
           </div>
