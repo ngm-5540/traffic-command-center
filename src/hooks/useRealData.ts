@@ -277,14 +277,19 @@ export function useRealDashboardData(dateRange?: DateRange) {
       }
     }
 
-    // GAM revenue override
+    // GAM revenue override (with rev share discount)
     let gamTotalRevenue = 0;
+    const revSharePct = gamQuery.data?.revSharePct || 0;
     if (gamQuery.data?.rows) {
       for (const row of gamQuery.data.rows) {
         const revenueCol = row.dimensionValues ? row.metricValues : null;
         if (revenueCol) {
           gamTotalRevenue += parseFloat(revenueCol[2]?.value || "0") / 1_000_000;
         }
+      }
+      // Apply rev share discount: publisher keeps (100 - revShare)%
+      if (revSharePct > 0) {
+        gamTotalRevenue = gamTotalRevenue * (1 - revSharePct / 100);
       }
     }
     if (gamTotalRevenue > 0) {
