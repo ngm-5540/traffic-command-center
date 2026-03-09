@@ -2,13 +2,35 @@ import { supabase } from "@/integrations/supabase/client";
 
 // ── Meta Ads API ──
 
+export interface MetaAdAccount {
+  id: string;
+  name: string;
+  account_status: number;
+  currency: string;
+}
+
+export interface MetaBusiness {
+  id: string;
+  name: string;
+  ad_accounts: MetaAdAccount[];
+}
+
+export async function listMetaBusinesses() {
+  const { data, error } = await supabase.functions.invoke("fetch-meta-ads", {
+    body: { action: "list_businesses" },
+  });
+  if (error) throw new Error(error.message);
+  if (data?.error) throw new Error(data.error);
+  return data.businesses as MetaBusiness[];
+}
+
 export async function listMetaAdAccounts() {
   const { data, error } = await supabase.functions.invoke("fetch-meta-ads", {
     body: { action: "list_accounts" },
   });
   if (error) throw new Error(error.message);
   if (data?.error) throw new Error(data.error);
-  return data.accounts as { id: string; name: string; account_status: number; currency: string }[];
+  return data.accounts as MetaAdAccount[];
 }
 
 export async function fetchMetaInsights(params: {

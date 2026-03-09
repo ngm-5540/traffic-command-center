@@ -44,6 +44,45 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const action = body.action || "list_accounts";
 
+    if (action === "list_businesses") {
+      // List all Business Managers the user has access to
+      const bmRes = await fetch(
+        `${META_API}/me/businesses?fields=id,name&access_token=${token}`
+      );
+      const bmData = await bmRes.json();
+      if (bmData.error) {
+        return new Response(
+          JSON.stringify({ error: `Meta API: ${bmData.error.message}` }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const businesses = bmData.data || [];
+
+      // For each BM, fetch its ad accounts
+      const results = await Promise.all(
+        businesses.map(async (bm: any) => {
+          try {
+            const accRes = await fetch(
+              `${META_API}/${bm.id}/owned_ad_accounts?fields=id,name,account_status,currency&limit=100&access_token=${token}`
+            );
+            const accData = await accRes.json();
+            return {
+              id: bm.id,
+              name: bm.name,
+              ad_accounts: accData.data || [],
+            };
+          } catch {
+            return { id: bm.id, name: bm.name, ad_accounts: [] };
+          }
+        })
+      );
+
+      return new Response(JSON.stringify({ businesses: results }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     if (action === "list_accounts") {
       // List ad accounts
       const res = await fetch(
