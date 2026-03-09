@@ -91,7 +91,7 @@ function saveFilters(filters: { vertical: Vertical; sortKey: SortKey; sortDir: S
 export default function Dashboard() {
   const navigate = useNavigate();
   const saved = useMemo(() => loadSavedFilters(), []);
-  const [projects, setProjects] = useState<DashboardProject[]>(() => loadSavedProjects() ?? defaultProjects);
+  const [localProjects, setLocalProjects] = useState<DashboardProject[]>(() => loadSavedProjects() ?? defaultProjects);
   const [activeVertical, setActiveVertical] = useState<Vertical>(saved?.vertical ?? "todos");
   const [sortKey, setSortKey] = useState<SortKey>(saved?.sortKey ?? "profit");
   const [sortDir, setSortDir] = useState<SortDir>(saved?.sortDir ?? "desc");
@@ -100,6 +100,12 @@ export default function Dashboard() {
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [newestProjectId, setNewestProjectId] = useState<string | null>(null);
+
+  // Real data from APIs
+  const realData = useRealDashboardData(dateRange);
+
+  // Use real data if configured, otherwise fall back to mock
+  const projects = realData.isConfigured ? realData.projects : localProjects;
   const [popEnabled, setPopEnabled] = useState(false);
 
   const handleCreateProject = useCallback((project: DashboardProject) => {
