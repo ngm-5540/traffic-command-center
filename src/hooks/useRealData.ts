@@ -150,10 +150,19 @@ export function useRealDashboardData(dateRange?: DateRange) {
     queryKey: ["gam-revenue", since, until],
     queryFn: async () => {
       try {
-        return await fetchGAMRevenue({ startDate: since, endDate: until });
+        // Fetch GAM rev share from credentials
+        const { data: gamCred } = await supabase
+          .from("integration_credentials")
+          .select("credentials")
+          .eq("provider", "gam")
+          .single();
+        const revSharePct = parseFloat((gamCred?.credentials as any)?.revShare || "0");
+
+        const report = await fetchGAMRevenue({ startDate: since, endDate: until });
+        return { ...report, revSharePct };
       } catch (err) {
         console.warn("GAM revenue fetch failed (non-blocking):", err);
-        return { rows: [] };
+        return { rows: [], revSharePct: 0 };
       }
     },
     enabled: !!since,
@@ -268,14 +277,19 @@ export function useRealDashboardData(dateRange?: DateRange) {
       }
     }
 
-    // GAM revenue override
+    // GAM revenue override (with rev share discount)
     let gamTotalRevenue = 0;
+    const revSharePct = gamQuery.data?.revSharePct || 0;
     if (gamQuery.data?.rows) {
       for (const row of gamQuery.data.rows) {
         const revenueCol = row.dimensionValues ? row.metricValues : null;
         if (revenueCol) {
           gamTotalRevenue += parseFloat(revenueCol[2]?.value || "0") / 1_000_000;
         }
+      }
+      // Apply rev share discount: publisher keeps (100 - revShare)%
+      if (revSharePct > 0) {
+        gamTotalRevenue = gamTotalRevenue * (1 - revSharePct / 100);
       }
     }
     if (gamTotalRevenue > 0) {
