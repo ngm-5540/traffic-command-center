@@ -326,7 +326,7 @@ Deno.serve(async (req) => {
       }
 
       const fetchRowsRes = await fetch(
-        `https://admanager.googleapis.com/v1/${reportResult}:fetchReportResultRows`,
+        `https://admanager.googleapis.com/v1/${reportResult}:fetchRows`,
         { headers: { Authorization: `Bearer ${accessToken}` } }
       );
       const rowsData = await safeJson(fetchRowsRes, "GAM Fetch Rows");
