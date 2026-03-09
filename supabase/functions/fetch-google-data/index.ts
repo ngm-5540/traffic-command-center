@@ -266,7 +266,7 @@ Deno.serve(async (req) => {
         body: JSON.stringify(reportBody),
       });
 
-      const reportData = await reportRes.json();
+      const reportData = await safeJson(reportRes, "GAM API");
       if (reportData.error) {
         return new Response(
           JSON.stringify({ error: `GAM API: ${reportData.error.message}` }),
