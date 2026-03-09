@@ -140,7 +140,7 @@ Deno.serve(async (req) => {
           "https://analyticsadmin.googleapis.com/v1beta/accountSummaries",
           { headers: { Authorization: `Bearer ${accessToken}` } }
         );
-        const accountsData = await accountsRes.json();
+        const accountsData = await safeJson(accountsRes, "GA4 Admin API");
 
         if (accountsData.error) {
           return new Response(
