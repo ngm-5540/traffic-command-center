@@ -303,7 +303,7 @@ export function ResultadoTotalTab({ campaigns, popEnabled = false, focusMode = f
   return (
     <div className={containerClass}>
       {/* Toolbar */}
-      <div className="flex items-center justify-between gap-2 px-1 py-2">
+      <div className="shrink-0 flex items-center justify-between gap-2 px-1 py-2">
         <div className="flex items-center gap-2 flex-wrap">
           {/* Dimension switcher */}
           <div className="flex items-center rounded-md border border-border bg-muted/50 p-0.5">
