@@ -83,7 +83,7 @@ export default function ProjectDetail() {
       </header>
 
       {/* BI Content */}
-      <div className="flex-1 overflow-hidden min-h-0">
+      <div className="flex-1">
         {(!project || project.vertical === "chatbot") && (
           <ChatbotBi
             project={project}
