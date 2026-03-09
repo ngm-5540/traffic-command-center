@@ -251,16 +251,14 @@ Deno.serve(async (req) => {
         },
         body: JSON.stringify({
           reportDefinition: {
-            dimensions: ["DATE", "AD_UNIT_NAME"],
+            dimensions: ["DATE"],
             metrics: [
               "AD_SERVER_IMPRESSIONS",
               "AD_SERVER_CLICKS",
               "AD_SERVER_REVENUE",
             ],
             reportType: "HISTORICAL",
-            dateRange: {
-              relativeDateRange: "YESTERDAY",
-            },
+            dateRange: {},
           },
           displayName: `Lovable Report ${startDate}`,
           visibility: "HIDDEN",
