@@ -117,6 +117,10 @@ function formatDate(d: Date): string {
 export function useRealDashboardData(dateRange?: DateRange) {
   const config = getStoredConfig();
   const ga4PropertyId = config.ga4_property_id;
+  const bmTaxRates = config.bm_tax_rates || {};
+
+  // Fetch BMs to build adAccount → BM mapping for tax
+  const bmQuery = useMetaBusinesses();
 
   const since = dateRange?.from ? formatDate(dateRange.from) : undefined;
   const until = dateRange?.to ? formatDate(dateRange.to) : since;
