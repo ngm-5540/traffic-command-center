@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
-import { listMetaAdAccounts, fetchMetaInsights, listGA4Properties, fetchGA4Data, fetchGAMRevenue } from "@/lib/api";
+import { listMetaAdAccounts, listMetaBusinesses, fetchMetaInsights, listGA4Properties, fetchGA4Data, fetchGAMRevenue } from "@/lib/api";
 import { cachedFetch } from "@/lib/apiCache";
 import type { DashboardProject } from "@/data/dashboardData";
 import type { DateRange } from "react-day-picker";
@@ -38,6 +38,16 @@ export function useIntegrationConfig() {
   }, []);
 
   return { config, update };
+}
+
+// ── Meta Business Managers Discovery ──
+export function useMetaBusinesses() {
+  return useQuery({
+    queryKey: ["meta-businesses"],
+    queryFn: listMetaBusinesses,
+    retry: 1,
+    staleTime: 1000 * 60 * 30,
+  });
 }
 
 // ── Meta Ad Accounts Discovery ──
