@@ -78,7 +78,7 @@ const allColumns: ColumnDef[] = [
   // Automation
   { key: "revenueAut", label: "Rec. Aut.", group: "automation", format: (v) => formatBRL(v), defaultVisible: true },
   { key: "revAutRate", label: "% Rec. Aut.", group: "automation", format: (v) => formatPercent(v), defaultVisible: false },
-  { key: "resultAut", label: "Result. Aut.", group: "automation", format: (v) => <span className={v >= 0 ? "text-profit" : "text-loss"}>{formatBRL(v)}</span>, defaultVisible: true },
+  { key: "resultAut", label: "Result. Aut.", group: "automation", format: (v) => <span className={v === 0 ? "text-muted-foreground" : v >= 0 ? "text-profit" : "text-loss"}>{formatBRL(v)}</span>, defaultVisible: true },
   { key: "marginAut", label: "Margem Aut.", group: "automation", format: (v) => formatPercent(v), defaultVisible: false },
   // Broadcast
   { key: "revenueBroad", label: "Rec. Broad.", group: "broadcast", format: (v) => formatBRL(v), defaultVisible: true },
