@@ -597,7 +597,7 @@ export function ResultadoTotalTab({ campaigns, popEnabled = false, focusMode = f
             )}
           </tbody>
           {/* Totals - sticky at bottom of scroll area */}
-          <tfoot className="sticky bottom-0 z-30 border-t-2 border-foreground/40 bg-background shadow-[0_-6px_12px_-2px_rgba(0,0,0,0.2)]">
+          <tfoot className="sticky bottom-0 z-30 border-t-[3px] border-foreground/60 bg-background shadow-[0_-6px_12px_-2px_rgba(0,0,0,0.2)]">
             <tr>
               <td
                 className="sticky left-0 z-40 bg-background px-3 py-3 font-black text-foreground text-sm border-r border-border shadow-[2px_0_4px_-2px_rgba(0,0,0,0.3)] tracking-wide"
