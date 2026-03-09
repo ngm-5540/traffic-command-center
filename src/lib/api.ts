@@ -74,6 +74,18 @@ export async function fetchGAMRevenue(params: {
   startDate?: string;
   endDate?: string;
 }) {
+  // Check if GAM credentials exist before calling
+  const { data: credRow } = await supabase
+    .from("integration_credentials")
+    .select("id")
+    .eq("provider", "gam")
+    .maybeSingle();
+
+  if (!credRow) {
+    // No GAM credentials configured — skip silently
+    return { rows: [] };
+  }
+
   const { data, error } = await supabase.functions.invoke("fetch-google-data", {
     body: {
       action: "fetch_gam_revenue",
