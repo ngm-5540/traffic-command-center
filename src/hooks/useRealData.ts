@@ -218,7 +218,6 @@ export function useRealDashboardData(dateRange?: DateRange) {
     enabled: !!ga4PropertyId && !!since,
     retry: 1,
     staleTime: 1000 * 60 * 14,
-    placeholderData: (prev: any) => prev,
   });
 
   // Build project-level aggregation
