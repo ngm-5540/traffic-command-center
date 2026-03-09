@@ -19,12 +19,13 @@ const EMPTY: CredentialState = {
 };
 
 export default function SettingsPage() {
+  const { config, update: updateConfig } = useIntegrationConfig();
   const [creds, setCreds] = useState<CredentialState>(EMPTY);
   const [safeMargin, setSafeMargin] = useState("15");
+  const [usdBrlRate, setUsdBrlRate] = useState(config.usd_brl_rate || "5.1");
   const [showMetaToken, setShowMetaToken] = useState(false);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
-  const { config, update: updateConfig } = useIntegrationConfig();
   const metaAccounts = useMetaAdAccounts();
   const ga4Properties = useGA4Properties();
   const { toast } = useToast();
@@ -119,22 +120,39 @@ export default function SettingsPage() {
         <p className="text-sm text-muted-foreground">Parâmetros gerais e integrações</p>
       </div>
 
-      {/* Safe Margin */}
+      {/* General Parameters */}
       <div className="rounded-lg border border-border bg-card p-5 space-y-4">
-        <h3 className="text-sm font-semibold text-foreground">Safe Margin Offset</h3>
+        <h3 className="text-sm font-semibold text-foreground">Parâmetros Gerais</h3>
         <p className="text-xs text-muted-foreground">
-          Margem de segurança aplicada sobre o ROAS mínimo para decisões de automação.
+          Configurações gerais do dashboard.
         </p>
-        <label className="space-y-1.5 block max-w-xs">
-          <span className="text-xs font-medium text-muted-foreground">Offset (%)</span>
-          <input
-            type="number"
-            value={safeMargin}
-            onChange={(e) => setSafeMargin(e.target.value)}
-            className={inputClass}
-            placeholder="15"
-          />
-        </label>
+        <div className="flex gap-3 max-w-md">
+          <label className="space-y-1.5 block flex-1">
+            <span className="text-xs font-medium text-muted-foreground">Safe Margin Offset (%)</span>
+            <input
+              type="number"
+              value={safeMargin}
+              onChange={(e) => setSafeMargin(e.target.value)}
+              className={inputClass}
+              placeholder="15"
+            />
+          </label>
+          <label className="space-y-1.5 block w-36">
+            <span className="text-xs font-medium text-muted-foreground">Cotação USD → BRL</span>
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              value={usdBrlRate}
+              onChange={(e) => {
+                setUsdBrlRate(e.target.value);
+                updateConfig({ usd_brl_rate: e.target.value });
+              }}
+              className={inputClass}
+              placeholder="5.10"
+            />
+          </label>
+        </div>
       </div>
 
       {/* Integration Credentials */}
