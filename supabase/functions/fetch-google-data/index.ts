@@ -259,31 +259,11 @@ Deno.serve(async (req) => {
         dateRange = { relative: "THIS_MONTH" };
       }
 
-      // Build filters:
-      // 1) KEY_VALUES_NAME CONTAINS "utm_content" OR "utm_medium=b" OR "utm_source=fb_vc"
-      // 2) COUNTRY_ID IN [2840 (US), 2124 (CA)]
-      const keyValuesFilter = body.key_values_filter || [
-        "utm_content", "utm_medium=b", "utm_source=fb_vc"
-      ];
+      // Build filters — only fieldFilter is supported (no filterList/OR in this API version)
+      // KEY_VALUES_NAME OR filtering will be done client-side
       const countryIds = body.country_ids || ["2840", "2124"];
 
       const filters: any[] = [];
-
-      // KEY_VALUES_NAME filter — OR of CONTAINS
-      if (keyValuesFilter.length > 0) {
-        filters.push({
-          filterList: {
-            type: "OR",
-            filters: keyValuesFilter.map((kv: string) => ({
-              fieldFilter: {
-                field: { dimension: "KEY_VALUES_NAME" },
-                operation: "CONTAINS",
-                values: [{ stringValue: kv }],
-              },
-            })),
-          },
-        });
-      }
 
       // COUNTRY_ID filter — IN
       if (countryIds.length > 0) {

@@ -302,13 +302,20 @@ export function useRealDashboardData(dateRange?: DateRange) {
     }
 
     // GAM revenue override (with rev share discount)
+    // Client-side filter: only rows whose KEY_VALUES_NAME contains utm_content, utm_medium=b, or utm_source=fb_vc
+    const kvFilters = ["utm_content", "utm_medium=b", "utm_source=fb_vc"];
     let gamTotalRevenue = 0;
     const revSharePct = gamQuery.data?.revSharePct || 0;
     if (gamQuery.data?.rows) {
       for (const row of gamQuery.data.rows) {
-        const revenueCol = row.dimensionValues ? row.metricValues : null;
-        if (revenueCol) {
-          gamTotalRevenue += parseFloat(revenueCol[2]?.value || "0") / 1_000_000;
+        // KEY_VALUES_NAME is the first dimension
+        const kvName = row.dimensionValues?.[0]?.stringValue || "";
+        if (!kvFilters.some((f) => kvName.includes(f))) continue;
+
+        // AD_EXCHANGE_REVENUE is the 5th metric (index 4)
+        const primaryValues = row.metricValueGroups?.[0]?.primaryValues;
+        if (primaryValues) {
+          gamTotalRevenue += parseFloat(primaryValues[4]?.doubleValue || primaryValues[4]?.intValue || "0");
         }
       }
       // Apply rev share discount: publisher keeps (100 - revShare)%
