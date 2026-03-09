@@ -386,12 +386,9 @@ export default function Dashboard() {
           <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
             <Settings className="h-10 w-10 text-muted-foreground/50" />
             <div>
-              <p className="text-sm font-semibold text-foreground">Nenhuma integração configurada</p>
-              <p className="text-xs text-muted-foreground mt-1">Acesse as Configurações para conectar suas contas de Meta Ads, GA4 e GAM.</p>
+              <p className="text-sm font-semibold text-foreground">Nenhum projeto cadastrado</p>
+              <p className="text-xs text-muted-foreground mt-1">Crie um projeto e vincule contas de anúncios para ver os dados agregados.</p>
             </div>
-            <Button variant="outline" size="sm" onClick={() => navigate("/settings")}>
-              Ir para Configurações
-            </Button>
           </div>
         ) : sorted.length === 0 && !realData.isLoading ? (
           <div className="flex flex-col items-center justify-center h-full gap-3 text-center">
