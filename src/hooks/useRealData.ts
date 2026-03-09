@@ -256,8 +256,13 @@ export function useRealDashboardData(dateRange?: DateRange) {
         const accountData = metaData[accountId];
         if (!accountData?.campaign_insights) continue;
 
+        // Get tax rate for this account's BM
+        const bmId = adAccountToBm[accountId];
+        const taxPct = bmId ? parseFloat(bmTaxRates[bmId] || "0") : 0;
+
         for (const ci of accountData.campaign_insights) {
-          totalSpend += parseFloat(ci.spend || "0");
+          const rawSpend = parseFloat(ci.spend || "0");
+          totalSpend += rawSpend * (1 + taxPct / 100);
 
           // Revenue from purchase actions
           if (ci.action_values) {
