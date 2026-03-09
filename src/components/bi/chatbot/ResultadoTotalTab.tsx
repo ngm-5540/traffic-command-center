@@ -55,8 +55,8 @@ const allColumns: ColumnDef[] = [
   // Financial
   { key: "cost", label: "Custo", group: "financial", format: (v) => formatBRL(v), defaultVisible: true },
   { key: "revenue", label: "Receita", group: "financial", format: (v) => formatBRL(v), defaultVisible: true },
-  { key: "profit", label: "Lucro", group: "financial", format: (v, row) => <span className={row && row.profit >= 0 ? "text-profit" : "text-loss"}>{formatBRL(v)}</span>, defaultVisible: true },
-  { key: "roas", label: "ROAS", group: "financial", format: (v) => <span style={{ color: getRoasColor(v) }}>{formatROAS(v)}</span>, defaultVisible: true },
+  { key: "profit", label: "Lucro", group: "financial", format: (v, row) => <span className={v === 0 ? "text-muted-foreground" : row && row.profit >= 0 ? "text-profit" : "text-loss"}>{formatBRL(v)}</span>, defaultVisible: true },
+  { key: "roas", label: "ROAS", group: "financial", format: (v) => <span style={{ color: v === 0 ? undefined : getRoasColor(v) }} className={v === 0 ? "text-muted-foreground" : undefined}>{formatROAS(v)}</span>, defaultVisible: true },
   { key: "budget", label: "Budget", group: "financial", format: (v) => formatBRL(v), defaultVisible: false },
   { key: "budgetRemaining", label: "Budget Rest.", group: "financial", format: (v) => formatBRL(v), defaultVisible: false },
   // Traffic
@@ -78,12 +78,12 @@ const allColumns: ColumnDef[] = [
   // Automation
   { key: "revenueAut", label: "Rec. Aut.", group: "automation", format: (v) => formatBRL(v), defaultVisible: true },
   { key: "revAutRate", label: "% Rec. Aut.", group: "automation", format: (v) => formatPercent(v), defaultVisible: false },
-  { key: "resultAut", label: "Result. Aut.", group: "automation", format: (v) => <span className={v >= 0 ? "text-profit" : "text-loss"}>{formatBRL(v)}</span>, defaultVisible: true },
+  { key: "resultAut", label: "Result. Aut.", group: "automation", format: (v) => <span className={v === 0 ? "text-muted-foreground" : v >= 0 ? "text-profit" : "text-loss"}>{formatBRL(v)}</span>, defaultVisible: true },
   { key: "marginAut", label: "Margem Aut.", group: "automation", format: (v) => formatPercent(v), defaultVisible: false },
   // Broadcast
   { key: "revenueBroad", label: "Rec. Broad.", group: "broadcast", format: (v) => formatBRL(v), defaultVisible: true },
   { key: "revBroadRate", label: "% Rec. Broad.", group: "broadcast", format: (v) => formatPercent(v), defaultVisible: false },
-  { key: "resultBroad", label: "Result. Broad.", group: "broadcast", format: (v) => <span className={v >= 0 ? "text-profit" : "text-loss"}>{formatBRL(v)}</span>, defaultVisible: true },
+  { key: "resultBroad", label: "Result. Broad.", group: "broadcast", format: (v) => <span className={v === 0 ? "text-muted-foreground" : v >= 0 ? "text-profit" : "text-loss"}>{formatBRL(v)}</span>, defaultVisible: true },
   { key: "marginBroad", label: "Margem Broad.", group: "broadcast", format: (v) => formatPercent(v), defaultVisible: false },
   // Conversion
   { key: "conversions", label: "Conversões", group: "conversion", format: (v) => formatNumber(v), defaultVisible: true },
