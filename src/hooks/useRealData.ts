@@ -176,11 +176,11 @@ export function useRealDashboardData(dateRange?: DateRange) {
         return { ...report, revSharePct };
       } catch (err) {
         console.warn("GAM revenue fetch failed (non-blocking):", err);
-        return { rows: [], revSharePct: 0 };
+        throw err; // Let React Query know this failed so it retries
       }
     },
     enabled: !!since,
-    retry: 0,
+    retry: 1,
     staleTime: 1000 * 60 * 14,
     refetchInterval: 1000 * 60 * 15,
     placeholderData: (prev: any) => prev,
@@ -305,6 +305,7 @@ export function useRealDashboardData(dateRange?: DateRange) {
     let gamTotalRevenue = 0;
     const revSharePct = gamQuery.data?.revSharePct || 0;
     if (gamQuery.data?.rows) {
+      console.log(`[GAM] Processing ${gamQuery.data.rows.length} rows, revSharePct=${revSharePct}`);
       for (const row of gamQuery.data.rows) {
         const kvName = row.dimensionValues?.[0]?.stringValue || "";
         if (!kvName.includes("utm_source=fb_vc")) continue;
@@ -312,12 +313,17 @@ export function useRealDashboardData(dateRange?: DateRange) {
         // AD_EXCHANGE_REVENUE is the 5th metric (index 4)
         const primaryValues = row.metricValueGroups?.[0]?.primaryValues;
         if (primaryValues) {
-          gamTotalRevenue += parseFloat(primaryValues[4]?.doubleValue || primaryValues[4]?.intValue || "0");
+          const rev = parseFloat(primaryValues[4]?.doubleValue || primaryValues[4]?.intValue || "0");
+          gamTotalRevenue += rev;
+          console.log(`[GAM] Found utm_source=fb_vc row, revenue=${rev}`);
         }
       }
       if (revSharePct > 0) {
         gamTotalRevenue = gamTotalRevenue * (1 - revSharePct / 100);
       }
+      console.log(`[GAM] Total revenue after revShare: ${gamTotalRevenue}`);
+    } else {
+      console.log("[GAM] No rows available", { data: gamQuery.data, status: gamQuery.status, error: gamQuery.error?.message });
     }
     if (gamTotalRevenue > 0) {
       const allSpend = result.reduce((s, p) => s + p.spend, 0);
