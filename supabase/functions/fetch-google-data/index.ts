@@ -262,7 +262,7 @@ Deno.serve(async (req) => {
             metrics: ["AD_SERVER_IMPRESSIONS", "AD_SERVER_CLICKS", "AD_SERVER_REVENUE"],
             report_type: "HISTORICAL",
             date_range: {
-              fixed_date_range: {
+              fixed: {
                 start_date: { year: sy, month: sm, day: sd },
                 end_date: { year: ey, month: em, day: ed },
               },
@@ -326,7 +326,7 @@ Deno.serve(async (req) => {
       }
 
       const fetchRowsRes = await fetch(
-        `https://admanager.googleapis.com/v1/${reportResult}:fetchReportResultRows`,
+        `https://admanager.googleapis.com/v1/${reportResult}:fetchRows`,
         { headers: { Authorization: `Bearer ${accessToken}` } }
       );
       const rowsData = await safeJson(fetchRowsRes, "GAM Fetch Rows");
