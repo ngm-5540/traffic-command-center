@@ -451,15 +451,15 @@ export default function Dashboard() {
                           : "border-border bg-card"
                     )}
                   >
-                    <Badge
-                      variant="outline"
-                      className={cn("absolute top-2 right-2 px-1 py-0 h-3.5 text-[6px] font-semibold tracking-wider", verticalConfig[project.vertical]?.className)}
-                    >
-                      {verticalConfig[project.vertical]?.label}
-                    </Badge>
                     {/* Card header */}
-                    <div className="mb-2 pr-16">
+                    <div className="mb-2 flex items-start justify-between gap-2">
                       <ProjectName name={project.name} id={project.id} />
+                      <Badge
+                        variant="outline"
+                        className={cn("shrink-0 px-1 py-0 h-3.5 text-[6px] font-semibold tracking-wider mt-0.5", verticalConfig[project.vertical]?.className)}
+                      >
+                        {verticalConfig[project.vertical]?.label}
+                      </Badge>
                     </div>
 
                     {/* Metrics */}
