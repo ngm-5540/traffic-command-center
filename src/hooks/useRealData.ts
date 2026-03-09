@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
@@ -44,7 +44,7 @@ export function useMetaAdAccounts() {
     queryKey: ["meta-ad-accounts"],
     queryFn: listMetaAdAccounts,
     retry: 1,
-    staleTime: 1000 * 60 * 30, // 30 min
+    staleTime: 1000 * 60 * 30,
   });
 }
 
@@ -58,6 +58,43 @@ export function useGA4Properties() {
   });
 }
 
+// ── DB Projects + Mappings ──
+
+interface DbProject {
+  id: string;
+  name: string;
+  type: string;
+}
+
+interface DbProjectAdAccount {
+  project_id: string;
+  ad_account_id: string;
+  platform: string;
+}
+
+export function useDbProjects() {
+  return useQuery({
+    queryKey: ["db-projects"],
+    queryFn: async () => {
+      const { data: projects, error: pErr } = await supabase
+        .from("projects")
+        .select("id, name, type");
+      if (pErr) throw new Error(pErr.message);
+
+      const { data: mappings, error: mErr } = await supabase
+        .from("project_ad_accounts")
+        .select("project_id, ad_account_id, platform");
+      if (mErr) throw new Error(mErr.message);
+
+      return {
+        projects: (projects || []) as DbProject[],
+        mappings: (mappings || []) as DbProjectAdAccount[],
+      };
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
 // ── Real Dashboard Data ──
 
 function formatDate(d: Date): string {
@@ -66,22 +103,44 @@ function formatDate(d: Date): string {
 
 export function useRealDashboardData(dateRange?: DateRange) {
   const config = getStoredConfig();
-  const adAccountId = config.meta_ad_account_id;
   const ga4PropertyId = config.ga4_property_id;
 
   const since = dateRange?.from ? formatDate(dateRange.from) : undefined;
   const until = dateRange?.to ? formatDate(dateRange.to) : since;
 
-  // Meta Ads insights
-  const metaQuery = useQuery({
-    queryKey: ["meta-insights", adAccountId, since, until],
-    queryFn: () =>
-      fetchMetaInsights({
-        adAccountId: adAccountId!,
-        since,
-        until,
-      }),
-    enabled: !!adAccountId && !!since,
+  // Fetch projects and their ad account mappings from DB
+  const dbQuery = useDbProjects();
+  const dbProjects = dbQuery.data?.projects || [];
+  const dbMappings = dbQuery.data?.mappings || [];
+
+  // Collect unique Meta ad account IDs from mappings
+  const metaAdAccountIds = useMemo(() => {
+    return [...new Set(
+      dbMappings
+        .filter((m) => m.platform === "meta")
+        .map((m) => m.ad_account_id)
+    )];
+  }, [dbMappings]);
+
+  // Fetch Meta insights for ALL mapped ad accounts
+  const metaQueries = useQuery({
+    queryKey: ["meta-insights-all", metaAdAccountIds, since, until],
+    queryFn: async () => {
+      const results: Record<string, any> = {};
+      await Promise.all(
+        metaAdAccountIds.map(async (accountId) => {
+          try {
+            const data = await fetchMetaInsights({ adAccountId: accountId, since, until });
+            results[accountId] = data;
+          } catch (err) {
+            console.error(`Meta insights error for ${accountId}:`, err);
+            results[accountId] = { campaign_insights: [] };
+          }
+        })
+      );
+      return results;
+    },
+    enabled: metaAdAccountIds.length > 0 && !!since,
     retry: 1,
     staleTime: 1000 * 60 * 5,
   });
@@ -109,103 +168,127 @@ export function useRealDashboardData(dateRange?: DateRange) {
     staleTime: 1000 * 60 * 5,
   });
 
-  // Transform Meta campaigns + GAM revenue into DashboardProject format
-  const projects: DashboardProject[] = [];
+  // Build project-level aggregation
+  const projects: DashboardProject[] = useMemo(() => {
+    if (!dbProjects.length) return [];
 
-  if (metaQuery.data?.campaign_insights) {
-    for (const ci of metaQuery.data.campaign_insights) {
-      const spend = parseFloat(ci.spend || "0");
+    const metaData = metaQueries.data || {};
+    const result: DashboardProject[] = [];
 
-      // Extract purchase/conversion value from action_values
-      let revenue = 0;
-      if (ci.action_values) {
-        for (const av of ci.action_values) {
-          if (
-            av.action_type === "offsite_conversion.fb_pixel_purchase" ||
-            av.action_type === "purchase" ||
-            av.action_type === "omni_purchase"
-          ) {
-            revenue += parseFloat(av.value || "0");
+    for (const proj of dbProjects) {
+      // Find ad accounts mapped to this project
+      const projectMappings = dbMappings.filter((m) => m.project_id === proj.id);
+      const projectMetaAccounts = projectMappings
+        .filter((m) => m.platform === "meta")
+        .map((m) => m.ad_account_id);
+
+      let totalSpend = 0;
+      let totalRevenue = 0;
+      let totalLeads = 0;
+
+      // Aggregate all campaigns from all mapped ad accounts
+      for (const accountId of projectMetaAccounts) {
+        const accountData = metaData[accountId];
+        if (!accountData?.campaign_insights) continue;
+
+        for (const ci of accountData.campaign_insights) {
+          totalSpend += parseFloat(ci.spend || "0");
+
+          // Revenue from purchase actions
+          if (ci.action_values) {
+            for (const av of ci.action_values) {
+              if (
+                av.action_type === "offsite_conversion.fb_pixel_purchase" ||
+                av.action_type === "purchase" ||
+                av.action_type === "omni_purchase"
+              ) {
+                totalRevenue += parseFloat(av.value || "0");
+              }
+            }
+          }
+
+          // Leads
+          if (ci.actions) {
+            for (const a of ci.actions) {
+              if (
+                a.action_type === "lead" ||
+                a.action_type === "offsite_conversion.fb_pixel_lead" ||
+                a.action_type === "onsite_conversion.lead_grouped"
+              ) {
+                totalLeads += parseInt(a.value || "0");
+              }
+            }
           }
         }
       }
 
-      const profit = revenue - spend;
-      const roas = spend > 0 ? (revenue - spend) / spend : 0;
+      const totalProfit = totalRevenue - totalSpend;
+      const roas = totalSpend > 0 ? (totalRevenue - totalSpend) / totalSpend : 0;
 
-      // Extract leads from actions
-      let leads = 0;
-      if (ci.actions) {
-        for (const a of ci.actions) {
-          if (
-            a.action_type === "lead" ||
-            a.action_type === "offsite_conversion.fb_pixel_lead" ||
-            a.action_type === "onsite_conversion.lead_grouped"
-          ) {
-            leads += parseInt(a.value || "0");
-          }
-        }
-      }
+      // Map project type to vertical
+      const verticalMap: Record<string, "chatbot" | "meta_ads" | "google_ads"> = {
+        chatbot: "chatbot",
+        meta_ads: "meta_ads",
+        google_ads: "google_ads",
+      };
 
-      projects.push({
-        id: ci.campaign_id,
-        name: ci.campaign_name,
-        vertical: "meta_ads",
+      result.push({
+        id: proj.id,
+        name: proj.name,
+        vertical: verticalMap[proj.type] || "chatbot",
         status: "ativo",
-        type: "Meta Ads",
-        revenue,
-        spend,
-        profit,
+        type: proj.type,
+        revenue: totalRevenue,
+        spend: totalSpend,
+        profit: totalProfit,
         roas,
         sessions: 0,
-        leads,
+        leads: totalLeads,
       });
     }
-  }
 
-  // Merge GA4 session data (totals for now)
-  let totalSessions = 0;
-  if (ga4Query.data?.rows) {
-    for (const row of ga4Query.data.rows) {
-      totalSessions += parseInt(row.metricValues?.[0]?.value || "0");
-    }
-    // Distribute sessions proportionally across projects
-    const totalSpend = projects.reduce((s, p) => s + p.spend, 0);
-    if (totalSpend > 0) {
-      for (const p of projects) {
-        p.sessions = Math.round((p.spend / totalSpend) * totalSessions);
+    // Distribute GA4 sessions proportionally
+    let totalSessions = 0;
+    if (ga4Query.data?.rows) {
+      for (const row of ga4Query.data.rows) {
+        totalSessions += parseInt(row.metricValues?.[0]?.value || "0");
+      }
+      const allSpend = result.reduce((s, p) => s + p.spend, 0);
+      if (allSpend > 0) {
+        for (const p of result) {
+          p.sessions = Math.round((p.spend / allSpend) * totalSessions);
+        }
       }
     }
-  }
 
-  // Add GAM revenue if available (override Meta revenue for revenue-from-GAM model)
-  // TODO: When GAM data is structured per ad-unit, map to projects
-  let gamTotalRevenue = 0;
-  if (gamQuery.data?.rows) {
-    for (const row of gamQuery.data.rows) {
-      // GAM revenue is in micros (divide by 1,000,000)
-      const revenueCol = row.dimensionValues ? row.metricValues : null;
-      if (revenueCol) {
-        gamTotalRevenue += parseFloat(revenueCol[2]?.value || "0") / 1_000_000;
+    // GAM revenue override
+    let gamTotalRevenue = 0;
+    if (gamQuery.data?.rows) {
+      for (const row of gamQuery.data.rows) {
+        const revenueCol = row.dimensionValues ? row.metricValues : null;
+        if (revenueCol) {
+          gamTotalRevenue += parseFloat(revenueCol[2]?.value || "0") / 1_000_000;
+        }
       }
     }
-  }
-
-  // If GAM revenue is available, distribute it proportionally
-  if (gamTotalRevenue > 0) {
-    const totalSpend = projects.reduce((s, p) => s + p.spend, 0);
-    for (const p of projects) {
-      const share = totalSpend > 0 ? p.spend / totalSpend : 1 / projects.length;
-      p.revenue = gamTotalRevenue * share;
-      p.profit = p.revenue - p.spend;
-      p.roas = p.spend > 0 ? (p.revenue - p.spend) / p.spend : 0;
+    if (gamTotalRevenue > 0) {
+      const allSpend = result.reduce((s, p) => s + p.spend, 0);
+      for (const p of result) {
+        const share = allSpend > 0 ? p.spend / allSpend : 1 / result.length;
+        p.revenue = gamTotalRevenue * share;
+        p.profit = p.revenue - p.spend;
+        p.roas = p.spend > 0 ? (p.revenue - p.spend) / p.spend : 0;
+      }
     }
-  }
 
-  const isConfigured = !!adAccountId;
-  const isLoading = metaQuery.isLoading || gamQuery.isLoading || ga4Query.isLoading;
+    return result;
+  }, [dbProjects, dbMappings, metaQueries.data, ga4Query.data, gamQuery.data]);
+
+  const isConfigured = dbProjects.length > 0;
+  const isLoading = dbQuery.isLoading || metaQueries.isLoading || gamQuery.isLoading || ga4Query.isLoading;
   const errors = [
-    metaQuery.error?.message,
+    dbQuery.error?.message,
+    metaQueries.error?.message,
     gamQuery.error?.message,
     ga4Query.error?.message,
   ].filter(Boolean);
@@ -216,7 +299,8 @@ export function useRealDashboardData(dateRange?: DateRange) {
     isLoading,
     errors,
     refetch: () => {
-      metaQuery.refetch();
+      dbQuery.refetch();
+      metaQueries.refetch();
       gamQuery.refetch();
       ga4Query.refetch();
     },
