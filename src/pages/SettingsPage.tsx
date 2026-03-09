@@ -184,20 +184,40 @@ export default function SettingsPage() {
             <p className="text-xs text-muted-foreground">
               Credenciais do Google Ad Manager via Service Account.
             </p>
-            <label className="space-y-1.5 block max-w-xs">
-              <span className="text-xs font-medium text-muted-foreground">Network Code</span>
-              <input
-                value={creds.gam.networkCode}
-                onChange={(e) =>
-                  setCreds((p) => ({
-                    ...p,
-                    gam: { ...p.gam, networkCode: e.target.value },
-                  }))
-                }
-                className={inputClass}
-                placeholder="123456789"
-              />
-            </label>
+            <div className="flex gap-3">
+              <label className="space-y-1.5 block flex-1">
+                <span className="text-xs font-medium text-muted-foreground">Network Code</span>
+                <input
+                  value={creds.gam.networkCode}
+                  onChange={(e) =>
+                    setCreds((p) => ({
+                      ...p,
+                      gam: { ...p.gam, networkCode: e.target.value },
+                    }))
+                  }
+                  className={inputClass}
+                  placeholder="123456789"
+                />
+              </label>
+              <label className="space-y-1.5 block w-28">
+                <span className="text-xs font-medium text-muted-foreground">Rev. Share (%)</span>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  value={creds.gam.revShare}
+                  onChange={(e) =>
+                    setCreds((p) => ({
+                      ...p,
+                      gam: { ...p.gam, revShare: e.target.value },
+                    }))
+                  }
+                  className={inputClass}
+                  placeholder="20"
+                />
+              </label>
+            </div>
             <div className="space-y-1.5">
               <span className="text-xs font-medium text-muted-foreground block">
                 Service Account JSON
