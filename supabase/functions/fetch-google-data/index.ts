@@ -255,14 +255,11 @@ Deno.serve(async (req) => {
             metrics: [
               "AD_SERVER_IMPRESSIONS",
               "AD_SERVER_CLICKS",
-              "TOTAL_CPM_AND_CPC_REVENUE",
+              "TOTAL_LINE_ITEM_LEVEL_CPM_AND_CPC_REVENUE",
             ],
             reportType: "HISTORICAL",
             dateRange: {
-              fixedDateRange: {
-                startDate: { year: parseInt(startDate.slice(0, 4)), month: parseInt(startDate.slice(5, 7)), day: parseInt(startDate.slice(8, 10)) },
-                endDate: { year: parseInt(endDate.slice(0, 4)), month: parseInt(endDate.slice(5, 7)), day: parseInt(endDate.slice(8, 10)) },
-              },
+              relative_date_range: "YESTERDAY",
             },
           },
           displayName: `Lovable Report ${startDate}`,
