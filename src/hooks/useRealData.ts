@@ -11,6 +11,7 @@ interface IntegrationConfig {
   meta_ad_account_id?: string;
   ga4_property_id?: string;
   usd_brl_rate?: string;
+  bm_tax_rates?: Record<string, string>; // bmId -> tax %
 }
 
 function getStoredConfig(): IntegrationConfig {
@@ -116,6 +117,10 @@ function formatDate(d: Date): string {
 export function useRealDashboardData(dateRange?: DateRange) {
   const config = getStoredConfig();
   const ga4PropertyId = config.ga4_property_id;
+  const bmTaxRates = config.bm_tax_rates || {};
+
+  // Fetch BMs to build adAccount → BM mapping for tax
+  const bmQuery = useMetaBusinesses();
 
   const since = dateRange?.from ? formatDate(dateRange.from) : undefined;
   const until = dateRange?.to ? formatDate(dateRange.to) : since;
@@ -224,6 +229,17 @@ export function useRealDashboardData(dateRange?: DateRange) {
     if (!dbProjects.length) return [];
 
     const metaData = metaQueries.data || {};
+
+    // Build adAccountId → bmId reverse map for tax
+    const adAccountToBm: Record<string, string> = {};
+    if (bmQuery.data) {
+      for (const bm of bmQuery.data) {
+        for (const acc of bm.ad_accounts) {
+          adAccountToBm[acc.id] = bm.id;
+        }
+      }
+    }
+
     const result: DashboardProject[] = [];
 
     for (const proj of dbProjects) {
@@ -242,8 +258,13 @@ export function useRealDashboardData(dateRange?: DateRange) {
         const accountData = metaData[accountId];
         if (!accountData?.campaign_insights) continue;
 
+        // Get tax rate for this account's BM
+        const bmId = adAccountToBm[accountId];
+        const taxPct = bmId ? parseFloat(bmTaxRates[bmId] || "0") : 0;
+
         for (const ci of accountData.campaign_insights) {
-          totalSpend += parseFloat(ci.spend || "0");
+          const rawSpend = parseFloat(ci.spend || "0");
+          totalSpend += rawSpend * (1 + taxPct / 100);
 
           // Revenue from purchase actions
           if (ci.action_values) {
@@ -352,7 +373,7 @@ export function useRealDashboardData(dateRange?: DateRange) {
     }
 
     return result;
-  }, [dbProjects, dbMappings, metaQueries.data, ga4Query.data, gamQuery.data]);
+  }, [dbProjects, dbMappings, metaQueries.data, ga4Query.data, gamQuery.data, bmQuery.data, bmTaxRates]);
 
   const isConfigured = dbProjects.length > 0;
   const isLoading = dbQuery.isLoading || metaQueries.isLoading || gamQuery.isLoading || ga4Query.isLoading;
