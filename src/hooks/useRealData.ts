@@ -400,10 +400,9 @@ export function useRealDashboardData(dateRange?: DateRange) {
 
 // ── Project Detail: campaign-level data for a specific project ──
 
-export function useProjectCampaigns(projectId: string | undefined, dateRange?: DateRange) {
+export function useProjectCampaigns(projectId: string | undefined, dateRange?: DateRange, projectRevenue?: number) {
   const config = getStoredConfig();
   const bmTaxRates = config.bm_tax_rates || {};
-  const usdBrlRate = parseFloat(config.usd_brl_rate || "5.1") || 5.1;
 
   const since = dateRange?.from ? formatDate(dateRange.from) : undefined;
   const until = dateRange?.to ? formatDate(dateRange.to) : since;
@@ -450,27 +449,8 @@ export function useProjectCampaigns(projectId: string | undefined, dateRange?: D
     placeholderData: (prev: any) => prev,
   });
 
-  // GAM revenue for this project
-  const gamQuery = useQuery({
-    queryKey: ["gam-revenue", since, until],
-    queryFn: async () => {
-      const { data: gamCred } = await supabase
-        .from("integration_credentials")
-        .select("credentials")
-        .eq("provider", "gam")
-        .single();
-      const revSharePct = parseFloat((gamCred?.credentials as any)?.revShare || "0");
-      const report = await cachedFetch(
-        "gam", "default", since, until,
-        () => fetchGAMRevenue({ startDate: since, endDate: until })
-      );
-      return { ...report, revSharePct };
-    },
-    enabled: !!since,
-    retry: 1,
-    staleTime: 1000 * 60 * 14,
-    placeholderData: (prev: any) => prev,
-  });
+
+
 
   // Build adAccount → BM map
   const adAccountToBm: Record<string, string> = useMemo(() => {
@@ -529,45 +509,28 @@ export function useProjectCampaigns(projectId: string | undefined, dateRange?: D
       }
     }
 
-    // Distribute GAM revenue across campaigns by spend share
-    let gamTotalRevenue = 0;
-    const revSharePct = gamQuery.data?.revSharePct || 0;
-    if (gamQuery.data?.rows) {
-      for (const row of gamQuery.data.rows) {
-        const kvName = row.dimensionValues?.[0]?.stringValue || "";
-        if (!kvName.includes("utm_source=fb_vc")) continue;
-        const primaryValues = row.metricValueGroups?.[0]?.primaryValues;
-        if (primaryValues) {
-          gamTotalRevenue += parseFloat(primaryValues[4]?.doubleValue || "0");
-        }
-      }
-      if (revSharePct > 0) {
-        gamTotalRevenue = gamTotalRevenue * (1 - revSharePct / 100);
-      }
-      gamTotalRevenue = gamTotalRevenue * usdBrlRate;
-    }
-
-    if (gamTotalRevenue > 0) {
+    // Distribute the project's revenue (already correctly calculated) across campaigns by spend share
+    const revToDistribute = projectRevenue ?? 0;
+    if (revToDistribute > 0) {
       const totalSpend = allCampaigns.reduce((s, c) => s + c.cost, 0);
       for (const c of allCampaigns) {
         const share = totalSpend > 0 ? c.cost / totalSpend : 1 / allCampaigns.length;
-        c.revenue = gamTotalRevenue * share;
+        c.revenue = revToDistribute * share;
         c.profit = c.revenue - c.cost;
         c.roas = c.cost > 0 ? (c.revenue - c.cost) / c.cost : 0;
       }
     }
 
     return allCampaigns;
-  }, [metaQuery.data, gamQuery.data, projectMetaAccounts, adAccountToBm, bmTaxRates, usdBrlRate]);
+  }, [metaQuery.data, projectMetaAccounts, adAccountToBm, bmTaxRates, projectRevenue]);
 
   return {
     campaigns,
-    isLoading: dbQuery.isLoading || metaQuery.isLoading || gamQuery.isLoading,
-    errors: [dbQuery.error?.message, metaQuery.error?.message, gamQuery.error?.message].filter(Boolean),
+    isLoading: dbQuery.isLoading || metaQuery.isLoading,
+    errors: [dbQuery.error?.message, metaQuery.error?.message].filter(Boolean),
     refetch: () => {
       dbQuery.refetch();
       metaQuery.refetch();
-      gamQuery.refetch();
     },
   };
 }

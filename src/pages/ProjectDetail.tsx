@@ -52,7 +52,7 @@ export default function ProjectDetail() {
   const realData = useRealDashboardData(dateRange);
   const project = realData.projects.find((p) => p.id === id);
 
-  const campaignData = useProjectCampaigns(id, dateRange);
+  const campaignData = useProjectCampaigns(id, dateRange, project?.revenue);
 
   if (!project && !realData.isLoading) {
     return (
