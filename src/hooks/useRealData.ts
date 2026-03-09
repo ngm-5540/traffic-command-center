@@ -197,7 +197,6 @@ export function useRealDashboardData(dateRange?: DateRange) {
     enabled: !!since,
     retry: 1,
     staleTime: 1000 * 60 * 14,
-    refetchInterval: 1000 * 60 * 15,
     placeholderData: (prev: any) => prev,
   });
 
