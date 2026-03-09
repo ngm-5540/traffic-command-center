@@ -3,8 +3,10 @@ import { format } from "date-fns";
 
 const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
+const TODAY_CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes
+
 /**
- * Returns true if the date range includes today (meaning data should be fetched fresh).
+ * Returns true if the date range includes today.
  */
 export function includestoday(until?: string): boolean {
   if (!until) return true;
@@ -12,15 +14,13 @@ export function includestoday(until?: string): boolean {
 }
 
 /**
- * Try to read cached data for a given provider + key + date range.
- * Returns null if no cache exists, or if maxAgeMs is set and cache is too old.
+ * Read cached data. Returns { data, isStale } or null if no cache.
  */
-export async function readCache(
+async function readCacheEntry(
   provider: string,
   cacheKey: string,
-  dateRange: string,
-  maxAgeMs?: number
-): Promise<any | null> {
+  dateRange: string
+): Promise<{ data: any; isStale: boolean } | null> {
   const { data, error } = await supabase
     .from("api_data_cache")
     .select("data, fetched_at")
@@ -31,19 +31,14 @@ export async function readCache(
 
   if (error || !data) return null;
 
-  // Check staleness if maxAgeMs is provided
-  if (maxAgeMs !== undefined) {
-    const age = Date.now() - new Date(data.fetched_at).getTime();
-    if (age > maxAgeMs) return null;
-  }
-
-  return data.data;
+  const age = Date.now() - new Date(data.fetched_at).getTime();
+  return { data: data.data, isStale: age > TODAY_CACHE_TTL_MS };
 }
 
 /**
  * Write data to cache (upsert).
  */
-export async function writeCache(
+async function writeCache(
   provider: string,
   cacheKey: string,
   dateRange: string,
@@ -63,12 +58,12 @@ export async function writeCache(
     );
 }
 
-const TODAY_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
-
 /**
- * Wrapper: 
- * - Past dates: use cache indefinitely (never re-fetch)
- * - Today: use cache if < 5 min old, otherwise fetch fresh and update cache
+ * Stale-while-revalidate cache:
+ * - Past dates: cache forever, never re-fetch.
+ * - Today: return cached data immediately (even if stale), 
+ *   and if stale (>15min), refresh in background for next call.
+ *   Data is NEVER cleared — old data stays until new data arrives.
  */
 export async function cachedFetch<T>(
   provider: string,
@@ -80,25 +75,32 @@ export async function cachedFetch<T>(
   const dateRange = `${since || ""}_${until || ""}`;
   const isToday = includestoday(until);
 
-  // Always try cache first
-  const cached = await readCache(
-    provider,
-    cacheKey,
-    dateRange,
-    isToday ? TODAY_CACHE_TTL_MS : undefined // past dates: no expiry
-  );
+  const entry = await readCacheEntry(provider, cacheKey, dateRange);
 
-  if (cached !== null) {
-    console.log(`[cache] HIT ${provider}/${cacheKey} ${dateRange}${isToday ? " (today, <5min)" : ""}`);
-    return cached as T;
+  if (entry) {
+    if (!isToday) {
+      // Past dates: always use cache
+      console.log(`[cache] HIT ${provider}/${cacheKey} ${dateRange}`);
+      return entry.data as T;
+    }
+
+    if (!entry.isStale) {
+      // Today, cache is fresh (<15min)
+      console.log(`[cache] HIT ${provider}/${cacheKey} ${dateRange} (today, fresh)`);
+      return entry.data as T;
+    }
+
+    // Today, cache is stale: return stale data NOW, refresh in background
+    console.log(`[cache] STALE ${provider}/${cacheKey} ${dateRange} — background refresh`);
+    fetchFn()
+      .then((result) => writeCache(provider, cacheKey, dateRange, result))
+      .catch((err) => console.warn(`[cache] background refresh failed for ${provider}:`, err));
+    return entry.data as T;
   }
 
-  // Fetch fresh
+  // No cache at all — must fetch (first load)
   console.log(`[cache] MISS ${provider}/${cacheKey} ${dateRange} — fetching...`);
   const result = await fetchFn();
-
-  // Save to cache
   writeCache(provider, cacheKey, dateRange, result).catch(() => {});
-
   return result;
 }
