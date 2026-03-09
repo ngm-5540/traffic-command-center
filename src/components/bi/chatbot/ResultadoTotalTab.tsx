@@ -293,7 +293,7 @@ export function ResultadoTotalTab({ campaigns, popEnabled = false, focusMode = f
     });
   }, []);
 
-  const containerClass = "flex flex-col h-full min-h-0";
+  const containerClass = "flex flex-col flex-1 min-h-0";
 
   const dimensionLabel = dimension === "campaign" ? "Campanha" : dimension === "adset" ? "Adset" : "Ad";
 
