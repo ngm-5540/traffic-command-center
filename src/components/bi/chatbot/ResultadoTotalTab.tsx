@@ -55,8 +55,8 @@ const allColumns: ColumnDef[] = [
   // Financial
   { key: "cost", label: "Custo", group: "financial", format: (v) => formatBRL(v), defaultVisible: true },
   { key: "revenue", label: "Receita", group: "financial", format: (v) => formatBRL(v), defaultVisible: true },
-  { key: "profit", label: "Lucro", group: "financial", format: (v, row) => <span className={row && row.profit >= 0 ? "text-profit" : "text-loss"}>{formatBRL(v)}</span>, defaultVisible: true },
-  { key: "roas", label: "ROAS", group: "financial", format: (v) => <span style={{ color: getRoasColor(v) }}>{formatROAS(v)}</span>, defaultVisible: true },
+  { key: "profit", label: "Lucro", group: "financial", format: (v, row) => <span className={v === 0 ? "text-muted-foreground" : row && row.profit >= 0 ? "text-profit" : "text-loss"}>{formatBRL(v)}</span>, defaultVisible: true },
+  { key: "roas", label: "ROAS", group: "financial", format: (v) => <span style={{ color: v === 0 ? undefined : getRoasColor(v) }} className={v === 0 ? "text-muted-foreground" : undefined}>{formatROAS(v)}</span>, defaultVisible: true },
   { key: "budget", label: "Budget", group: "financial", format: (v) => formatBRL(v), defaultVisible: false },
   { key: "budgetRemaining", label: "Budget Rest.", group: "financial", format: (v) => formatBRL(v), defaultVisible: false },
   // Traffic
