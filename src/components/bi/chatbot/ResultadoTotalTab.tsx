@@ -391,7 +391,7 @@ export function ResultadoTotalTab({ campaigns, popEnabled = false, focusMode = f
       </div>
 
       {/* Table */}
-      <div className="flex-1 overflow-auto relative" style={{ minHeight: 0 }}>
+      <div className="overflow-x-auto">
         <table className="w-full text-xs border-collapse">
           <thead className="sticky top-0 z-30 bg-background">
             {/* Super-header row */}
