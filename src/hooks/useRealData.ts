@@ -176,7 +176,7 @@ export function useRealDashboardData(dateRange?: DateRange) {
         return { ...report, revSharePct };
       } catch (err) {
         console.warn("GAM revenue fetch failed (non-blocking):", err);
-        return { rows: [], revSharePct: 0 };
+        throw err; // Let React Query know this failed so it retries
       }
     },
     enabled: !!since,
