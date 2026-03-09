@@ -191,7 +191,7 @@ Deno.serve(async (req) => {
           }
         );
 
-        const reportData = await reportRes.json();
+        const reportData = await safeJson(reportRes, "GA4 Data API");
         if (reportData.error) {
           return new Response(
             JSON.stringify({ error: `GA4 API: ${reportData.error.message}` }),
