@@ -131,7 +131,13 @@ export function useRealDashboardData(dateRange?: DateRange) {
       await Promise.all(
         metaAdAccountIds.map(async (accountId) => {
           try {
-            const data = await fetchMetaInsights({ adAccountId: accountId, since, until });
+            const data = await cachedFetch(
+              "meta",
+              accountId,
+              since,
+              until,
+              () => fetchMetaInsights({ adAccountId: accountId, since, until })
+            );
             results[accountId] = data;
           } catch (err) {
             console.error(`Meta insights error for ${accountId}:`, err);
