@@ -406,6 +406,20 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Loading / Error indicators */}
+      {realData.isConfigured && realData.isLoading && (
+        <div className="flex items-center gap-2 px-4 sm:px-6 pt-2">
+          <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+          <span className="text-xs text-muted-foreground">Carregando dados reais...</span>
+        </div>
+      )}
+      {realData.errors.length > 0 && (
+        <div className="flex items-center gap-2 px-4 sm:px-6 pt-2">
+          <AlertCircle className="h-3.5 w-3.5 text-loss" />
+          <span className="text-xs text-loss">{realData.errors[0]}</span>
+        </div>
+      )}
+
       {/* Grid */}
       <div className="flex-1 overflow-auto p-4 sm:p-6">
         <div className="grid gap-4 max-w-[1920px] mx-auto" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' }}>
