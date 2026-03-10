@@ -513,12 +513,17 @@ export function useProjectCampaigns(projectId: string | undefined, dateRange?: D
 
     const allAds: AdEntry[] = [];
 
+    console.log("[useProjectCampaigns] adAccountToBm:", JSON.stringify(adAccountToBm));
+    console.log("[useProjectCampaigns] bmTaxRates:", JSON.stringify(bmTaxRates));
+    console.log("[useProjectCampaigns] projectMetaAccounts:", projectMetaAccounts);
+
     for (const accountId of projectMetaAccounts) {
       const accountData = metaData[accountId];
       if (!accountData?.ad_insights) continue;
 
       const bmId = adAccountToBm[accountId];
       const taxPct = bmId ? parseFloat(bmTaxRates[bmId] || "0") : 0;
+      console.log(`[useProjectCampaigns] accountId=${accountId}, bmId=${bmId}, taxPct=${taxPct}`);
 
       for (const ad of accountData.ad_insights) {
         const rawSpend = parseFloat(ad.spend || "0");
