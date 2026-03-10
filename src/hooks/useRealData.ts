@@ -140,6 +140,8 @@ export function useRealDashboardData(dateRange?: DateRange) {
   const ga4PropertyId = config.ga4_property_id;
   const bmTaxRates = config.bm_tax_rates || {};
   const adAccountTaxRates = config.ad_account_tax_rates || {};
+  // Serialize tax config for stable useMemo dependency comparison
+  const taxConfigKey = JSON.stringify({ bmTaxRates, adAccountTaxRates });
 
   // Fetch BMs to build adAccount → BM mapping for tax
   const bmQuery = useMetaBusinesses();
@@ -295,6 +297,7 @@ export function useRealDashboardData(dateRange?: DateRange) {
         const directTax = adAccountTaxRates[accountId];
         const bmId = adAccountToBm[accountId];
         const taxPct = directTax ? parseFloat(directTax) || 0 : (bmId ? parseFloat(bmTaxRates[bmId] || "0") : 0);
+        
 
         for (const ci of accountData.campaign_insights) {
           const rawSpend = parseFloat(ci.spend || "0");
@@ -361,7 +364,7 @@ export function useRealDashboardData(dateRange?: DateRange) {
     }
 
     return result;
-  }, [dbProjects, dbMappings, metaQueries.data, ga4Query.data, gamQuery.data, bmQuery.data, bmTaxRates, adAccountTaxRates, config.usd_brl_rate]);
+  }, [dbProjects, dbMappings, metaQueries.data, ga4Query.data, gamQuery.data, bmQuery.data, taxConfigKey, config.usd_brl_rate]);
 
   const isConfigured = dbProjects.length > 0;
   const isLoading = dbQuery.isLoading || metaQueries.isLoading || gamQuery.isLoading || ga4Query.isLoading;
@@ -410,6 +413,7 @@ export function useProjectCampaigns(projectId: string | undefined, dateRange?: D
   const bmTaxRates = config.bm_tax_rates || {};
   const adAccountTaxRates = config.ad_account_tax_rates || {};
   const usdBrlRate = parseFloat(config.usd_brl_rate || "5.1") || 5.1;
+  const taxConfigKey = JSON.stringify({ bmTaxRates, adAccountTaxRates });
 
   const since = dateRange?.from ? formatDate(dateRange.from) : undefined;
   const until = dateRange?.to ? formatDate(dateRange.to) : since;
@@ -747,7 +751,7 @@ export function useProjectCampaigns(projectId: string | undefined, dateRange?: D
     }
 
     return result;
-  }, [metaQuery.data, gamAdRevenueMap, projectMetaAccounts, adAccountToBm, bmTaxRates, adAccountTaxRates]);
+  }, [metaQuery.data, gamAdRevenueMap, projectMetaAccounts, adAccountToBm, taxConfigKey]);
 
   const refetchAll = useCallback(() => {
     dbQuery.refetch();
