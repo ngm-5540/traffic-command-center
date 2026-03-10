@@ -385,6 +385,7 @@ export function useRealDashboardData(dateRange?: DateRange) {
 export function useProjectCampaigns(projectId: string | undefined, dateRange?: DateRange) {
   const config = getStoredConfig();
   const bmTaxRates = config.bm_tax_rates || {};
+  const adAccountTaxRates = config.ad_account_tax_rates || {};
   const usdBrlRate = parseFloat(config.usd_brl_rate || "5.1") || 5.1;
 
   const since = dateRange?.from ? formatDate(dateRange.from) : undefined;
