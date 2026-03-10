@@ -119,6 +119,7 @@ export function useRealDashboardData(dateRange?: DateRange) {
   const config = getStoredConfig();
   const ga4PropertyId = config.ga4_property_id;
   const bmTaxRates = config.bm_tax_rates || {};
+  const adAccountTaxRates = config.ad_account_tax_rates || {};
 
   // Fetch BMs to build adAccount → BM mapping for tax
   const bmQuery = useMetaBusinesses();
