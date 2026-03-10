@@ -727,7 +727,7 @@ export function useProjectCampaigns(projectId: string | undefined, dateRange?: D
     }
 
     return result;
-  }, [metaQuery.data, gamAdRevenueMap, projectMetaAccounts, adAccountToBm, bmTaxRates]);
+  }, [metaQuery.data, gamAdRevenueMap, projectMetaAccounts, adAccountToBm, bmTaxRates, adAccountTaxRates]);
 
   const refetchAll = useCallback(() => {
     dbQuery.refetch();
