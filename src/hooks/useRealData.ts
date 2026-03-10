@@ -119,6 +119,7 @@ export function useRealDashboardData(dateRange?: DateRange) {
   const config = getStoredConfig();
   const ga4PropertyId = config.ga4_property_id;
   const bmTaxRates = config.bm_tax_rates || {};
+  const adAccountTaxRates = config.ad_account_tax_rates || {};
 
   // Fetch BMs to build adAccount → BM mapping for tax
   const bmQuery = useMetaBusinesses();
@@ -270,8 +271,10 @@ export function useRealDashboardData(dateRange?: DateRange) {
         const accountData = metaData[accountId];
         if (!accountData?.campaign_insights) continue;
 
+        // Use direct ad_account tax mapping first, then BM mapping as fallback
+        const directTax = adAccountTaxRates[accountId];
         const bmId = adAccountToBm[accountId];
-        const taxPct = bmId ? parseFloat(bmTaxRates[bmId] || "0") : 0;
+        const taxPct = directTax ? parseFloat(directTax) || 0 : (bmId ? parseFloat(bmTaxRates[bmId] || "0") : 0);
 
         for (const ci of accountData.campaign_insights) {
           const rawSpend = parseFloat(ci.spend || "0");
@@ -338,7 +341,7 @@ export function useRealDashboardData(dateRange?: DateRange) {
     }
 
     return result;
-  }, [dbProjects, dbMappings, metaQueries.data, ga4Query.data, gamQuery.data, bmQuery.data, bmTaxRates, config.usd_brl_rate]);
+  }, [dbProjects, dbMappings, metaQueries.data, ga4Query.data, gamQuery.data, bmQuery.data, bmTaxRates, adAccountTaxRates, config.usd_brl_rate]);
 
   const isConfigured = dbProjects.length > 0;
   const isLoading = dbQuery.isLoading || metaQueries.isLoading || gamQuery.isLoading || ga4Query.isLoading;
@@ -724,7 +727,7 @@ export function useProjectCampaigns(projectId: string | undefined, dateRange?: D
     }
 
     return result;
-  }, [metaQuery.data, gamAdRevenueMap, projectMetaAccounts, adAccountToBm, bmTaxRates]);
+  }, [metaQuery.data, gamAdRevenueMap, projectMetaAccounts, adAccountToBm, bmTaxRates, adAccountTaxRates]);
 
   const refetchAll = useCallback(() => {
     dbQuery.refetch();
