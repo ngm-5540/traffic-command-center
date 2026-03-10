@@ -37,6 +37,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
+          <p className="text-xs font-mono text-muted-foreground tracking-widest uppercase mb-1">Cortex PubOps</p>
           <CardTitle className="text-xl flex items-center justify-center gap-2">
             <LogIn className="h-5 w-5" />
             {isSignUp ? "Criar conta" : "Entrar"}
