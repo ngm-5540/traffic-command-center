@@ -12,6 +12,7 @@ interface IntegrationConfig {
   ga4_property_id?: string;
   usd_brl_rate?: string;
   bm_tax_rates?: Record<string, string>; // bmId -> tax %
+  ad_account_tax_rates?: Record<string, string>; // adAccountId -> tax %
 }
 
 function getStoredConfig(): IntegrationConfig {
