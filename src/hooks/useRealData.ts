@@ -413,6 +413,7 @@ export function useProjectCampaigns(projectId: string | undefined, dateRange?: D
   const bmTaxRates = config.bm_tax_rates || {};
   const adAccountTaxRates = config.ad_account_tax_rates || {};
   const usdBrlRate = parseFloat(config.usd_brl_rate || "5.1") || 5.1;
+  const taxConfigKey = JSON.stringify({ bmTaxRates, adAccountTaxRates });
 
   const since = dateRange?.from ? formatDate(dateRange.from) : undefined;
   const until = dateRange?.to ? formatDate(dateRange.to) : since;
