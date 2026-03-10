@@ -329,7 +329,17 @@ export default function SettingsPage() {
                           value={config.bm_tax_rates?.[bm.id] || ""}
                           onChange={(e) => {
                             const current = config.bm_tax_rates || {};
-                            updateConfig({ bm_tax_rates: { ...current, [bm.id]: e.target.value } });
+                            const newBmTaxRates = { ...current, [bm.id]: e.target.value };
+                            const adAccountTaxRates: Record<string, string> = {};
+                            if (metaBusinesses.data) {
+                              for (const b of metaBusinesses.data) {
+                                const rate = b.id === bm.id ? e.target.value : (newBmTaxRates[b.id] || "0");
+                                for (const acc of b.ad_accounts) {
+                                  adAccountTaxRates[acc.id] = rate;
+                                }
+                              }
+                            }
+                            updateConfig({ bm_tax_rates: newBmTaxRates, ad_account_tax_rates: adAccountTaxRates });
                           }}
                           className={inputClass + " w-16 h-7 text-[11px]"}
                           placeholder="0%"
