@@ -12,6 +12,7 @@ interface IntegrationConfig {
   ga4_property_id?: string;
   usd_brl_rate?: string;
   bm_tax_rates?: Record<string, string>; // bmId -> tax %
+  ad_account_tax_rates?: Record<string, string>; // adAccountId -> tax %
 }
 
 function getStoredConfig(): IntegrationConfig {
@@ -384,6 +385,7 @@ export function useRealDashboardData(dateRange?: DateRange) {
 export function useProjectCampaigns(projectId: string | undefined, dateRange?: DateRange) {
   const config = getStoredConfig();
   const bmTaxRates = config.bm_tax_rates || {};
+  const adAccountTaxRates = config.ad_account_tax_rates || {};
   const usdBrlRate = parseFloat(config.usd_brl_rate || "5.1") || 5.1;
 
   const since = dateRange?.from ? formatDate(dateRange.from) : undefined;
@@ -513,12 +515,22 @@ export function useProjectCampaigns(projectId: string | undefined, dateRange?: D
 
     const allAds: AdEntry[] = [];
 
+    // Helper to get tax % for a given ad account
+    const getTaxPct = (accountId: string): number => {
+      // Primary: direct ad_account → tax mapping (stored in localStorage)
+      if (adAccountTaxRates[accountId]) {
+        return parseFloat(adAccountTaxRates[accountId]) || 0;
+      }
+      // Fallback: BM query mapping
+      const bmId = adAccountToBm[accountId];
+      return bmId ? parseFloat(bmTaxRates[bmId] || "0") : 0;
+    };
+
     for (const accountId of projectMetaAccounts) {
       const accountData = metaData[accountId];
       if (!accountData?.ad_insights) continue;
 
-      const bmId = adAccountToBm[accountId];
-      const taxPct = bmId ? parseFloat(bmTaxRates[bmId] || "0") : 0;
+      const taxPct = getTaxPct(accountId);
 
       for (const ad of accountData.ad_insights) {
         const rawSpend = parseFloat(ad.spend || "0");
@@ -586,8 +598,7 @@ export function useProjectCampaigns(projectId: string | undefined, dateRange?: D
       for (const accountId of projectMetaAccounts) {
         const accountData = metaData[accountId];
         if (!accountData?.campaign_insights) continue;
-        const bmId = adAccountToBm[accountId];
-        const taxPct = bmId ? parseFloat(bmTaxRates[bmId] || "0") : 0;
+        const taxPct = getTaxPct(accountId);
 
         for (const ci of accountData.campaign_insights) {
           const rawSpend = parseFloat(ci.spend || "0");
