@@ -295,6 +295,7 @@ export function useRealDashboardData(dateRange?: DateRange) {
         const directTax = adAccountTaxRates[accountId];
         const bmId = adAccountToBm[accountId];
         const taxPct = directTax ? parseFloat(directTax) || 0 : (bmId ? parseFloat(bmTaxRates[bmId] || "0") : 0);
+        console.log(`[Dashboard Tax] accountId=${accountId}, directTax=${directTax}, bmId=${bmId}, taxPct=${taxPct}, adAccountTaxRates keys=`, Object.keys(adAccountTaxRates));
 
         for (const ci of accountData.campaign_insights) {
           const rawSpend = parseFloat(ci.spend || "0");
