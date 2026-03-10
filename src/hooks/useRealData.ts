@@ -24,19 +24,39 @@ function getStoredConfig(): IntegrationConfig {
   }
 }
 
+// Custom event name for cross-component reactivity
+const CONFIG_CHANGE_EVENT = "integration_config_changed";
+
 export function saveIntegrationConfig(config: IntegrationConfig) {
   localStorage.setItem("integration_config", JSON.stringify(config));
+  // Dispatch custom event so other hooks in the same tab re-read
+  window.dispatchEvent(new CustomEvent(CONFIG_CHANGE_EVENT));
+}
+
+/** Reactive hook: re-reads localStorage whenever config is saved anywhere */
+export function useReactiveConfig(): IntegrationConfig {
+  const [config, setConfig] = useState<IntegrationConfig>(getStoredConfig);
+
+  useEffect(() => {
+    const handler = () => setConfig(getStoredConfig());
+    window.addEventListener(CONFIG_CHANGE_EVENT, handler);
+    window.addEventListener("storage", handler); // cross-tab
+    return () => {
+      window.removeEventListener(CONFIG_CHANGE_EVENT, handler);
+      window.removeEventListener("storage", handler);
+    };
+  }, []);
+
+  return config;
 }
 
 export function useIntegrationConfig() {
-  const [config, setConfig] = useState<IntegrationConfig>(getStoredConfig);
+  const config = useReactiveConfig();
 
   const update = useCallback((patch: Partial<IntegrationConfig>) => {
-    setConfig((prev) => {
-      const next = { ...prev, ...patch };
-      saveIntegrationConfig(next);
-      return next;
-    });
+    const current = getStoredConfig();
+    const next = { ...current, ...patch };
+    saveIntegrationConfig(next);
   }, []);
 
   return { config, update };
@@ -116,7 +136,7 @@ function formatDate(d: Date): string {
 }
 
 export function useRealDashboardData(dateRange?: DateRange) {
-  const config = getStoredConfig();
+  const config = useReactiveConfig();
   const ga4PropertyId = config.ga4_property_id;
   const bmTaxRates = config.bm_tax_rates || {};
   const adAccountTaxRates = config.ad_account_tax_rates || {};
@@ -386,7 +406,7 @@ export function useRealDashboardData(dateRange?: DateRange) {
 // ── Project Detail: campaign-level data for a specific project ──
 
 export function useProjectCampaigns(projectId: string | undefined, dateRange?: DateRange) {
-  const config = getStoredConfig();
+  const config = useReactiveConfig();
   const bmTaxRates = config.bm_tax_rates || {};
   const adAccountTaxRates = config.ad_account_tax_rates || {};
   const usdBrlRate = parseFloat(config.usd_brl_rate || "5.1") || 5.1;
