@@ -33,8 +33,8 @@ export function AppSidebar() {
           </div>
           {!collapsed && (
             <div>
-              <h2 className="text-sm font-semibold text-foreground">Command Center</h2>
-              <p className="text-[10px] text-muted-foreground">Ad Arbitrage</p>
+              <h2 className="text-sm font-semibold text-foreground">Cortex PubOps</h2>
+              <p className="text-[10px] text-muted-foreground">Command Center</p>
             </div>
           )}
         </div>
