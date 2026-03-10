@@ -136,7 +136,7 @@ function formatDate(d: Date): string {
 }
 
 export function useRealDashboardData(dateRange?: DateRange) {
-  const config = getStoredConfig();
+  const config = useReactiveConfig();
   const ga4PropertyId = config.ga4_property_id;
   const bmTaxRates = config.bm_tax_rates || {};
   const adAccountTaxRates = config.ad_account_tax_rates || {};
