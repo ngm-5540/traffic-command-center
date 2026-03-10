@@ -53,6 +53,24 @@ export default function SettingsPage() {
     })();
   }, []);
 
+  // Sync ad_account_tax_rates whenever BM data or bm_tax_rates change
+  useEffect(() => {
+    if (!metaBusinesses.data || metaBusinesses.data.length === 0) return;
+    const bmRates = config.bm_tax_rates || {};
+    const adAccountTaxRates: Record<string, string> = {};
+    for (const bm of metaBusinesses.data) {
+      const rate = bmRates[bm.id] || "0";
+      for (const acc of bm.ad_accounts) {
+        adAccountTaxRates[acc.id] = rate;
+      }
+    }
+    const current = JSON.stringify(config.ad_account_tax_rates || {});
+    const next = JSON.stringify(adAccountTaxRates);
+    if (current !== next) {
+      updateConfig({ ad_account_tax_rates: adAccountTaxRates });
+    }
+  }, [metaBusinesses.data, config.bm_tax_rates]);
+
   const handleSave = async () => {
     setSaving(true);
     try {
