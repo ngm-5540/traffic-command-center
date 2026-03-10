@@ -406,7 +406,7 @@ export function useRealDashboardData(dateRange?: DateRange) {
 // ── Project Detail: campaign-level data for a specific project ──
 
 export function useProjectCampaigns(projectId: string | undefined, dateRange?: DateRange) {
-  const config = getStoredConfig();
+  const config = useReactiveConfig();
   const bmTaxRates = config.bm_tax_rates || {};
   const adAccountTaxRates = config.ad_account_tax_rates || {};
   const usdBrlRate = parseFloat(config.usd_brl_rate || "5.1") || 5.1;
