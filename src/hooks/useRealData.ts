@@ -140,6 +140,7 @@ export function useRealDashboardData(dateRange?: DateRange) {
   const ga4PropertyId = config.ga4_property_id;
   const bmTaxRates = config.bm_tax_rates || {};
   const adAccountTaxRates = config.ad_account_tax_rates || {};
+  console.log("[useRealDashboardData] config tax data:", { bmTaxRates, adAccountTaxRates });
 
   // Fetch BMs to build adAccount → BM mapping for tax
   const bmQuery = useMetaBusinesses();
