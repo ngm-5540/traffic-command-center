@@ -271,8 +271,10 @@ export function useRealDashboardData(dateRange?: DateRange) {
         const accountData = metaData[accountId];
         if (!accountData?.campaign_insights) continue;
 
+        // Use direct ad_account tax mapping first, then BM mapping as fallback
+        const directTax = adAccountTaxRates[accountId];
         const bmId = adAccountToBm[accountId];
-        const taxPct = bmId ? parseFloat(bmTaxRates[bmId] || "0") : 0;
+        const taxPct = directTax ? parseFloat(directTax) || 0 : (bmId ? parseFloat(bmTaxRates[bmId] || "0") : 0);
 
         for (const ci of accountData.campaign_insights) {
           const rawSpend = parseFloat(ci.spend || "0");
