@@ -598,8 +598,7 @@ export function useProjectCampaigns(projectId: string | undefined, dateRange?: D
       for (const accountId of projectMetaAccounts) {
         const accountData = metaData[accountId];
         if (!accountData?.campaign_insights) continue;
-        const bmId = adAccountToBm[accountId];
-        const taxPct = bmId ? parseFloat(bmTaxRates[bmId] || "0") : 0;
+        const taxPct = getTaxPct(accountId);
 
         for (const ci of accountData.campaign_insights) {
           const rawSpend = parseFloat(ci.spend || "0");
