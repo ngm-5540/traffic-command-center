@@ -39,16 +39,25 @@ const presets: { label: string; getValue: () => DateRange }[] = [
   { label: "Mês passado", getValue: () => { const now = new Date(); return { from: new Date(now.getFullYear(), now.getMonth() - 1, 1), to: new Date(now.getFullYear(), now.getMonth(), 0) }; } },
 ];
 
+function isNewSession(): boolean {
+  const KEY = "dashboard_session_active";
+  if (sessionStorage.getItem(KEY)) return false;
+  sessionStorage.setItem(KEY, "1");
+  return true;
+}
+
 function loadSavedFilters() {
   try {
     const raw = localStorage.getItem("dashboard_filters");
     if (!raw) return null;
     const parsed = JSON.parse(raw);
+    const newSession = isNewSession();
     return {
       vertical: parsed.vertical as Vertical,
       sortKey: parsed.sortKey as SortKey,
       sortDir: parsed.sortDir as SortDir,
-      dateRange: parsed.dateRange
+      // New session → always default to today; same session (F5/navigation) → restore saved
+      dateRange: !newSession && parsed.dateRange
         ? {
             from: new Date(parsed.dateRange.from),
             to: parsed.dateRange.to ? new Date(parsed.dateRange.to) : undefined,

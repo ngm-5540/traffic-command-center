@@ -28,6 +28,8 @@ const presets: { label: string; getValue: () => DateRange }[] = [
 
 function loadSavedDateRange(): DateRange | undefined {
   try {
+    // Only restore saved date if within the same session (not a fresh browser open)
+    if (!sessionStorage.getItem("dashboard_session_active")) return undefined;
     const raw = localStorage.getItem("dashboard_filters");
     if (!raw) return undefined;
     const parsed = JSON.parse(raw);
