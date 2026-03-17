@@ -65,6 +65,7 @@ export function ChatbotBi({ project, campaigns, isLoading, dateRange, onDateRang
   // Use real project data for KPIs
   const totalCost = project?.spend || 0;
   const totalRevenue = project?.revenue || 0;
+  const totalRevenueUsd = project?.revenueUsd || 0;
   const totalProfit = project?.profit || 0;
   const avgRoas = project?.roas || 0;
   const totalSessions = project?.sessions || 0;
