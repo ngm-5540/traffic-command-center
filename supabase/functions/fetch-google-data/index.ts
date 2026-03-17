@@ -259,22 +259,9 @@ Deno.serve(async (req) => {
         dateRange = { relative: "THIS_MONTH" };
       }
 
-      // Build filters — only fieldFilter is supported (no filterList/OR in this API version)
-      // KEY_VALUES_NAME OR filtering will be done client-side
-      const countryIds = body.country_ids || ["2840", "2124"];
-
+      // No server-side COUNTRY_ID filter — non-US/CA revenue is negligible (~$0.09)
+      // and the filter was causing a discrepancy vs GAM UI totals.
       const filters: any[] = [];
-
-      // COUNTRY_ID filter — IN
-      if (countryIds.length > 0) {
-        filters.push({
-          fieldFilter: {
-            field: { dimension: "COUNTRY_ID" },
-            operation: "IN",
-            values: countryIds.map((id: string) => ({ intValue: id })),
-          },
-        });
-      }
 
       // Dimensions & Metrics matching user's GAM UI configuration
       const dimensions = body.dimensions || [
