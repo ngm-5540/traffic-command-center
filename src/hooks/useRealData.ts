@@ -330,6 +330,7 @@ export function useRealDashboardData(dateRange?: DateRange) {
         status: "ativo",
         type: proj.type,
         revenue: 0,
+        revenueUsd: 0,
         spend: totalSpend,
         profit: 0,
         roas: 0,
