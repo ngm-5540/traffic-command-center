@@ -261,7 +261,7 @@ export function ChatbotBi({ project, campaigns, isLoading, dateRange, onDateRang
                     )}
                   </div>
                   <p
-                    className={cn("font-mono text-lg font-bold", kpi.className || (!kpi.color ? "text-foreground" : undefined))}
+                    className={cn("font-mono text-lg font-bold", kpi.className || (!kpi.color ? "text-muted-foreground" : undefined))}
                     style={kpi.color ? { color: kpi.color } : undefined}
                     title={kpi.fullValue}
                   >
