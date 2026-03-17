@@ -9,6 +9,7 @@ export interface DashboardProject {
   status: ProjectStatus;
   type: string;
   revenue: number;
+  revenueUsd: number; // Raw GAM revenue in USD (before rev share)
   spend: number;
   profit: number;
   roas: number;
