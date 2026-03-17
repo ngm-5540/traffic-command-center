@@ -48,7 +48,7 @@ export function formatDuration(seconds: number): string {
  * > 0 = green, < 0 = red, 0 = neutral (white).
  */
 export function getRoasColor(roas: number): string {
-  if (roas == null || isNaN(roas) || roas === 0) return `hsl(0, 0%, 100%)`;
+  if (roas == null || isNaN(roas) || roas === 0) return "";
   if (roas > 0) return `hsl(142, 71%, 45%)`;
   return `hsl(0, 72%, 51%)`;
 }
@@ -67,6 +67,6 @@ export function getRoasCardClass(roas: number): string {
  * Returns profit (green) or loss (red) color for monetary values.
  */
 export function getProfitColor(value: number): string {
-  if (value == null || isNaN(value)) return `hsl(0, 0%, 60%)`;
-  return value >= 0 ? `hsl(142, 71%, 45%)` : `hsl(0, 72%, 51%)`;
+  if (value == null || isNaN(value) || value === 0) return "";
+  return value > 0 ? `hsl(142, 71%, 45%)` : `hsl(0, 72%, 51%)`;
 }
