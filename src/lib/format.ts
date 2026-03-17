@@ -12,6 +12,15 @@ export function formatBRL(value: number): string {
   });
 }
 
+export function formatUSD(value: number): string {
+  if (value == null || isNaN(value)) return "$ 0.00";
+  return value.toLocaleString("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+  });
+}
+
 export function formatBRLFull(value: number): string {
   if (value == null || isNaN(value)) return "R$ 0,00";
   return value.toLocaleString("pt-BR", {

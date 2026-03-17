@@ -10,7 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { formatBRL, formatBRLFull, formatROAS, getRoasColor } from "@/lib/format";
+import { formatBRL, formatBRLFull, formatROAS, getRoasColor, formatUSD } from "@/lib/format";
 import { ResultadoTotalTab } from "./chatbot/ResultadoTotalTab";
 import { AutomacaoTab } from "./chatbot/AutomacaoTab";
 import { BroadcastTab } from "./chatbot/BroadcastTab";
@@ -65,6 +65,7 @@ export function ChatbotBi({ project, campaigns, isLoading, dateRange, onDateRang
   // Use real project data for KPIs
   const totalCost = project?.spend || 0;
   const totalRevenue = project?.revenue || 0;
+  const totalRevenueUsd = project?.revenueUsd || 0;
   const totalProfit = project?.profit || 0;
   const avgRoas = project?.roas || 0;
   const totalSessions = project?.sessions || 0;
@@ -89,7 +90,7 @@ export function ChatbotBi({ project, campaigns, isLoading, dateRange, onDateRang
     { label: "ROAS", value: formatROAS(avgRoas), color: getRoasColor(avgRoas), className: avgRoas === 0 ? "text-muted-foreground" : undefined, tooltip: "Retorno médio sobre investimento", current: avgRoas, previous: previousKpis.avgRoas },
     { label: "LUCRO", value: formatBRL(totalProfit), fullValue: formatBRLFull(totalProfit), className: totalProfit === 0 ? "text-muted-foreground" : totalProfit >= 0 ? "text-profit" : "text-loss", tooltip: "Receita total menos custo total", current: totalProfit, previous: previousKpis.totalProfit },
     { label: "CUSTO", value: formatBRL(totalCost), fullValue: formatBRLFull(totalCost), tooltip: "Investimento total em ads", current: totalCost, previous: previousKpis.totalCost, invertColor: true },
-    { label: "RECEITA", value: formatBRL(totalRevenue), fullValue: formatBRLFull(totalRevenue), tooltip: "Receita total gerada", current: totalRevenue, previous: previousKpis.totalRevenue },
+    { label: "RECEITA", value: formatBRL(totalRevenue), fullValue: formatBRLFull(totalRevenue), tooltip: `Receita total gerada${totalRevenueUsd > 0 ? ` · Bruto GAM: ${formatUSD(totalRevenueUsd)}` : ""}`, current: totalRevenue, previous: previousKpis.totalRevenue },
     { label: "RPS", value: formatBRL(avgRps), fullValue: formatBRLFull(avgRps), tooltip: "Receita por sessão média", current: avgRps, previous: previousKpis.avgRps },
     { label: "C. LEAD", value: formatBRL(avgCostPerLead), fullValue: formatBRLFull(avgCostPerLead), tooltip: "Custo médio por lead", current: avgCostPerLead, previous: previousKpis.avgCostPerLead, invertColor: true },
   ];

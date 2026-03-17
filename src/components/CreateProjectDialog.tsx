@@ -41,6 +41,7 @@ export function CreateProjectDialog({ open, onOpenChange, onCreateProject, defau
       status: "ativo",
       type: vertical,
       revenue: 0,
+      revenueUsd: 0,
       spend: 0,
       profit: 0,
       roas: 0,

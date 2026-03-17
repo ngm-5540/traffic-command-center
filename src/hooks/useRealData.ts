@@ -262,7 +262,7 @@ export function useRealDashboardData(dateRange?: DateRange) {
     }
 
     // GAM total revenue from utm_source=fb_vc rows
-    let gamTotalRevenue = 0;
+    let gamTotalRevenueUsd = 0; // raw USD from API
     const revSharePct = gamQuery.data?.revSharePct || 0;
     const usdBrlRate = parseFloat(config.usd_brl_rate || "5.1") || 5.1;
     if (gamQuery.data?.rows) {
@@ -271,12 +271,12 @@ export function useRealDashboardData(dateRange?: DateRange) {
         if (!kvName.includes("utm_source=fb_vc")) continue;
         const primaryValues = row.metricValueGroups?.[0]?.primaryValues;
         if (primaryValues) {
-          gamTotalRevenue += parseFloat(primaryValues[4]?.doubleValue || primaryValues[4]?.intValue || "0");
+          gamTotalRevenueUsd += parseFloat(primaryValues[4]?.doubleValue || primaryValues[4]?.intValue || "0");
         }
       }
-      if (revSharePct > 0) gamTotalRevenue = gamTotalRevenue * (1 - revSharePct / 100);
-      gamTotalRevenue = gamTotalRevenue * usdBrlRate;
     }
+    const gamTotalRevenueUsdAfterRevShare = revSharePct > 0 ? gamTotalRevenueUsd * (1 - revSharePct / 100) : gamTotalRevenueUsd;
+    const gamTotalRevenue = gamTotalRevenueUsdAfterRevShare * usdBrlRate;
 
     const result: DashboardProject[] = [];
 
@@ -330,6 +330,7 @@ export function useRealDashboardData(dateRange?: DateRange) {
         status: "ativo",
         type: proj.type,
         revenue: 0,
+        revenueUsd: 0,
         spend: totalSpend,
         profit: 0,
         roas: 0,
@@ -344,6 +345,7 @@ export function useRealDashboardData(dateRange?: DateRange) {
       for (const p of result) {
         const share = allSpend > 0 ? p.spend / allSpend : 1 / result.length;
         p.revenue = gamTotalRevenue * share;
+        p.revenueUsd = gamTotalRevenueUsd * share;
         p.profit = p.revenue - p.spend;
         p.roas = p.spend > 0 ? (p.revenue - p.spend) / p.spend : 0;
       }
