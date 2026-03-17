@@ -90,7 +90,7 @@ export function ChatbotBi({ project, campaigns, isLoading, dateRange, onDateRang
     { label: "ROAS", value: formatROAS(avgRoas), color: getRoasColor(avgRoas), className: avgRoas === 0 ? "text-muted-foreground" : undefined, tooltip: "Retorno médio sobre investimento", current: avgRoas, previous: previousKpis.avgRoas },
     { label: "LUCRO", value: formatBRL(totalProfit), fullValue: formatBRLFull(totalProfit), className: totalProfit === 0 ? "text-muted-foreground" : totalProfit >= 0 ? "text-profit" : "text-loss", tooltip: "Receita total menos custo total", current: totalProfit, previous: previousKpis.totalProfit },
     { label: "CUSTO", value: formatBRL(totalCost), fullValue: formatBRLFull(totalCost), tooltip: "Investimento total em ads", current: totalCost, previous: previousKpis.totalCost, invertColor: true },
-    { label: "RECEITA", value: formatBRL(totalRevenue), fullValue: formatBRLFull(totalRevenue), tooltip: "Receita total gerada", current: totalRevenue, previous: previousKpis.totalRevenue },
+    { label: "RECEITA", value: formatBRL(totalRevenue), fullValue: formatBRLFull(totalRevenue), tooltip: `Receita total gerada${totalRevenueUsd > 0 ? ` · Bruto GAM: ${formatUSD(totalRevenueUsd)}` : ""}`, current: totalRevenue, previous: previousKpis.totalRevenue },
     { label: "RPS", value: formatBRL(avgRps), fullValue: formatBRLFull(avgRps), tooltip: "Receita por sessão média", current: avgRps, previous: previousKpis.avgRps },
     { label: "C. LEAD", value: formatBRL(avgCostPerLead), fullValue: formatBRLFull(avgCostPerLead), tooltip: "Custo médio por lead", current: avgCostPerLead, previous: previousKpis.avgCostPerLead, invertColor: true },
   ];
