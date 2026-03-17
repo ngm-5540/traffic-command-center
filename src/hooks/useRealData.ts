@@ -345,6 +345,7 @@ export function useRealDashboardData(dateRange?: DateRange) {
       for (const p of result) {
         const share = allSpend > 0 ? p.spend / allSpend : 1 / result.length;
         p.revenue = gamTotalRevenue * share;
+        p.revenueUsd = gamTotalRevenueUsd * share;
         p.profit = p.revenue - p.spend;
         p.roas = p.spend > 0 ? (p.revenue - p.spend) / p.spend : 0;
       }
