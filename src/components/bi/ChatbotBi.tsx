@@ -10,7 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { formatBRL, formatBRLFull, formatROAS, getRoasColor } from "@/lib/format";
+import { formatBRL, formatBRLFull, formatROAS, getRoasColor, formatUSD } from "@/lib/format";
 import { ResultadoTotalTab } from "./chatbot/ResultadoTotalTab";
 import { AutomacaoTab } from "./chatbot/AutomacaoTab";
 import { BroadcastTab } from "./chatbot/BroadcastTab";
