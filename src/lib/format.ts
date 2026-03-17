@@ -48,7 +48,7 @@ export function formatDuration(seconds: number): string {
  * > 0 = green, < 0 = red, 0 = neutral (white).
  */
 export function getRoasColor(roas: number): string {
-  if (roas == null || isNaN(roas) || roas === 0) return `hsl(0, 0%, 100%)`;
+  if (roas == null || isNaN(roas) || roas === 0) return "";
   if (roas > 0) return `hsl(142, 71%, 45%)`;
   return `hsl(0, 72%, 51%)`;
 }
